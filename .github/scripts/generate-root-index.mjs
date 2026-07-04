@@ -1,6 +1,6 @@
 /**
  * 为 GitHub Pages 根目录生成 index.html
- * 自动扫描 packages/*/dist/index.html，列出所有可用的组件 demo
+ * 自动扫描各 package 的 dist/index.html，列出所有可用的组件 demo
  */
 import { existsSync, readdirSync, writeFileSync } from 'fs'
 import { dirname, resolve } from 'path'
