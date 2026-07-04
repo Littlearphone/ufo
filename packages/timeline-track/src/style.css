@@ -187,56 +187,69 @@ h1 {
   color: #e53935;
 }
 
-/* ── 代码框 ── */
-.code-toggle-bar {
+/* ── 演示视图切换段 ── */
+.demo-seg-bar {
   display: flex;
-  justify-content: flex-end;
+  align-items: center;
+  gap: 4px;
   flex-shrink: 0;
-  margin-top: 6px;
+  margin-bottom: 6px;
 }
 
-.code-toggle-bar button {
+.demo-seg {
   font-size: 11px;
-  padding: 3px 14px;
+  font-weight: 600;
+  padding: 4px 12px;
   border-radius: 6px;
   border: 1px solid #ccd4dc;
-  background: #fff;
+  background: #f6f8fa;
+  color: #5f6b7a;
   cursor: pointer;
   font-family: inherit;
-  transition: background .12s, color .12s, border-color .12s;
+  transition: all .12s;
   user-select: none;
 }
 
-.code-toggle-bar button:hover {
-  background: #f0f2f5;
-  border-color: #a0aab4;
+.demo-seg:hover {
+  background: #eef0f2;
+  color: #37474f;
 }
 
-.code-toggle-bar button.active {
+.demo-seg.active {
   background: #4285f4;
   color: #fff;
   border-color: #4285f4;
 }
 
-.code-toggle-bar button.active:hover {
-  background: #3367d6;
+.demo-seg-label {
+  font-size: 10px;
+  color: #90a4ae;
+  margin-left: auto;
+  white-space: nowrap;
+  user-select: none;
 }
 
-.code-block {
-  display: none;
-  flex-shrink: 0;
+/* 演示/源码视图共用容器 */
+.demo-view-wrap {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── 源码视图（替换演示区域） ── */
+.code-view {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
   border: 1px solid #37474f;
   border-radius: 8px;
   background: #1e272e;
-  margin-top: 8px;
   overflow: hidden;
 }
 
-.code-block.open {
-  display: block;
-}
-
-.code-block-header {
+.code-view-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -246,9 +259,10 @@ h1 {
   font-size: 11px;
   color: #b0bec5;
   user-select: none;
+  flex-shrink: 0;
 }
 
-.code-block-header button {
+.code-view-header button {
   font-size: 10px;
   padding: 2px 10px;
   border-radius: 4px;
@@ -260,22 +274,23 @@ h1 {
   transition: all .12s;
 }
 
-.code-block-header button:hover {
+.code-view-header button:hover {
   background: #37474f;
   color: #eceff1;
 }
 
-.code-block-header button.copied {
+.code-view-header button.copied {
   background: #2e7d32;
   color: #fff;
   border-color: #2e7d32;
 }
 
-.code-block pre {
-  margin: 0;
+.code-view-body {
+  flex: 1;
+  min-height: 0;
+  margin: 0 !important;
   padding: 12px 14px;
   overflow: auto;
-  max-height: 280px;
   font-family: "SF Mono", "Cascadia Code", Consolas, monospace;
   font-size: 11px;
   line-height: 1.55;
@@ -283,47 +298,10 @@ h1 {
   tab-size: 2;
 }
 
-.code-block code {
+.code-view-body code {
   background: none !important;
   padding: 0 !important;
   color: inherit !important;
-  font-size: inherit !important;
-}
-
-/* ── 代码 HTML/JS 标签切换 ── */
-.code-tabs {
-  display: flex;
-  gap: 2px;
-}
-.code-tab {
-  font-size: 10px;
-  padding: 2px 10px;
-  border-radius: 4px;
-  border: 1px solid transparent;
-  background: transparent;
-  color: #78909c;
-  cursor: pointer;
-  font-family: inherit;
-  transition: all .12s;
-}
-.code-tab:hover {
-  color: #eceff1;
-  background: rgba(255,255,255,.06);
-}
-.code-tab.active {
-  color: #a5d6ff;
-  background: rgba(255,255,255,.1);
-  border-color: #546e7a;
-}
-.code-pane {
-  display: none;
-}
-.code-pane.active {
-  display: block;
-}
-.code-pane code {
-  background: none !important;
-  padding: 0 !important;
   font-size: inherit !important;
 }
 
