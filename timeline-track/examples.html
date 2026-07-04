@@ -1,0 +1,1332 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>时间线轨道组件 — 多标签测试页</title>
+  <script src="TimelineTrack.js"></script>
+  <style>
+      *, *::before, *::after {
+          box-sizing: border-box;
+          margin: 0;
+          padding: 0;
+      }
+
+      /* ── 全屏 flex 布局 ── */
+      html, body {
+          height: 100%;
+          overflow: hidden;
+      }
+
+      body {
+          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+          background: #edf1f5;
+          color: #2c3e50;
+          display: flex;
+          flex-direction: column;
+          padding: 14px 20px 16px;
+      }
+
+      h1 {
+          font-size: 22px;
+          font-weight: 700;
+          flex-shrink: 0;
+      }
+
+      .subtitle {
+          color: #6b7d8e;
+          font-size: 12px;
+          flex-shrink: 0;
+          margin-bottom: 10px;
+      }
+
+      /* ── 标签栏 ── */
+      .tab-bar {
+          display: flex;
+          gap: 4px;
+          flex-shrink: 0;
+          margin-bottom: 10px;
+          border-bottom: 2px solid #d5dce2;
+          padding-bottom: 0;
+      }
+
+      .tab-bar .tab {
+          font-size: 12px;
+          font-weight: 600;
+          padding: 7px 18px;
+          border: 1px solid transparent;
+          border-bottom: none;
+          background: transparent;
+          border-radius: 7px 7px 0 0;
+          cursor: pointer;
+          color: #6b7d8e;
+          font-family: inherit;
+          transition: background .14s, color .14s, border-color .14s;
+          position: relative;
+          bottom: -2px;
+      }
+
+      .tab-bar .tab:hover {
+          background: #e2e7ed;
+          color: #37474f;
+      }
+
+      .tab-bar .tab.active {
+          background: #fff;
+          color: #2c3e50;
+          border-color: #d5dce2 #d5dce2 #fff;
+      }
+
+      /* ── 主布局：左右分栏，撑满剩余高度 ── */
+      .layout {
+          flex: 1;
+          min-height: 0;
+          display: flex;
+          gap: 14px;
+          overflow: hidden;
+      }
+
+      .col-left {
+          flex: 1;
+          min-width: 0;
+          min-height: 0;
+          display: flex;
+          flex-direction: column;
+      }
+
+      .col-right {
+          flex: 0 0 370px;
+          min-height: 0;
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+      }
+
+      /* ── 面板通用 ── */
+      .panel {
+          background: #fff;
+          border: 1px solid #dfe3e8;
+          border-radius: 10px;
+          padding: 14px 16px;
+          box-shadow: 0 1px 4px rgba(0, 0, 0, .04);
+      }
+
+      .panel h2 {
+          font-size: 14px;
+          font-weight: 600;
+          margin-bottom: 2px;
+          flex-shrink: 0;
+      }
+
+      .panel .desc {
+          font-size: 11px;
+          color: #8d9ba9;
+          margin-bottom: 10px;
+          line-height: 1.5;
+          flex-shrink: 0;
+      }
+
+      /* ── 演示面板 — 撑满左栏 ── */
+      .demo-panel {
+          flex: 1;
+          min-height: 0;
+          display: flex;
+          flex-direction: column;
+          padding-bottom: 12px;
+      }
+
+      /* 标签内容容器 — 撑满剩余高度，内部 time-line-container 填满 */
+      .tab-content-wrap {
+          flex: 1;
+          min-height: 0;
+          position: relative;
+          overflow: hidden;
+      }
+
+      .tab-content-wrap > time-line-container {
+          display: none;
+          width: 100%;
+          height: 100%;
+          position: absolute;
+          inset: 0;
+      }
+
+      .tab-content-wrap > time-line-container.active {
+          display: flex;
+      }
+
+      /* ── 图例 ── */
+      .legend {
+          display: none;
+          flex-wrap: wrap;
+          gap: 8px 16px;
+          font-size: 11px;
+          color: #5f6b7a;
+          margin-top: 8px;
+          padding-top: 8px;
+          border-top: 1px solid #eee;
+          flex-shrink: 0;
+      }
+
+      .legend.active {
+          display: flex;
+      }
+
+      .legend i {
+          display: inline-block;
+          width: 14px;
+          height: 10px;
+          border-radius: 2px;
+          margin-right: 2px;
+          vertical-align: middle;
+      }
+
+      .legend code {
+          font-size: 10px;
+          background: #f4f6f8;
+          padding: 1px 5px;
+          border-radius: 3px;
+          color: #e53935;
+      }
+
+      /* ── 控制台面板 ── */
+      .controls-panel {
+          flex-shrink: 0;
+          display: flex;
+          flex-direction: column;
+          min-height: 0;
+          overflow: hidden;
+          max-height: 58%;
+      }
+
+      .controls-scroll {
+          overflow-y: auto;
+          flex: 1;
+          min-height: 0;
+          padding-right: 2px;
+      }
+
+      .controls-content {
+          display: none;
+      }
+
+      .controls-content.active {
+          display: block;
+      }
+
+      /* ── 工具栏（控制台内） ── */
+      .toolbar {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 5px;
+          align-items: center;
+          margin-bottom: 6px;
+      }
+
+      .toolbar + .toolbar {
+          margin-top: -2px;
+      }
+
+      .toolbar button, .toolbar select, .toolbar input[type="text"],
+      .toolbar input[type="number"] {
+          font-size: 11px;
+          padding: 4px 8px;
+          border-radius: 5px;
+          border: 1px solid #ccd4dc;
+          background: #fff;
+          cursor: pointer;
+          transition: background .14s, border-color .14s;
+          font-family: inherit;
+      }
+
+      .toolbar input[type="text"], .toolbar input[type="number"] {
+          cursor: text;
+          width: auto;
+      }
+
+      .toolbar button:hover {
+          background: #f4f6f8;
+          border-color: #a0aab4;
+      }
+
+      .toolbar button.primary {
+          background: #4285f4;
+          color: #fff;
+          border-color: #4285f4;
+      }
+
+      .toolbar button.primary:hover {
+          background: #3367d6;
+      }
+
+      .toolbar button.danger {
+          background: #fff;
+          color: #e53935;
+          border-color: #e53935;
+      }
+
+      .toolbar button.danger:hover {
+          background: #fdecea;
+      }
+
+      .toolbar .sep {
+          width: 1px;
+          height: 20px;
+          background: #dfe3e8;
+          flex-shrink: 0;
+      }
+
+      .toolbar label {
+          font-size: 11px;
+          color: #5f6b7a;
+          display: inline-flex;
+          align-items: center;
+          gap: 3px;
+          white-space: nowrap;
+      }
+
+      .toolbar input[type="range"] {
+          width: 64px;
+          vertical-align: middle;
+          cursor: pointer;
+      }
+
+      .toolbar .range-val {
+          font-weight: 600;
+          color: #37474f;
+          min-width: 22px;
+      }
+
+      .toolbar .code-display {
+          font-family: "SF Mono", "Cascadia Code", Consolas, monospace;
+          font-size: 10px;
+          background: #f4f6f8;
+          padding: 4px 8px;
+          border-radius: 4px;
+          color: #2c3e50;
+          width: 100%;
+          margin-top: 4px;
+          overflow-x: auto;
+          white-space: nowrap;
+          border: 1px solid #e5e8ec;
+          min-height: 20px;
+      }
+
+      /* api 调用的简短结果展示 */
+      .api-result {
+          font-size: 10px;
+          color: #27ae60;
+          padding: 2px 8px;
+          margin-top: 2px;
+          min-height: 16px;
+      }
+      .api-result.err { color: #e53935; }
+
+      /* 紧凑段按钮组 */
+      .inline-group {
+          display: inline-flex;
+          gap: 4px;
+          align-items: center;
+      }
+
+      /* ── 事件日志 ── */
+      .log-panel {
+          flex: 1;
+          min-height: 0;
+          display: flex;
+          flex-direction: column;
+          overflow: hidden;
+      }
+
+      .log-panel .log-head {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          flex-shrink: 0;
+      }
+
+      .log-panel .log-head button {
+          font-size: 10px;
+          padding: 2px 8px;
+          border-radius: 4px;
+          border: 1px solid #ccd4dc;
+          background: #fff;
+          cursor: pointer;
+          font-family: inherit;
+      }
+
+      .log-panel .log-head button:hover {
+          background: #f4f6f8;
+      }
+
+      #log {
+          flex: 1;
+          overflow-y: auto;
+          font-family: "SF Mono", "Cascadia Code", "Fira Code", Consolas, monospace;
+          font-size: 10px;
+          line-height: 1.55;
+          background: #1e272e;
+          color: #d2dae2;
+          border-radius: 7px;
+          padding: 6px 10px;
+          min-height: 0;
+      }
+
+      #log .entry {
+          border-bottom: 1px solid rgba(255, 255, 255, .04);
+          padding: 1px 0;
+      }
+
+      #log .ts {
+          color: #6b7d8e;
+          margin-right: 5px;
+      }
+
+      #log .kind {
+          font-weight: 600;
+      }
+
+      #log .kind.create { color: #2ecc71; }
+      #log .kind.change { color: #f39c12; }
+      #log .kind.changed { color: #3498db; }
+      #log .kind.deleted { color: #e74c3c; }
+      #log .kind.track-add { color: #1abc9c; }
+      #log .kind.track-del { color: #e74c3c; }
+      #log .kind.dir { color: #9b59b6; }
+      #log .kind.axis-mode { color: #f39c12; }
+      #log .kind.api { color: #4285f4; }
+      #log .kind.gen { color: #8e44ad; }
+
+      @media (max-width: 860px) {
+          .layout {
+              flex-direction: column;
+          }
+          .col-right {
+              flex: 0 1 auto;
+              width: 100%;
+              max-height: 40%;
+          }
+          .controls-panel {
+              max-height: 40%;
+          }
+      }
+  </style>
+</head>
+<body>
+
+<h1>⏱ 时间线轨道组件</h1>
+<p class="subtitle">原生 Custom Elements · 零依赖 · 多标签演示每种不同用法</p>
+
+<!-- ═══ 标签栏 ═══ -->
+<div class="tab-bar" id="tabBar">
+  <button class="tab active" data-tab="0">📋 基础操作</button>
+  <button class="tab" data-tab="1">📊 海量数据</button>
+  <button class="tab" data-tab="2">🔌 API 调用</button>
+  <button class="tab" data-tab="3">📐 布局 / 共用轴</button>
+</div>
+
+<!-- ═══ 主布局 ═══ -->
+<div class="layout">
+
+  <!-- ======== 左栏：演示区域 ======== -->
+  <div class="col-left">
+    <div class="panel demo-panel">
+      <h2>📺 演示 · <span id="tabName">基础操作</span></h2>
+      <p class="desc" id="tabDesc">
+        空白处<strong>拖拽</strong>创建段 · 拖拽段体<strong>移动</strong> · 拖拽两端<strong>调长度</strong> · 悬停 <strong>×</strong> 删除
+      </p>
+
+      <!-- 标签页内容容器 -->
+      <div class="tab-content-wrap" id="tabContent">
+        <!-- ─────── Tab 0: 基础操作 ─────── -->
+        <time-line-container id="demo0" class="active" direction="horizontal">
+          <time-line-track label="摄像头-A（前门）" start="0" end="24" step="0.25">
+            <time-line-segment start="6"  end="9"  label="早班值守" color="#27ae60"></time-line-segment>
+            <time-line-segment start="14" end="15" label="超短时段" color="#e67e22" tooltip="always"></time-line-segment>
+          </time-line-track>
+          <time-line-track label="摄像头-B（后门）" start="0" end="24" step="0.5">
+            <time-line-segment start="8"  end="12" label="上午录像" color="#2980b9"></time-line-segment>
+            <time-line-segment start="13" end="17" label="中班录像一段较长名称" color="#8e44ad" tooltip="auto"></time-line-segment>
+            <time-line-segment start="20" end="23" label="夜间录像" color="#c0392b" tooltip="none"></time-line-segment>
+          </time-line-track>
+          <time-line-track label="摄像头-C（车库）" start="0" end="24">
+            <time-line-segment start="0"  end="6"  label="凌晨巡检" color="#16a085"></time-line-segment>
+            <time-line-segment start="18" end="24" label="夜间巡检" color="#2c3e50"></time-line-segment>
+          </time-line-track>
+        </time-line-container>
+
+        <!-- ─────── Tab 1: 海量数据 ─────── -->
+        <time-line-container id="demo1" direction="horizontal">
+          <!-- 运行时由 JS 生成 -->
+        </time-line-container>
+
+        <!-- ─────── Tab 2: API 调用 ─────── -->
+        <time-line-container id="demo2" direction="horizontal">
+          <time-line-track label="空轨道-A" start="0" end="24">
+          </time-line-track>
+          <time-line-track label="空轨道-B" start="0" end="24">
+          </time-line-track>
+        </time-line-container>
+
+        <!-- ─────── Tab 3: 布局 / 共用轴 ─────── -->
+        <time-line-container id="demo3" direction="horizontal" axis-mode="shared" shared-start="0" shared-end="24">
+          <time-line-track label="早班段" start="0" end="12" step="0.5">
+            <time-line-segment start="1"  end="5"  label="早高峰" color="#e67e22"></time-line-segment>
+            <time-line-segment start="7"  end="10" label="上午时段" color="#f39c12"></time-line-segment>
+          </time-line-track>
+          <time-line-track label="中班段" start="6" end="20" step="0.5">
+            <time-line-segment start="8"  end="12" label="核心时段" color="#2980b9"></time-line-segment>
+            <time-line-segment start="14" end="18" label="下午班" color="#3498db"></time-line-segment>
+          </time-line-track>
+          <time-line-track label="全天段" start="0" end="24" step="1">
+            <time-line-segment start="3"  end="7"  label="凌晨" color="#16a085"></time-line-segment>
+            <time-line-segment start="12" end="14" label="午休" color="#1abc9c"></time-line-segment>
+            <time-line-segment start="19" end="23" label="晚间" color="#27ae60"></time-line-segment>
+          </time-line-track>
+        </time-line-container>
+      </div>
+
+      <!-- ── 图例（按标签页切换） ── -->
+      <div class="legend active" data-tab="0">
+        <span><i style="background:#27ae60"></i> 早班值守</span>
+        <span><i style="background:#e67e22"></i> 超短 <code>tooltip=always</code></span>
+        <span><i style="background:#2980b9"></i> 上午录像</span>
+        <span><i style="background:#8e44ad"></i> 中班 <code>tooltip=auto</code></span>
+        <span><i style="background:#c0392b"></i> 夜间 <code>tooltip=none</code></span>
+        <span><i style="background:#16a085"></i> 凌晨巡检</span>
+        <span><i style="background:#2c3e50"></i> 夜间巡检</span>
+        <span><code>color</code> 自由指定 · <code>tooltip</code>: auto | always | none</span>
+      </div>
+      <div class="legend" data-tab="1">
+        <span>拖动滑块调节数据量后点击<strong>「生成数据」</strong>按钮</span>
+        <span>颜色随机分配 · 段自动分布避免重叠</span>
+        <span>用于测试组件在大量段下的渲染与交互性能</span>
+      </div>
+      <div class="legend" data-tab="2">
+        <span>在控制台调用组件 <strong>API</strong> 方法，观察轨道变化</span>
+        <span>左侧演示区域初始为 2 条空轨道</span>
+      </div>
+      <div class="legend" data-tab="3">
+        <span><i style="background:#e67e22"></i> 早班段 0-12</span>
+        <span><i style="background:#2980b9"></i> 中班段 6-20</span>
+        <span><i style="background:#16a085"></i> 全天段 0-24</span>
+        <span>共用轴 <code>axis-mode="shared"</code> 统一时间范围</span>
+        <span>不同范围轨道自动对齐</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======== 右栏 ======== -->
+  <div class="col-right">
+
+    <!-- ── 控制台面板 ── -->
+    <div class="panel controls-panel">
+      <h2>🔧 控制台</h2>
+      <div class="controls-scroll">
+
+        <!-- ════ Tab 0 控制 ════ -->
+        <div class="controls-content active" data-tab="0">
+          <div class="toolbar">
+            <button id="t0_btnDir">切换为纵向</button>
+            <button id="t0_btnAxis">切换为共享轴</button>
+            <span class="sep"></span>
+            <label id="t0_sharedRangeLbl" style="display:none">
+              共享
+              <input type="text" id="t0_sharedS" value="0" style="width:26px">
+              ~
+              <input type="text" id="t0_sharedE" value="24" style="width:26px">
+            </label>
+          </div>
+          <div class="toolbar">
+            <select id="t0_selTrack" style="max-width:110px"></select>
+            <button id="t0_addTrack" class="primary">＋ 轨道</button>
+            <button id="t0_addSeg">＋ 段</button>
+            <button id="t0_delTrack" class="danger">删轨道</button>
+            <span class="sep"></span>
+            <button id="t0_clearSegs" class="danger">清空段</button>
+            <button id="t0_reset">重置</button>
+          </div>
+          <div class="toolbar">
+            <label>圆角 <select id="t0_radius" style="max-width:72px">
+              <option value="0">0</option>
+              <option value="3px">3px</option>
+              <option value="5px" selected>5px</option>
+              <option value="8px">8px</option>
+              <option value="12px">12px</option>
+              <option value="20px">20px</option>
+            </select></label>
+            <span class="sep"></span>
+            <label>横轴 <select id="t0_labelH" style="max-width:60px">
+              <option value="top">上</option>
+              <option value="bottom">下</option>
+            </select></label>
+            <label>纵轴 <select id="t0_labelV" style="max-width:60px">
+              <option value="right">右</option>
+              <option value="left">左</option>
+            </select></label>
+            <span class="sep"></span>
+            <label>高 <input type="text" id="t0_height" placeholder="auto" style="width:48px"></label>
+            <label>宽 <input type="text" id="t0_width" placeholder="auto" style="width:48px"></label>
+          </div>
+        </div>
+
+        <!-- ════ Tab 1 控制 ════ -->
+        <div class="controls-content" data-tab="1">
+          <div class="toolbar">
+            <label>轨道
+              <input type="range" id="t1_trackCount" min="1" max="15" value="5">
+              <span class="range-val" id="t1_trackCountVal">5</span>
+            </label>
+            <label>每轨道段数
+              <input type="range" id="t1_segCount" min="1" max="150" value="20">
+              <span class="range-val" id="t1_segCountVal">20</span>
+            </label>
+          </div>
+          <div class="toolbar">
+            <label>步长 <select id="t1_step" style="max-width:70px">
+              <option value="0.25">0.25</option>
+              <option value="0.5">0.5</option>
+              <option value="1" selected>1</option>
+              <option value="2">2</option>
+              <option value="4">4</option>
+            </select></label>
+            <span class="sep"></span>
+            <button id="t1_btnGen" class="primary">⚡ 生成数据</button>
+            <button id="t1_btnClear" class="danger">清空</button>
+            <span class="sep"></span>
+            <button id="t1_btnDir">切换为纵向</button>
+          </div>
+          <div class="toolbar">
+            <label>圆角 <select id="t1_radius" style="max-width:72px">
+              <option value="0">0</option>
+              <option value="3px">3px</option>
+              <option value="5px" selected>5px</option>
+              <option value="8px">8px</option>
+              <option value="12px">12px</option>
+              <option value="20px">20px</option>
+            </select></label>
+          </div>
+        </div>
+
+        <!-- ════ Tab 2 控制 ════ -->
+        <div class="controls-content" data-tab="2">
+          <div class="toolbar" style="border-bottom:1px solid #eee;padding-bottom:4px;margin-bottom:4px">
+            <span style="font-size:10px;font-weight:600;color:#6b7d8e">addTrack</span>
+            <span class="sep"></span>
+            <label>label <input type="text" id="t2_apiLabel" value="新轨道" style="width:70px"></label>
+            <label>start <input type="text" id="t2_apiStart" value="0" style="width:30px"></label>
+            <label>end <input type="text" id="t2_apiEnd" value="24" style="width:30px"></label>
+            <label>step <input type="text" id="t2_apiStep" value="0.5" style="width:30px"></label>
+            <button id="t2_btnAddTrack" class="primary" style="font-size:10px">执行</button>
+          </div>
+          <div class="toolbar" style="border-bottom:1px solid #eee;padding-bottom:4px;margin-bottom:4px">
+            <span style="font-size:10px;font-weight:600;color:#6b7d8e">addSegment</span>
+            <span class="sep"></span>
+            <label>轨道 <select id="t2_selTrack" style="max-width:80px"></select></label>
+            <label>start <input type="text" id="t2_segStart" value="8" style="width:30px"></label>
+            <label>end <input type="text" id="t2_segEnd" value="12" style="width:30px"></label>
+            <label>label <input type="text" id="t2_segLabel" value="新段" style="width:50px"></label>
+            <label>color <input type="text" id="t2_segColor" value="#27ae60" style="width:60px"></label>
+            <button id="t2_btnAddSeg" class="primary" style="font-size:10px">执行</button>
+          </div>
+          <div class="toolbar" style="border-bottom:1px solid #eee;padding-bottom:4px;margin-bottom:4px">
+            <span style="font-size:10px;font-weight:600;color:#6b7d8e">removeTrack</span>
+            <span class="sep"></span>
+            <select id="t2_selDelTrack" style="max-width:110px"></select>
+            <button id="t2_btnDelTrack" class="danger" style="font-size:10px">执行</button>
+            <span class="sep"></span>
+            <button id="t2_btnClearSegs" class="danger" style="font-size:10px">清空所有段</button>
+          </div>
+          <div class="toolbar">
+            <span style="font-size:10px;font-weight:600;color:#6b7d8e">setGlobalRadius</span>
+            <span class="sep"></span>
+            <select id="t2_radius" style="max-width:72px">
+              <option value="0">0</option>
+              <option value="3px">3px</option>
+              <option value="5px">5px</option>
+              <option value="8px">8px</option>
+              <option value="12px">12px</option>
+              <option value="20px">20px</option>
+            </select>
+            <span class="sep"></span>
+            <button id="t2_btnReset">重置组件</button>
+          </div>
+          <div class="toolbar">
+            <div class="code-display" id="t2_apiCall">&nbsp;</div>
+          </div>
+          <div class="api-result" id="t2_apiResult">&nbsp;</div>
+        </div>
+
+        <!-- ════ Tab 3 控制 ════ -->
+        <div class="controls-content" data-tab="3">
+          <div class="toolbar">
+            <button id="t3_btnDir">切换为纵向</button>
+            <button id="t3_btnAxis">切换为独立轴</button>
+          </div>
+          <div class="toolbar">
+            <label id="t3_sharedRangeLbl">
+              共用范围
+              <input type="text" id="t3_sharedS" value="0" style="width:26px"> ~
+              <input type="text" id="t3_sharedE" value="24" style="width:26px">
+            </label>
+            <span class="sep"></span>
+            <label>步长 <select id="t3_step" style="max-width:70px">
+              <option value="0.25">0.25</option>
+              <option value="0.5">0.5</option>
+              <option value="1" selected>1</option>
+              <option value="2">2</option>
+              <option value="4">4</option>
+            </select></label>
+          </div>
+          <div class="toolbar">
+            <label>横轴标签 <select id="t3_labelH" style="max-width:60px">
+              <option value="top">上</option>
+              <option value="bottom">下</option>
+            </select></label>
+            <label>纵轴标签 <select id="t3_labelV" style="max-width:60px">
+              <option value="right">右</option>
+              <option value="left">左</option>
+            </select></label>
+            <span class="sep"></span>
+            <label>圆角 <select id="t3_radius" style="max-width:72px">
+              <option value="0">0</option>
+              <option value="3px">3px</option>
+              <option value="5px" selected>5px</option>
+              <option value="8px">8px</option>
+              <option value="12px">12px</option>
+              <option value="20px">20px</option>
+            </select></label>
+          </div>
+          <div class="toolbar">
+            <label>容器高 <input type="text" id="t3_height" placeholder="auto" style="width:48px"></label>
+            <label>容器宽 <input type="text" id="t3_width" placeholder="auto" style="width:48px"></label>
+            <span class="sep"></span>
+            <button id="t3_btnReset">重置</button>
+          </div>
+        </div>
+
+      </div><!-- /controls-scroll -->
+    </div>
+
+    <!-- ── 事件日志 ── -->
+    <div class="panel log-panel">
+      <div class="log-head">
+        <h2>📋 事件日志</h2>
+        <button id="btnClearLog">清空</button>
+      </div>
+      <div id="log">
+        <div class="entry"><span class="ts">--:--:--</span> 等待操作…</div>
+      </div>
+    </div>
+
+  </div><!-- /col-right -->
+</div><!-- /layout -->
+
+<script>
+(function () {
+  'use strict';
+
+  // =============================================================
+  //  工具
+  // =============================================================
+  const $ = (s) => document.querySelector(s);
+  const $$ = (s) => Array.from(document.querySelectorAll(s));
+
+  const COLORS = ['#27ae60','#e67e22','#2980b9','#8e44ad','#c0392b','#16a085','#f39c12','#1abc9c','#e74c3c','#2c3e50','#3498db','#9b59b6','#e91e63','#00bcd4','#ff5722'];
+
+  function fmt(v) {
+    return (typeof v === 'number' ? v.toFixed(2) : v) + 'h';
+  }
+
+  function rand(min, max) { return min + Math.random() * (max - min); }
+
+  function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+  // =============================================================
+  //  事件日志（全局 — 所有容器的事件）
+  // =============================================================
+  const logEl = $('#log');
+  const logLines = [];
+
+  function addLog(kind, detail) {
+    const now = new Date();
+    const ts = now.toTimeString().slice(0, 8);
+    let msg = '';
+    switch (kind) {
+      case 'create':         msg = '创建: ' + fmt(detail.start) + ' – ' + fmt(detail.end); break;
+      case 'change':         msg = '拖动中: ' + fmt(detail.start) + ' – ' + fmt(detail.end); break;
+      case 'changed':        msg = '拖动完成: ' + fmt(detail.start) + ' – ' + fmt(detail.end); break;
+      case 'deleted':        msg = '删除: ' + fmt(detail.start) + ' – ' + fmt(detail.end); break;
+      case 'track-add':      msg = '添加轨道: ' + detail; break;
+      case 'track-del':      msg = '删除轨道: ' + detail; break;
+      case 'dir':            msg = '切换方向: ' + detail; break;
+      case 'axis-mode':      msg = '轴模式: ' + (detail === 'shared' ? '共享轴' : '独立轴'); break;
+      case 'api':            msg = 'API: ' + detail; break;
+      case 'gen':            msg = '生成数据: ' + detail; break;
+    }
+    logLines.push({ ts, kind, msg });
+    if (logLines.length > 80) logLines.shift();
+    renderLog();
+  }
+
+  function renderLog() {
+    logEl.innerHTML = logLines.map(l =>
+      `<div class="entry"><span class="ts">${l.ts}</span><span class="kind ${l.kind}">${l.kind}</span>  ${l.msg}</div>`
+    ).join('');
+    logEl.scrollTop = logEl.scrollHeight;
+  }
+
+  // 全局事件监听（所有容器的事件都会冒泡到 document）
+  document.addEventListener('segment-created',  e => addLog('create', e.detail.segment));
+  document.addEventListener('segment-change',   e => addLog('change', e.detail));
+  document.addEventListener('segment-changed',  e => addLog('changed', e.detail));
+  document.addEventListener('segment-deleted',  e => addLog('deleted', e.detail));
+
+  $('#btnClearLog').addEventListener('click', () => {
+    logLines.length = 0;
+    renderLog();
+  });
+
+  // =============================================================
+  //  标签切换
+  // =============================================================
+  let activeTab = 0;
+  const TAB_NAMES = ['基础操作', '海量数据', 'API 调用', '布局 / 共用轴'];
+  const TAB_DESCS = [
+    '空白处<strong>拖拽</strong>创建段 · 拖拽段体<strong>移动</strong> · 拖拽两端<strong>调长度</strong> · 悬停 <strong>×</strong> 删除',
+    '调节下方滑块，点击「生成数据」快速创建大量时间段，测试组件渲染与交互性能',
+    '在右侧控制台调用组件编程 API：addTrack / addSegment / removeTrack 等',
+    '多轨道使用<strong>共用时间轴</strong>对齐不同范围，切换方向与轴标签位置',
+  ];
+  const CONTAINERS = [null, null, null, null]; // filled after DOM
+
+  function switchTab(idx) {
+    if (idx === activeTab) return;
+    // 更新 tab 按钮
+    $$('.tab').forEach((b, i) => b.classList.toggle('active', i === idx));
+    activeTab = idx;
+
+    // 更新容器显隐
+    $$('.tab-content-wrap > time-line-container').forEach((c, i) => {
+      c.classList.toggle('active', i === idx);
+    });
+
+    // 更新控制台
+    $$('.controls-content').forEach((c, i) => c.classList.toggle('active', i === idx));
+
+    // 更新图例
+    $$('.legend').forEach((l, i) => l.classList.toggle('active', i === idx));
+
+    // 更新标题 / 描述
+    $('#tabName').textContent = TAB_NAMES[idx];
+    $('#tabDesc').innerHTML = TAB_DESCS[idx];
+
+    // 刷新容器布局（display 从 none → flex 后需要重绘网格和段定位）
+    const c = CONTAINERS[idx];
+    if (c) {
+      requestAnimationFrame(() => {
+        c.allTracks().forEach(t => {
+          if (t._drawGrid) t._drawGrid();
+          if (t._refreshPositions) t._refreshPositions();
+        });
+      });
+    }
+  }
+
+  // 标签栏点击
+  $('#tabBar').addEventListener('click', e => {
+    const btn = e.target.closest('.tab');
+    if (!btn) return;
+    const idx = parseInt(btn.dataset.tab);
+    if (!isNaN(idx)) switchTab(idx);
+  });
+
+  // =============================================================
+  //  获取当前标签页的容器
+  // =============================================================
+  function currentContainer() { return CONTAINERS[activeTab]; }
+
+  // =============================================================
+  //  刷新轨道下拉列表（通用）
+  // =============================================================
+  function refreshTrackSelect(sel, container) {
+    const tracks = container.allTracks();
+    sel.innerHTML = tracks.map((t, i) =>
+      `<option value="${i}">${t.label || '轨道 ' + (i + 1)}</option>`
+    ).join('');
+  }
+
+  function selectedTrack(sel, container) {
+    const idx = parseInt(sel.value);
+    if (isNaN(idx)) return null;
+    return container.allTracks()[idx] || null;
+  }
+
+  // =============================================================
+  //  初始化各容器引用
+  // =============================================================
+  CONTAINERS[0] = $('#demo0');
+  CONTAINERS[1] = $('#demo1');
+  CONTAINERS[2] = $('#demo2');
+  CONTAINERS[3] = $('#demo3');
+
+  // =============================================================
+  //  Tab 0 — 基础操作
+  // =============================================================
+  (function () {
+    const c = CONTAINERS[0];
+    const selTrack = $('#t0_selTrack');
+
+    function refreshSel() {
+      refreshTrackSelect(selTrack, c);
+    }
+
+    // 方向切换
+    $('#t0_btnDir').addEventListener('click', () => {
+      const cur = c.direction;
+      const next = (cur === 'vertical' || cur === '纵向') ? 'horizontal' : 'vertical';
+      c.setAttribute('direction', next);
+      $('#t0_btnDir').textContent = (next === 'vertical') ? '切换为横向' : '切换为纵向';
+      addLog('dir', next);
+    });
+
+    // 轴模式切换
+    $('#t0_btnAxis').addEventListener('click', () => {
+      const cur = c.axisMode;
+      const next = cur === 'shared' ? 'per-track' : 'shared';
+      c.setAttribute('axis-mode', next);
+      $('#t0_btnAxis').textContent = next === 'shared' ? '切换为独立轴' : '切换为共享轴';
+      document.getElementById('t0_sharedRangeLbl').style.display = next === 'shared' ? '' : 'none';
+      addLog('axis-mode', next);
+    });
+
+    // 共享范围
+    $('#t0_sharedS').addEventListener('input', function () {
+      const v = parseFloat(this.value);
+      if (!isNaN(v)) c.setAttribute('shared-start', v);
+    });
+    $('#t0_sharedE').addEventListener('input', function () {
+      const v = parseFloat(this.value);
+      if (!isNaN(v)) c.setAttribute('shared-end', v);
+    });
+
+    // 添加轨道
+    $('#t0_addTrack').addEventListener('click', () => {
+      const idx = c.allTracks().length + 1;
+      const t = c.addTrack('摄像头-' + String.fromCharCode(64 + idx) + ' (新增)', 0, 24, { step: 0.5 });
+      refreshSel();
+      selTrack.value = selTrack.options.length - 1;
+      addLog('track-add', t.label);
+    });
+
+    // 添加段
+    $('#t0_addSeg').addEventListener('click', () => {
+      const track = selectedTrack(selTrack, c);
+      if (!track) return alert('请先选中一条轨道');
+      const segs = track.sortedSegs();
+      let s = track.tStart, e = Math.min(track.tStart + 2, track.tEnd);
+      // 尝试在空隙中插入
+      let prev = track.tStart;
+      for (const seg of segs) {
+        if (seg.start - prev >= 1) { s = prev; e = (prev + seg.start) / 2; break; }
+        prev = seg.end;
+      }
+      if (prev >= segs[segs.length - 1]?.end && track.tEnd - prev >= 1) {
+        s = prev; e = Math.min(prev + 2, track.tEnd);
+      }
+      track.addSegment(s, e, { label: '新增录像', color: pick(COLORS) });
+    });
+
+    // 删除轨道
+    $('#t0_delTrack').addEventListener('click', () => {
+      const track = selectedTrack(selTrack, c);
+      if (!track) return alert('请先选中一条轨道');
+      if (c.allTracks().length <= 1) return alert('至少保留一条轨道');
+      const label = track.label;
+      c.removeTrack(track);
+      refreshSel();
+      addLog('track-del', label);
+    });
+
+    // 清空段
+    $('#t0_clearSegs').addEventListener('click', () => {
+      const all = c.querySelectorAll('time-line-segment');
+      if (!all.length) return;
+      if (!confirm('确定删除全部 ' + all.length + ' 个时间段？')) return;
+      all.forEach(s => s.remove());
+    });
+
+    // 重置
+    $('#t0_reset').addEventListener('click', () => {
+      if (!confirm('确定重置为初始演示数据？')) return;
+      c.setAttribute('direction', 'horizontal');
+      $('#t0_btnDir').textContent = '切换为纵向';
+      c.removeAttribute('axis-mode');
+      $('#t0_btnAxis').textContent = '切换为共享轴';
+      document.getElementById('t0_sharedRangeLbl').style.display = 'none';
+      c.removeAttribute('shared-start');
+      c.removeAttribute('shared-end');
+      $('#t0_sharedS').value = '0';
+      $('#t0_sharedE').value = '24';
+      c.innerHTML = `
+        <time-line-track label="摄像头-A（前门）" start="0" end="24" step="0.25">
+          <time-line-segment start="6"  end="9"  label="早班值守" color="#27ae60"></time-line-segment>
+          <time-line-segment start="14" end="15" label="超短时段" color="#e67e22" tooltip="always"></time-line-segment>
+        </time-line-track>
+        <time-line-track label="摄像头-B（后门）" start="0" end="24" step="0.5">
+          <time-line-segment start="8"  end="12" label="上午录像" color="#2980b9"></time-line-segment>
+          <time-line-segment start="13" end="17" label="中班录像一段较长名称" color="#8e44ad" tooltip="auto"></time-line-segment>
+          <time-line-segment start="20" end="23" label="夜间录像" color="#c0392b" tooltip="none"></time-line-segment>
+        </time-line-track>
+        <time-line-track label="摄像头-C（车库）" start="0" end="24">
+          <time-line-segment start="0"  end="6"  label="凌晨巡检" color="#16a085"></time-line-segment>
+          <time-line-segment start="18" end="24" label="夜间巡检" color="#2c3e50"></time-line-segment>
+        </time-line-track>
+      `;
+      refreshSel();
+      $('#t0_radius').value = '5px';
+      c.setGlobalRadius('5px');
+      $('#t0_labelH').value = 'top';
+      $('#t0_labelV').value = 'left';
+      c.removeAttribute('label-h');
+      c.removeAttribute('label-v');
+      c.style.height = '';
+      c.style.width = '';
+      $('#t0_height').value = '';
+      $('#t0_width').value = '';
+      addLog('dir', 'horizontal (reset)');
+    });
+
+    // 圆角
+    $('#t0_radius').addEventListener('change', function () {
+      c.setGlobalRadius(this.value);
+    });
+
+    // 轴标签位置
+    $('#t0_labelH').addEventListener('change', function () {
+      c.setAttribute('label-h', this.value);
+    });
+    $('#t0_labelV').addEventListener('change', function () {
+      c.setAttribute('label-v', this.value);
+    });
+
+    // 容器宽高
+    $('#t0_height').addEventListener('input', function () {
+      c.style.height = this.value || '';
+    });
+    $('#t0_width').addEventListener('input', function () {
+      c.style.width = this.value || '';
+    });
+
+    // 初始化
+    refreshSel();
+    $('#t0_radius').value = '5px';
+    c.setGlobalRadius('5px');
+  })();
+
+  // =============================================================
+  //  Tab 1 — 海量数据
+  // =============================================================
+  (function () {
+    const c = CONTAINERS[1];
+
+    // 滑块值同步
+    $('#t1_trackCount').addEventListener('input', function () {
+      $('#t1_trackCountVal').textContent = this.value;
+    });
+    $('#t1_segCount').addEventListener('input', function () {
+      $('#t1_segCountVal').textContent = this.value;
+    });
+
+    function generate() {
+      const trackN = parseInt($('#t1_trackCount').value);
+      const segN   = parseInt($('#t1_segCount').value);
+      const step   = parseFloat($('#t1_step').value) || 1;
+      const totalRange = 24;
+
+      // 清空
+      c.innerHTML = '';
+
+      const t0 = performance.now();
+
+      for (let t = 0; t < trackN; t++) {
+        const track = document.createElement('time-line-track');
+        track.setAttribute('label', '海量轨道-' + (t + 1));
+        track.setAttribute('start', '0');
+        track.setAttribute('end', String(totalRange));
+        track.setAttribute('step', String(step));
+
+        // 创建段元素：非重叠分布
+        const segLen = totalRange / segN;
+        for (let s = 0; s < segN; s++) {
+          const seg = document.createElement('time-line-segment');
+          const start = s * segLen + rand(0, segLen * 0.15);
+          const end   = start + segLen * 0.3 + rand(0, segLen * 0.25);
+          seg.setAttribute('start', String(Math.min(Math.max(start, 0), totalRange - 0.05)));
+          seg.setAttribute('end',   String(Math.min(end, totalRange)));
+          seg.setAttribute('label', 'S' + (s + 1));
+          seg.setAttribute('color', pick(COLORS));
+          track.appendChild(seg);
+        }
+        c.appendChild(track);
+      }
+
+      // 等浏览器渲染后应用圆角
+      requestAnimationFrame(() => {
+        const r = $('#t1_radius').value;
+        if (r) c.setGlobalRadius(r);
+      });
+
+      const elapsed = (performance.now() - t0).toFixed(0);
+      addLog('gen', trackN + ' 轨道 × ' + segN + ' 段 = ' + (trackN * segN) + ' 个段（' + elapsed + 'ms）');
+    }
+
+    $('#t1_btnGen').addEventListener('click', generate);
+
+    $('#t1_btnClear').addEventListener('click', () => {
+      c.innerHTML = '';
+      addLog('api', '清空全部数据');
+    });
+
+    // 方向切换
+    $('#t1_btnDir').addEventListener('click', () => {
+      const cur = c.direction;
+      const next = (cur === 'vertical' || cur === '纵向') ? 'horizontal' : 'vertical';
+      c.setAttribute('direction', next);
+      $('#t1_btnDir').textContent = (next === 'vertical') ? '切换为横向' : '切换为纵向';
+      addLog('dir', next);
+    });
+
+    // 圆角
+    $('#t1_radius').addEventListener('change', function () {
+      c.setGlobalRadius(this.value);
+    });
+
+    // 初始生成一次
+    setTimeout(generate, 100);
+  })();
+
+  // =============================================================
+  //  Tab 2 — API 调用
+  // =============================================================
+  (function () {
+    const c = CONTAINERS[2];
+    const selTrack = $('#t2_selTrack');
+    const selDel   = $('#t2_selDelTrack');
+    const apiCall  = $('#t2_apiCall');
+    const apiRes   = $('#t2_apiResult');
+
+    function refreshSels() {
+      refreshTrackSelect(selTrack, c);
+      refreshTrackSelect(selDel, c);
+    }
+
+    function showApi(cmd, result) {
+      apiCall.textContent = '> ' + cmd;
+      apiRes.textContent = result || '✓ ok';
+      apiRes.className = 'api-result' + (result && result.includes('err') ? ' err' : '');
+    }
+
+    // addTrack
+    $('#t2_btnAddTrack').addEventListener('click', () => {
+      const label = $('#t2_apiLabel').value || '新轨道';
+      const start = parseFloat($('#t2_apiStart').value) || 0;
+      const end   = parseFloat($('#t2_apiEnd').value) || 24;
+      const step  = parseFloat($('#t2_apiStep').value) || 0.5;
+      const track = c.addTrack(label, start, end, { step });
+      refreshSels();
+      const cmd = `addTrack("${label}", ${start}, ${end}, { step: ${step} })`;
+      showApi(cmd, '→ 轨道 "' + label + '" 已添加');
+      addLog('api', cmd);
+    });
+
+    // addSegment
+    $('#t2_btnAddSeg').addEventListener('click', () => {
+      const track = selectedTrack(selTrack, c);
+      if (!track) { showApi('addSegment(...)', '请先选择轨道'); return; }
+      const start = parseFloat($('#t2_segStart').value) || 8;
+      const end   = parseFloat($('#t2_segEnd').value) || 12;
+      const label = $('#t2_segLabel').value || '新段';
+      const color = $('#t2_segColor').value || pick(COLORS);
+      track.addSegment(start, end, { label, color });
+      const cmd = `addSegment(${start}, ${end}, { label: "${label}", color: "${color}" })` +
+        `  — 轨道: "${track.label}"`;
+      showApi(cmd, '→ 段已添加');
+      addLog('api', cmd);
+    });
+
+    // removeTrack
+    $('#t2_btnDelTrack').addEventListener('click', () => {
+      const track = selectedTrack(selDel, c);
+      if (!track) { showApi('removeTrack(...)', '请先选中轨道'); return; }
+      if (c.allTracks().length <= 1) { showApi('removeTrack(...)', '至少保留一条轨道'); return; }
+      const label = track.label;
+      c.removeTrack(track);
+      refreshSels();
+      const cmd = 'removeTrack("' + label + '")';
+      showApi(cmd, '→ 轨道 "' + label + '" 已删除');
+      addLog('api', cmd);
+    });
+
+    // 清空所有段
+    $('#t2_btnClearSegs').addEventListener('click', () => {
+      const all = c.querySelectorAll('time-line-segment');
+      if (!all.length) { showApi('clearSegments()', '没有段可清'); return; }
+      all.forEach(s => s.remove());
+      const cmd = 'clearAllSegments()';
+      showApi(cmd, '→ 已清空 ' + all.length + ' 个段');
+      addLog('api', cmd);
+    });
+
+    // setGlobalRadius
+    $('#t2_radius').addEventListener('change', function () {
+      c.setGlobalRadius(this.value);
+      const cmd = 'setGlobalRadius("' + this.value + '")';
+      showApi(cmd, '→ 全局圆角 = ' + this.value);
+      addLog('api', cmd);
+    });
+
+    // 重置
+    $('#t2_btnReset').addEventListener('click', () => {
+      c.innerHTML = '';
+      const t1 = c.addTrack('空轨道-A', 0, 24);
+      const t2 = c.addTrack('空轨道-B', 0, 24);
+      refreshSels();
+      const cmd = 'reset()';
+      showApi(cmd, '→ 已重置为 2 条空轨道');
+      addLog('api', 'reset → 2 条空轨道');
+    });
+
+    // 监听容器变更刷新下拉
+    const obs = new MutationObserver(() => refreshSels());
+    obs.observe(c, { childList: true });
+
+    refreshSels();
+  })();
+
+  // =============================================================
+  //  Tab 3 — 布局 / 共用轴
+  // =============================================================
+  (function () {
+    const c = CONTAINERS[3];
+
+    // 方向切换
+    $('#t3_btnDir').addEventListener('click', () => {
+      const cur = c.direction;
+      const next = (cur === 'vertical' || cur === '纵向') ? 'horizontal' : 'vertical';
+      c.setAttribute('direction', next);
+      $('#t3_btnDir').textContent = (next === 'vertical') ? '切换为横向' : '切换为纵向';
+      addLog('dir', next);
+    });
+
+    // 轴模式切换
+    $('#t3_btnAxis').addEventListener('click', () => {
+      const cur = c.axisMode;
+      const next = cur === 'shared' ? 'per-track' : 'shared';
+      c.setAttribute('axis-mode', next);
+      $('#t3_btnAxis').textContent = next === 'shared' ? '切换为独立轴' : '切换为共享轴';
+      document.getElementById('t3_sharedRangeLbl').style.display = next === 'shared' ? '' : 'none';
+      addLog('axis-mode', next);
+    });
+
+    // 共享范围
+    $('#t3_sharedS').addEventListener('input', function () {
+      const v = parseFloat(this.value);
+      if (!isNaN(v)) c.setAttribute('shared-start', v);
+    });
+    $('#t3_sharedE').addEventListener('input', function () {
+      const v = parseFloat(this.value);
+      if (!isNaN(v)) c.setAttribute('shared-end', v);
+    });
+
+    // 步长
+    $('#t3_step').addEventListener('change', function () {
+      const v = parseFloat(this.value);
+      c.allTracks().forEach(t => t.setAttribute('step', String(v)));
+    });
+
+    // 轴标签位置
+    $('#t3_labelH').addEventListener('change', function () {
+      c.setAttribute('label-h', this.value);
+    });
+    $('#t3_labelV').addEventListener('change', function () {
+      c.setAttribute('label-v', this.value);
+    });
+
+    // 圆角
+    $('#t3_radius').addEventListener('change', function () {
+      c.setGlobalRadius(this.value);
+    });
+
+    // 容器宽高
+    $('#t3_height').addEventListener('input', function () {
+      c.style.height = this.value || '';
+    });
+    $('#t3_width').addEventListener('input', function () {
+      c.style.width = this.value || '';
+    });
+
+    // 重置
+    $('#t3_btnReset').addEventListener('click', () => {
+      c.setAttribute('direction', 'horizontal');
+      $('#t3_btnDir').textContent = '切换为纵向';
+      c.setAttribute('axis-mode', 'shared');
+      $('#t3_btnAxis').textContent = '切换为独立轴';
+      c.setAttribute('shared-start', '0');
+      c.setAttribute('shared-end', '24');
+      $('#t3_sharedS').value = '0';
+      $('#t3_sharedE').value = '24';
+      c.removeAttribute('label-h');
+      c.removeAttribute('label-v');
+      $('#t3_labelH').value = 'top';
+      $('#t3_labelV').value = 'left';
+      c.style.height = '';
+      c.style.width = '';
+      $('#t3_height').value = '';
+      $('#t3_width').value = '';
+      $('#t3_radius').value = '5px';
+      c.setGlobalRadius('5px');
+      $('#t3_step').value = '1';
+      c.innerHTML = `
+        <time-line-track label="早班段" start="0" end="12" step="0.5">
+          <time-line-segment start="1"  end="5"  label="早高峰" color="#e67e22"></time-line-segment>
+          <time-line-segment start="7"  end="10" label="上午时段" color="#f39c12"></time-line-segment>
+        </time-line-track>
+        <time-line-track label="中班段" start="6" end="20" step="0.5">
+          <time-line-segment start="8"  end="12" label="核心时段" color="#2980b9"></time-line-segment>
+          <time-line-segment start="14" end="18" label="下午班" color="#3498db"></time-line-segment>
+        </time-line-track>
+        <time-line-track label="全天段" start="0" end="24" step="1">
+          <time-line-segment start="3"  end="7"  label="凌晨" color="#16a085"></time-line-segment>
+          <time-line-segment start="12" end="14" label="午休" color="#1abc9c"></time-line-segment>
+          <time-line-segment start="19" end="23" label="晚间" color="#27ae60"></time-line-segment>
+        </time-line-track>
+      `;
+      addLog('dir', 'horizontal (reset)');
+    });
+
+    // 初始圆角
+    c.setGlobalRadius('5px');
+  })();
+
+  // =============================================================
+  //  延迟初始化（确保自定义元素升级完成）
+  // =============================================================
+  function doInit() {
+    // 为每个容器设置初始圆角
+    CONTAINERS.forEach(c => {
+      if (c && c.setGlobalRadius) c.setGlobalRadius('5px');
+    });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => setTimeout(doInit, 80));
+  } else {
+    setTimeout(doInit, 80);
+  }
+
+})();
+</script>
+
+</body>
+</html>
