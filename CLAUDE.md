@@ -4,6 +4,9 @@
 
 基于 **Custom Elements v1** + **Pointer Events** 的原生 Web 组件库。采用 **pnpm workspace monorepo** 结构，每个组件独立构建发布。
 
+- **Node.js** ≥ 22.13
+- **pnpm** 11.6.0（通过 `package.json` 的 `packageManager` 字段锁定）
+
 ## 项目结构
 
 ```
@@ -82,10 +85,6 @@ pnpm -r run build:all
 - 事件命名 kebab-case，统一冒泡到 document
 
 ## GitHub Release 策略
-
-```
-依赖单独列出一个 "发布" 或者 "release"
-```
 
 每个组件包独立版本化：
 

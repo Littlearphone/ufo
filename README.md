@@ -18,6 +18,8 @@
 
 ## 快速开始
 
+**环境要求：** Node.js ≥ 22.13、pnpm 11.6（项目通过 `packageManager` 字段锁定版本）
+
 ```bash
 # 安装依赖（根目录）
 pnpm install
