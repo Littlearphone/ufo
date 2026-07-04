@@ -107,6 +107,7 @@ export class TimeTrack extends HTMLElement {
     if (this._mutObs) this._mutObs.disconnect()
     if (this._trackMutObs) this._trackMutObs.disconnect()
     if (this._resObs) this._resObs.disconnect()
+    if (this._winResizeHandler) window.removeEventListener('resize', this._winResizeHandler)
   }
 
   static get observedAttributes() { return ['label', 'start', 'end', 'step', 'min-duration'] }
@@ -170,6 +171,14 @@ export class TimeTrack extends HTMLElement {
       }
     })
     this._mutObs.observe(this._segArea(), { childList: true })
+
+    // 窗口 resize 兜底：ResizeObserver 在某些浏览器或场景可能延迟/不触发
+    this._resizeRaf = null
+    this._winResizeHandler = () => {
+      if (this._resizeRaf) cancelAnimationFrame(this._resizeRaf)
+      this._resizeRaf = requestAnimationFrame(() => { this._drawGrid(); this._refreshPositions() })
+    }
+    window.addEventListener('resize', this._winResizeHandler)
 
     // 额外监听 track 自身：segment 可能被直接 append 到 track 上
     this._trackMutObs = new MutationObserver(muts => {
@@ -439,7 +448,70 @@ export class TimeTrack extends HTMLElement {
   }
 
   /* ---- 段定位 ---- */
-  _positionOne(seg) {
+
+  /**
+   * 计算单个段的像素位置与动态最小宽度
+   * 最小宽度考虑与下一段之间的可用空间，避免视觉重叠
+   * @param {TimeSegment} seg - 要定位的段元素
+   * @param {number} [bulkDim] - 批量刷新时传入的总尺寸，避免重复 getBoundingClientRect
+   */
+  _positionOne(seg, bulkDim) {
+    const r = bulkDim ? null : this._segRect()
+    if (!r && bulkDim == null) return
+    const { start: ts, end: te } = this._effRange()
+    const range = te - ts
+    if (!range) return
+    const v = this.isVertical
+    const dim = bulkDim ?? (v ? r.height : r.width)
+    const p1  = ((seg.start - ts) / range) * dim
+    const p2  = ((seg.end   - ts) / range) * dim
+
+    // 计算到下一段左边界的像素间距，用于约束最小宽度
+    // 避免密集场景下 6px 硬最小值导致的视觉重叠
+    const segs = this.sortedSegs()
+    const idx  = segs.indexOf(seg)
+    let rightBound = dim  // 末段或独立段：边界为轨道末端
+    if (idx >= 0 && idx < segs.length - 1) {
+      const nStart = ((segs[idx + 1].start - ts) / range) * dim
+      // 仅当下一段在视觉右侧时约束（防止已重叠段的错误放大）
+      if (nStart > p1) rightBound = nStart
+    }
+
+    const avail = rightBound - p1     // 该段左边界到下一段左边界的像素距离
+
+    // 三向约束：最小宽度不超过可用空间 & 实际宽度不超可用空间
+    // 解释：
+    //   1) Math.min(6, avail) — 尽量让段至少有 6px 可见，但受限于可用空间
+    //   2) Math.max(p2 - p1, ...) — 至少等于时间计算出来的自然宽度
+    //   3) Math.min(..., avail) — 绝对不能超出到下一段的空间（防止时间重叠的段溢出）
+    //   → 极端场景（avail < 1px）：段变为细线但不会重叠
+    const minW  = Math.min(6, avail)
+    const segW  = Math.min(Math.max(p2 - p1, minW), avail)
+
+    if (v) {
+      seg.style.top    = p1 + 'px'
+      seg.style.left   = '0'
+      seg.style.right  = '0'
+      seg.style.height = segW + 'px'
+      seg.style.width  = ''
+      seg.style.bottom = ''
+    } else {
+      seg.style.left   = p1 + 'px'
+      seg.style.top    = '0'
+      seg.style.bottom = '0'
+      seg.style.width  = segW + 'px'
+      seg.style.height = ''
+      seg.style.right  = ''
+    }
+  }
+
+  /**
+   * 批量刷新所有段的位置（含重叠预防）
+   * 一次计算总尺寸，所有段共享，避免反复 layout thrashing
+   */
+  _refreshPositions() {
+    const segs = this.sortedSegs()
+    if (!segs.length) return
     const r = this._segRect()
     if (!r) return
     const { start: ts, end: te } = this._effRange()
@@ -447,26 +519,36 @@ export class TimeTrack extends HTMLElement {
     if (!range) return
     const v = this.isVertical
     const dim = v ? r.height : r.width
-    const p1  = ((seg.start - ts) / range) * dim
-    const p2  = ((seg.end   - ts) / range) * dim
-    if (v) {
-      seg.style.top    = p1 + 'px'
-      seg.style.left   = '0'
-      seg.style.right  = '0'
-      seg.style.height = Math.max(6, p2 - p1) + 'px'
-      seg.style.width  = ''
-      seg.style.bottom = ''
-    } else {
-      seg.style.left   = p1 + 'px'
-      seg.style.top    = '0'
-      seg.style.bottom = '0'
-      seg.style.width  = Math.max(6, p2 - p1) + 'px'
-      seg.style.height = ''
-      seg.style.right  = ''
+
+    // 单次计算所有段的 p1（左边界），用于约束相邻段
+    const lefts = segs.map(s => ((s.start - ts) / range) * dim)
+
+    for (let i = 0; i < segs.length; i++) {
+      const seg = segs[i]
+      const p1 = lefts[i]
+      const p2 = ((seg.end - ts) / range) * dim
+      const nextBound = i < segs.length - 1 ? lefts[i + 1] : dim
+      const avail = nextBound - p1
+      const minW = Math.min(6, avail)
+      const segW = Math.min(Math.max(p2 - p1, minW), avail)
+
+      if (v) {
+        seg.style.top    = p1 + 'px'
+        seg.style.left   = '0'
+        seg.style.right  = '0'
+        seg.style.height = segW + 'px'
+        seg.style.width  = ''
+        seg.style.bottom = ''
+      } else {
+        seg.style.left   = p1 + 'px'
+        seg.style.top    = '0'
+        seg.style.bottom = '0'
+        seg.style.width  = segW + 'px'
+        seg.style.height = ''
+        seg.style.right  = ''
+      }
     }
   }
-
-  _refreshPositions() { this.sortedSegs().forEach(s => this._positionOne(s)) }
 
   /** 是否处于共享轴模式 */
   _isSharedMode() {

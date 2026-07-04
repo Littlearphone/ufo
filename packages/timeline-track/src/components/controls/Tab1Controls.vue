@@ -12,7 +12,7 @@
           </label>
           <label>
             每轨道段数
-            <input type="range" v-model.number="segCount" min="1" max="150">
+            <input type="range" v-model.number="segCount" min="1" max="300">
             <span class="range-val">{{ segCount }}</span>
           </label>
         </div>
@@ -30,6 +30,10 @@
               <option value="2">2</option>
               <option value="4">4</option>
             </select>
+          </label>
+          <label style="gap:4px">
+            <input type="checkbox" v-model="packed">
+            <span>完全铺满（无间隙）</span>
           </label>
         </div>
       </div>
@@ -77,6 +81,7 @@ const props = defineProps({
 const trackCount = ref(5)
 const segCount = ref(20)
 const stepVal = ref('0')
+const packed = ref(false)
 const radiusOpts = ['0', '3px', '5px', '8px', '12px', '20px']
 const radiusVal = ref('0')
 
@@ -95,6 +100,7 @@ function generate() {
   const segN = segCount.value
   const step = parseFloat(stepVal.value) || 0
   const totalRange = 24
+  const isPacked = packed.value
 
   c().innerHTML = ''
   const t0 = performance.now()
@@ -106,16 +112,31 @@ function generate() {
     track.setAttribute('end', String(totalRange))
     if (step) track.setAttribute('step', String(step))
 
-    const segLen = totalRange / segN
-    for (let s = 0; s < segN; s++) {
-      const seg = document.createElement('time-line-segment')
-      const start = s * segLen + rand(0, segLen * 0.15)
-      const end = start + segLen * 0.3 + rand(0, segLen * 0.25)
-      seg.setAttribute('start', String(Math.min(Math.max(start, 0), totalRange - 0.05)))
-      seg.setAttribute('end', String(Math.min(end, totalRange)))
-      seg.setAttribute('label', 'S' + (s + 1))
-      seg.setAttribute('color', pick(COLORS))
-      track.appendChild(seg)
+    if (isPacked) {
+      // 完全铺满模式：时间段无间隙，首尾相接填满整个时间轴
+      const segLen = totalRange / segN
+      for (let s = 0; s < segN; s++) {
+        const seg = document.createElement('time-line-segment')
+        const start = s * segLen
+        const end = (s + 1) * segLen
+        seg.setAttribute('start', String(Math.round(start * 1e4) / 1e4))
+        seg.setAttribute('end', String(Math.round(end * 1e4) / 1e4))
+        seg.setAttribute('label', '' + (s + 1))
+        seg.setAttribute('color', pick(COLORS))
+        track.appendChild(seg)
+      }
+    } else {
+      const segLen = totalRange / segN
+      for (let s = 0; s < segN; s++) {
+        const seg = document.createElement('time-line-segment')
+        const start = s * segLen + rand(0, segLen * 0.15)
+        const end = start + segLen * 0.3 + rand(0, segLen * 0.25)
+        seg.setAttribute('start', String(Math.min(Math.max(start, 0), totalRange - 0.05)))
+        seg.setAttribute('end', String(Math.min(end, totalRange)))
+        seg.setAttribute('label', 'S' + (s + 1))
+        seg.setAttribute('color', pick(COLORS))
+        track.appendChild(seg)
+      }
     }
     c().appendChild(track)
   }
@@ -126,7 +147,8 @@ function generate() {
   })
 
   const elapsed = (performance.now() - t0).toFixed(0)
-  addLog('gen', trackN + ' 轨道 × ' + segN + ' 段 = ' + (trackN * segN) + ' 个段（' + elapsed + 'ms）')
+  const label = isPacked ? '铺满' : '随机间隙'
+  addLog('gen', trackN + ' 轨道 × ' + segN + ' 段 [' + label + '] = ' + (trackN * segN) + ' 个段（' + elapsed + 'ms）')
 }
 
 function clearAll() {

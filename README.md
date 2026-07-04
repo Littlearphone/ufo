@@ -4,7 +4,19 @@
 
 采用 **pnpm workspace monorepo** 结构，每个组件独立构建发布。
 
-[![GitHub Pages](https://img.shields.io/badge/GitHub%20Pages-在线演示-4285f4?logo=githubpages&logoColor=white)](https://littlearphone.github.io/ufo/)
+[![GitHub Pages](https://img.shields.io/badge/GitHub%20Pages-在线演示-4285f4?logo=githubpages&logoColor=white)](https://littlearphone.github.io/ufo/) [![AI Development](https://img.shields.io/badge/AI-Development%20Assistant-7c3aed?logo=openai&logoColor=white)](https://claude.ai)
+
+---
+
+## AI 开发声明
+
+本项目在开发过程中使用了 **Claude（Anthropic）** 作为 AI 编程助手，通过 [Claude Code](https://docs.anthropic.com/en/docs/claude-code/overview) 命令行工具生成部分代码，包括但不限于：
+
+- 组件骨架代码与配置流程
+- 工作流与 CI/CD 配置
+- 文档编写与重构
+
+所有 AI 生成代码均经过人工审核和测试验证，开发者对代码质量与安全性承担全部责任。
 
 ---
 
