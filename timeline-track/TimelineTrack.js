@@ -299,18 +299,49 @@
       line-height: 1.3;
       white-space: nowrap;
       box-shadow: 0 2px 8px rgba(0,0,0,.25);
-      transform: translate(-50%, -100%);
     }
+    .tls-global-tip.show { opacity: 1; }
+
+    /* ── 箭头基础 ── */
     .tls-global-tip::after {
       content: '';
       position: absolute;
-      top: 100%;
-      left: 50%;
-      transform: translateX(-50%);
       border: 5px solid transparent;
-      border-top-color: rgba(30,35,42,.92);
     }
-    .tls-global-tip.show { opacity: 1; }
+
+    /* 上方弹出（箭头朝下） */
+    .tls-global-tip.top::after {
+      top: 100%;
+      border-top-color: rgba(30,35,42,.92);
+      border-bottom: none;
+      left: var(--tlc-arrow-left, 50%);
+      transform: translateX(-50%);
+    }
+    /* 下方弹出（箭头朝上） */
+    .tls-global-tip.bottom::after {
+      bottom: 100%;
+      border-bottom-color: rgba(30,35,42,.92);
+      border-top: none;
+      left: var(--tlc-arrow-left, 50%);
+      transform: translateX(-50%);
+    }
+    /* 左方弹出（箭头朝右） */
+    .tls-global-tip.left::after {
+      left: 100%;
+      border-left-color: rgba(30,35,42,.92);
+      border-right: none;
+      top: var(--tlc-arrow-top, 50%);
+      transform: translateY(-50%);
+    }
+    /* 右方弹出（箭头朝左） */
+    .tls-global-tip.right::after {
+      right: 100%;
+      border-right-color: rgba(30,35,42,.92);
+      border-left: none;
+      top: var(--tlc-arrow-top, 50%);
+      transform: translateY(-50%);
+    }
+
     .tls-global-tip-label { font-weight: 600; }
     .tls-global-tip-time  { opacity: .75; font-size: 10px; }
     /* 圆角全局默认值 */
@@ -457,13 +488,109 @@
   function _showGlobalTip(seg) {
     clearTimeout(_tipHideTimer);
     const tip = _getGlobalTip();
-    const rect = seg.getBoundingClientRect();
+    const segRect = seg.getBoundingClientRect();
+
+    // 读取 tooltip 位置配置：段自身的 tooltip-pos 属性优先，否则取容器配置
+    let side = 'top', align = 'center';
+    const segPos = seg.getAttribute('tooltip-pos');
+    if (segPos) {
+      const parts = segPos.split('-');
+      if (['top','bottom','left','right'].includes(parts[0])) side = parts[0];
+      if (['start','center','end'].includes(parts[1])) align = parts[1];
+    } else {
+      const c = seg.closest('time-line-container');
+      if (c) {
+        const pos = (c.tooltipPos || 'top-center').split('-');
+        side = pos[0] || 'top';
+        align = pos[1] || 'center';
+      }
+    }
+
     tip.innerHTML =
       `<div class="tls-global-tip-label">${esc(seg.label) || '未命名'}</div>
        <div class="tls-global-tip-time">${fmtTime(seg.start)} – ${fmtTime(seg.end)}</div>`;
-    // 定位在段上方居中
-    tip.style.left = (rect.left + rect.width / 2) + 'px';
-    tip.style.top  = (rect.top - 6) + 'px';
+
+    // 重置样式和类
+    tip.className = 'tls-global-tip';
+    tip.classList.add(side, align);
+    tip.style.removeProperty('--tlc-arrow-left');
+    tip.style.removeProperty('--tlc-arrow-top');
+
+    // 先放到屏幕外测量 tooltip 尺寸
+    tip.style.left = '-9999px';
+    tip.style.top  = '-9999px';
+    const tipRect = tip.getBoundingClientRect();
+    const tipW = tipRect.width;
+    const tipH = tipRect.height;
+
+    const gap = 6;            // tooltip 与段之间的间距
+    const MARGIN = 8;         // 距视口边缘的最小距离
+    const vpW = window.innerWidth;
+    const vpH = window.innerHeight;
+
+    let left, top;
+
+    switch (side) {
+      case 'top':
+        // ── 段上方弹出 ──
+        top = segRect.top - tipH - gap;
+        if (align === 'start') {
+          left = segRect.left;
+          tip.style.setProperty('--tlc-arrow-left', '12px');
+        } else if (align === 'end') {
+          left = segRect.right - tipW;
+          tip.style.setProperty('--tlc-arrow-left', 'calc(100% - 12px)');
+        } else {
+          left = segRect.left + segRect.width / 2 - tipW / 2;
+        }
+        left = clamp(left, MARGIN, vpW - tipW - MARGIN);
+        break;
+      case 'bottom':
+        // ── 段下方弹出 ──
+        top = segRect.bottom + gap;
+        if (align === 'start') {
+          left = segRect.left;
+          tip.style.setProperty('--tlc-arrow-left', '12px');
+        } else if (align === 'end') {
+          left = segRect.right - tipW;
+          tip.style.setProperty('--tlc-arrow-left', 'calc(100% - 12px)');
+        } else {
+          left = segRect.left + segRect.width / 2 - tipW / 2;
+        }
+        left = clamp(left, MARGIN, vpW - tipW - MARGIN);
+        break;
+      case 'left':
+        // ── 段左侧弹出 ──
+        left = segRect.left - tipW - gap;
+        if (align === 'start') {
+          top = segRect.top;
+          tip.style.setProperty('--tlc-arrow-top', '12px');
+        } else if (align === 'end') {
+          top = segRect.bottom - tipH;
+          tip.style.setProperty('--tlc-arrow-top', 'calc(100% - 12px)');
+        } else {
+          top = segRect.top + segRect.height / 2 - tipH / 2;
+        }
+        top = clamp(top, MARGIN, vpH - tipH - MARGIN);
+        break;
+      case 'right':
+        // ── 段右侧弹出 ──
+        left = segRect.right + gap;
+        if (align === 'start') {
+          top = segRect.top;
+          tip.style.setProperty('--tlc-arrow-top', '12px');
+        } else if (align === 'end') {
+          top = segRect.bottom - tipH;
+          tip.style.setProperty('--tlc-arrow-top', 'calc(100% - 12px)');
+        } else {
+          top = segRect.top + segRect.height / 2 - tipH / 2;
+        }
+        top = clamp(top, MARGIN, vpH - tipH - MARGIN);
+        break;
+    }
+
+    tip.style.left = left + 'px';
+    tip.style.top  = top + 'px';
     tip.classList.add('show');
   }
   function _hideGlobalTip() {
@@ -1265,9 +1392,11 @@
       this._syncAxisRuler(); // 处理初始共享模式
     }
 
-    static get observedAttributes() { return ['direction', '方向', 'label-h', 'label-v', 'axis-mode', 'shared-start', 'shared-end']; }
+    static get observedAttributes() { return ['direction', '方向', 'label-h', 'label-v', 'axis-mode', 'shared-start', 'shared-end', 'tooltip-pos']; }
     attributeChangedCallback(name, _ov, nv) {
       if (!this._init) return;
+      // tooltip-pos 仅在鼠标悬停时读取，无需 DOM 变更
+      if (name === 'tooltip-pos') return;
       if (name === 'label-h' || name === 'label-v') {
         this.querySelectorAll('time-line-track').forEach(t => {
           if (t._onLabelPosChange) t._onLabelPosChange();
@@ -1289,6 +1418,14 @@
     get labelH() { return this.getAttribute('label-h') || 'top'; }
     /** 纵向模式轴标签位置：right(右侧/默认) | left(左侧) */
     get labelV() { return this.getAttribute('label-v') || 'left'; }
+
+    /* ---- Tooltip 位置 ---- */
+    /** Tooltip 弹出位置：`<侧边>-<对齐>`，侧边 top|bottom|left|right，对齐 start|center|end */
+    get tooltipPos() { return this.getAttribute('tooltip-pos') || 'top-center'; }
+    set tooltipPos(v) {
+      if (v == null) this.removeAttribute('tooltip-pos');
+      else this.setAttribute('tooltip-pos', v);
+    }
 
     /* ---- 共享轴模式 ---- */
     /** 轴模式：per-track(默认独立轴) | shared(共享轴) */

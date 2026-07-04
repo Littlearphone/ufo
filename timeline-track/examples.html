@@ -649,6 +649,32 @@
             </div>
           </div>
 
+          <div class="ctrl-group">
+            <div class="ctrl-header">💬 Tooltip 位置 <span class="badge badge-info">可配置</span></div>
+            <div class="ctrl-body">
+              <div class="ctrl-row">
+                <label>弹出方向 <select id="t0_tipSide" style="max-width:82px">
+                  <option value="top">上方 top</option>
+                  <option value="bottom">下方 bottom</option>
+                  <option value="left">左方 left</option>
+                  <option value="right">右方 right</option>
+                </select></label>
+                <label>对齐 <select id="t0_tipAlign" style="max-width:78px">
+                  <option value="start">起始 start</option>
+                  <option value="center" selected>居中 center</option>
+                  <option value="end">末尾 end</option>
+                </select></label>
+                <span class="ctrl-sep"></span>
+                <span style="font-size:10px;color:#8d9ba9">
+                  当前：<code id="t0_tipCurrent">top-center</code>
+                </span>
+              </div>
+              <div class="ctrl-row" style="font-size:10px;color:#8d9ba9;margin-top:4px">
+                格式：<code>tooltip-pos="&lt;侧边&gt;-&lt;对齐&gt;"</code>，12 种组合自由选择
+              </div>
+            </div>
+          </div>
+
         </div>
 
         <!-- ════ Tab 1 海量数据 ════ -->
@@ -838,6 +864,32 @@
                 <label>容器宽 <input type="text" id="t3_width" placeholder="auto" style="width:48px"></label>
                 <span class="ctrl-sep"></span>
                 <button id="t3_btnReset">重置</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="ctrl-group">
+            <div class="ctrl-header">💬 Tooltip 位置 <span class="badge badge-info">可配置</span></div>
+            <div class="ctrl-body">
+              <div class="ctrl-row">
+                <label>弹出方向 <select id="t3_tipSide" style="max-width:82px">
+                  <option value="top">上方 top</option>
+                  <option value="bottom">下方 bottom</option>
+                  <option value="left">左方 left</option>
+                  <option value="right">右方 right</option>
+                </select></label>
+                <label>对齐 <select id="t3_tipAlign" style="max-width:78px">
+                  <option value="start">起始 start</option>
+                  <option value="center" selected>居中 center</option>
+                  <option value="end">末尾 end</option>
+                </select></label>
+                <span class="ctrl-sep"></span>
+                <span style="font-size:10px;color:#8d9ba9">
+                  当前：<code id="t3_tipCurrent">top-center</code>
+                </span>
+              </div>
+              <div class="ctrl-row" style="font-size:10px;color:#8d9ba9;margin-top:4px">
+                格式：<code>tooltip-pos="&lt;侧边&gt;-&lt;对齐&gt;"</code>
               </div>
             </div>
           </div>
@@ -1154,9 +1206,14 @@
       $('#t0_height').value = '';
       $('#t0_width').value = '';
       addLog('dir', 'horizontal (reset)');
+      // Reset tooltip position
+      c.removeAttribute('tooltip-pos');
+      $('#t0_tipSide').value = 'top';
+      $('#t0_tipAlign').value = 'center';
+      $('#t0_tipCurrent').textContent = 'top-center';
     });
 
-    // 圆角
+    // Round corner
     $('#t0_radius').addEventListener('change', function () {
       c.setGlobalRadius(this.value);
     });
@@ -1181,6 +1238,18 @@
     refreshSel();
     $('#t0_radius').value = '0';
     c.setGlobalRadius('0');
+
+    // Tooltip 位置控制
+    function t0_updateTipPos() {
+      const side = $('#t0_tipSide').value;
+      const align = $('#t0_tipAlign').value;
+      const val = side + '-' + align;
+      c.tooltipPos = val;
+      $('#t0_tipCurrent').textContent = val;
+      addLog('api', 'tooltip-pos = ' + val);
+    }
+    $('#t0_tipSide').addEventListener('change', t0_updateTipPos);
+    $('#t0_tipAlign').addEventListener('change', t0_updateTipPos);
   })();
 
   // =============================================================
@@ -1477,10 +1546,27 @@
         </time-line-track>
       `;
       addLog('dir', 'horizontal (reset)');
+      // 重置 Tooltip 位置
+      c.removeAttribute('tooltip-pos');
+      $('#t3_tipSide').value = 'top';
+      $('#t3_tipAlign').value = 'center';
+      $('#t3_tipCurrent').textContent = 'top-center';
     });
 
     // 初始圆角
     c.setGlobalRadius('0');
+
+    // Tooltip 位置控制
+    function t3_updateTipPos() {
+      const side = $('#t3_tipSide').value;
+      const align = $('#t3_tipAlign').value;
+      const val = side + '-' + align;
+      c.tooltipPos = val;
+      $('#t3_tipCurrent').textContent = val;
+      addLog('api', 'tooltip-pos = ' + val);
+    }
+    $('#t3_tipSide').addEventListener('change', t3_updateTipPos);
+    $('#t3_tipAlign').addEventListener('change', t3_updateTipPos);
   })();
 
   // =============================================================
