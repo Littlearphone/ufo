@@ -290,6 +290,43 @@ h1 {
   font-size: inherit !important;
 }
 
+/* ── 代码 HTML/JS 标签切换 ── */
+.code-tabs {
+  display: flex;
+  gap: 2px;
+}
+.code-tab {
+  font-size: 10px;
+  padding: 2px 10px;
+  border-radius: 4px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: #78909c;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all .12s;
+}
+.code-tab:hover {
+  color: #eceff1;
+  background: rgba(255,255,255,.06);
+}
+.code-tab.active {
+  color: #a5d6ff;
+  background: rgba(255,255,255,.1);
+  border-color: #546e7a;
+}
+.code-pane {
+  display: none;
+}
+.code-pane.active {
+  display: block;
+}
+.code-pane code {
+  background: none !important;
+  padding: 0 !important;
+  font-size: inherit !important;
+}
+
 /* ── 控制台面板 ── */
 .controls-panel {
   flex-shrink: 0;

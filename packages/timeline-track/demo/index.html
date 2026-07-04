@@ -281,6 +281,43 @@
           font-size: inherit !important;
       }
 
+      /* ── 代码 HTML/JS 标签切换 ── */
+      .code-tabs {
+          display: flex;
+          gap: 2px;
+      }
+      .code-tab {
+          font-size: 10px;
+          padding: 2px 10px;
+          border-radius: 4px;
+          border: 1px solid transparent;
+          background: transparent;
+          color: #78909c;
+          cursor: pointer;
+          font-family: inherit;
+          transition: all .12s;
+      }
+      .code-tab:hover {
+          color: #eceff1;
+          background: rgba(255,255,255,.06);
+      }
+      .code-tab.active {
+          color: #a5d6ff;
+          background: rgba(255,255,255,.1);
+          border-color: #546e7a;
+      }
+      .code-pane {
+          display: none;
+      }
+      .code-pane.active {
+          display: block;
+      }
+      .code-pane code {
+          background: none !important;
+          padding: 0 !important;
+          font-size: inherit !important;
+      }
+
       /* ── 控制台面板 ── */
       .controls-panel {
           flex-shrink: 0;
@@ -565,8 +602,10 @@
           }
       }
   </style>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-okaidia.min.css" rel="stylesheet" />
 </head>
 <body>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
 
 <h1>⏱ 时间线轨道组件</h1>
 <p class="subtitle">原生 Custom Elements · 零依赖 · 多标签演示每种不同用法</p>
@@ -646,10 +685,14 @@
       </div>
       <div class="code-block" id="codeBlock">
         <div class="code-block-header">
-          <span>📄 HTML 源码</span>
+          <div class="code-tabs">
+            <button class="code-tab active" data-lang="html">📄 HTML</button>
+            <button class="code-tab" data-lang="js" id="jsTabBtn">💻 JavaScript</button>
+          </div>
           <button id="btnCopyCode">📋 复制</button>
         </div>
-        <pre><code id="codeContent"></code></pre>
+        <pre class="code-pane active" data-lang="html"><code class="language-html" id="codeHtmlContent"></code></pre>
+        <pre class="code-pane" data-lang="js" id="codeJsPane"><code class="language-javascript" id="codeJsContent"></code></pre>
       </div>
 
       <!-- ── 图例（按标签页切换） ── -->
@@ -1038,39 +1081,11 @@
   function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
 
   // =============================================================
-  //  源码展示 — 容器标签属性从 DOM 实时读取，内部保持示例源码
+  //  源码展示 — HTML / JavaScript 分标签查看 + Prism 语法高亮
   // =============================================================
 
-  // 密集数据标签页的 JS 生成代码（容器 HTML 仅为空壳）
-  const JS_SOURCE = `// 密集数据由 JavaScript 动态生成
-// 用户可通过滑块控制轨道数和每轨道段数
-// 时间段自动非重叠分布，颜色随机分配
-
-const trackN = 5;   // 轨道数（滑块调节 1-15）
-const segN  = 20;   // 每轨道段数（滑块调节 1-150）
-const colors = ['#27ae60','#e67e22','#2980b9', /* ... */ ];
-
-for (let t = 0; t < trackN; t++) {
-  const track = document.createElement('time-line-track');
-  track.setAttribute('label', '密集轨道-' + (t + 1));
-  track.setAttribute('start', '0');
-  track.setAttribute('end', '24');
-  container.appendChild(track);
-
-  for (let s = 0; s < segN; s++) {
-    const seg = document.createElement('time-line-segment');
-    const start = s * (24 / segN) + Math.random() * 0.15;
-    const end   = start + (24 / segN) * 0.3 + Math.random() * 0.1;
-    seg.setAttribute('start', String(start));
-    seg.setAttribute('end', String(end));
-    seg.setAttribute('label', 'S' + (s + 1));
-    seg.setAttribute('color', pick(colors));
-    track.appendChild(seg);
-  }
-}`;
-
-  // 各标签页的内部静态源码（不包含容器外层，只含轨道和段）
-  const TAB_INNER_SOURCES = [
+  // 各标签页的内部轨道/段 HTML（不含容器外层）
+  const TAB_INNER_HTML = [
     // Tab 0 — 基础操作
     `  <time-line-track label="摄像头-A（前门）" start="0" end="24" step="0.25">
     <time-line-segment start="6"  end="9"  label="早班值守" color="#27ae60"></time-line-segment>
@@ -1086,7 +1101,7 @@ for (let t = 0; t < trackN; t++) {
     <time-line-segment start="18" end="24" label="夜间巡检" color="#2c3e50"></time-line-segment>
   </time-line-track>`,
 
-    // Tab 1 — 使用 JS_SOURCE
+    // Tab 1 — 密集数据（无静态内嵌内容）
     ``,
 
     // Tab 2 — API 调用
@@ -1111,6 +1126,42 @@ for (let t = 0; t < trackN; t++) {
   </time-line-track>`,
   ];
 
+  // JavaScript 生成代码（按标签页，无则为 null）
+  const TAB_JS_SOURCE = [
+    null,  // Tab 0 — 无需 JS
+    `// 密集数据由 JavaScript 动态生成
+// 用户可通过滑块控制轨道数和每轨道段数
+// 时间段自动非重叠分布，颜色随机分配
+
+const container = document.querySelector('time-line-container');
+const trackN = 5;   // 轨道数（滑块调节 1-15）
+const segN  = 20;   // 每轨道段数（滑块调节 1-150）
+const colors = ['#27ae60','#e67e22','#2980b9','#8e44ad','#c0392b','#16a085','#f39c12','#1abc9c','#e74c3c','#2c3e50','#3498db','#9b59b6','#e91e63','#00bcd4','#ff5722'];
+
+function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+for (let t = 0; t < trackN; t++) {
+  const track = document.createElement('time-line-track');
+  track.setAttribute('label', '密集轨道-' + (t + 1));
+  track.setAttribute('start', '0');
+  track.setAttribute('end', '24');
+  container.appendChild(track);
+
+  for (let s = 0; s < segN; s++) {
+    const seg = document.createElement('time-line-segment');
+    const start = s * (24 / segN) + Math.random() * 0.15;
+    const end   = start + (24 / segN) * 0.3 + Math.random() * 0.1;
+    seg.setAttribute('start', String(Math.max(start, 0)));
+    seg.setAttribute('end', String(Math.min(end, 24)));
+    seg.setAttribute('label', 'S' + (s + 1));
+    seg.setAttribute('color', pick(colors));
+    track.appendChild(seg);
+  }
+}`,  // Tab 1 — 密集数据
+    null,  // Tab 2 — 无需 JS
+    null,  // Tab 3 — 无需 JS
+  ];
+
   // 从当前 DOM 提取容器标签的动态属性（反映控制台参数变化）
   function buildContainerOpenTag(idx) {
     const c = CONTAINERS[idx];
@@ -1123,50 +1174,89 @@ for (let t = 0; t < trackN; t++) {
     return '<time-line-container' + (parts.length ? ' ' + parts.join(' ') : '') + '>';
   }
 
-  function getTabSource(idx) {
-    // Tab 1：使用 JS 源码
-    if (idx === 1) return JS_SOURCE;
-
-    const inner = TAB_INNER_SOURCES[idx];
+  /** 获取当前标签页的 HTML 源码（容器 + 内部轨道/段） */
+  function getHtmlSource(idx) {
+    if (idx === 1) {
+      return buildContainerOpenTag(idx) + '\n  <!-- 内部轨道和段由 JavaScript 动态生成 -->\n</time-line-container>';
+    }
+    const inner = TAB_INNER_HTML[idx];
     if (inner == null) return '';
-
-    const openTag = buildContainerOpenTag(idx);
-    return openTag + '\n' + inner + '\n</time-line-container>';
+    return buildContainerOpenTag(idx) + '\n' + inner + '\n</time-line-container>';
   }
 
+  /** 获取当前标签页的 JavaScript 源码，无则返回 null */
+  function getJsSource(idx) { return TAB_JS_SOURCE[idx]; }
+
+  // ── 代码框 UI ──
   const codeBlock  = $('#codeBlock');
-  const codeContent = $('#codeContent');
-  const toggleBtn   = $('#btnToggleCode');
-  let codeVisible   = false;
+  const codeHtml   = $('#codeHtmlContent');
+  const codeJs     = $('#codeJsContent');
+  const codeJsPane = $('#codeJsPane');
+  const jsTabBtn   = $('#jsTabBtn');
+  const toggleBtn  = $('#btnToggleCode');
+  let codeVisible  = false;
+  let codeLang     = 'html';  // 'html' | 'js'
 
+  /** 用 Prism 高亮后填充两个代码面板 */
   function updateCode(idx) {
-    codeContent.textContent = getTabSource(idx);
-    const header = document.querySelector('.code-block-header span');
-    if (header) header.textContent = idx === 1 ? '📄 JavaScript 源码' : '📄 HTML 源码';
+    const htmlSrc = getHtmlSource(idx);
+    codeHtml.innerHTML = Prism.highlight(htmlSrc, Prism.languages.html, 'html');
+
+    const jsSrc = getJsSource(idx);
+    if (jsSrc) {
+      codeJs.innerHTML = Prism.highlight(jsSrc, Prism.languages.javascript, 'javascript');
+      codeJsPane.style.display = '';
+      jsTabBtn.style.display = '';
+    } else {
+      codeJsPane.style.display = 'none';
+      jsTabBtn.style.display = 'none';
+      // 如果当前在 JS 面板但无源码，切回 HTML
+      if (codeLang === 'js') switchCodeLang('html');
+    }
   }
+
+  function switchCodeLang(lang) {
+    codeLang = lang;
+    document.querySelectorAll('.code-tab').forEach(b => b.classList.toggle('active', b.dataset.lang === lang));
+    document.querySelectorAll('.code-pane').forEach(p => p.classList.toggle('active', p.dataset.lang === lang));
+  }
+
+  // 代码标签切换
+  document.querySelectorAll('.code-tab').forEach(btn => {
+    btn.addEventListener('click', function () {
+      switchCodeLang(this.dataset.lang);
+    });
+  });
 
   toggleBtn.addEventListener('click', () => {
     codeVisible = !codeVisible;
     codeBlock.classList.toggle('open', codeVisible);
     toggleBtn.textContent = codeVisible ? '📄 隐藏代码' : '📄 显示代码';
     toggleBtn.classList.toggle('active', codeVisible);
-    // 每次展开时重新构建，反映最新的控制台参数
-    if (codeVisible) updateCode(activeTab);
+    if (codeVisible) {
+      codeLang = 'html';  // 展开时默认显示 HTML
+      switchCodeLang('html');
+      updateCode(activeTab);
+    }
   });
 
-  $('#btnCopyCode').addEventListener('click', function () {
-    const text = codeContent.textContent;
-    navigator.clipboard.writeText(text).then(() => {
-      this.textContent = '✅ 已复制';
-      this.classList.add('copied');
+  /** 复制当前激活面板的代码 */
+  function copyCode() {
+    const src = codeLang === 'html' ? getHtmlSource(activeTab) : getJsSource(activeTab) || '';
+    const btn = document.getElementById('btnCopyCode');
+    navigator.clipboard.writeText(src).then(() => {
+      btn.textContent = '✅ 已复制';
+      btn.classList.add('copied');
       setTimeout(() => {
-        this.textContent = '📋 复制';
-        this.classList.remove('copied');
+        btn.textContent = '📋 复制';
+        btn.classList.remove('copied');
       }, 1500);
     }).catch(() => {
-      this.textContent = '❌ 复制失败';
+      btn.textContent = '❌ 复制失败';
     });
-  });
+  }
+
+  document.getElementById('btnCopyCode').addEventListener('click', copyCode);
 
   // =============================================================
   //  事件日志（全局 — 所有容器的事件）
