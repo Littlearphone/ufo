@@ -118,27 +118,41 @@ const widthVal = ref('')
 const tipSide = ref('top')
 const tipAlign = ref('center')
 
+// 版本计数器：DOM 属性每变更一次 +1，让依赖 DOM 的 computed 重新求值
+const _attrRev = ref(0)
+function bumpAttr() { _attrRev.value++ }
+
 // ── 计算 ──
 const c = () => props.container
 const trackList = computed(() => c() ? c().allTracks() : [])
 const dir = computed(() => {
+  _attrRev.value // 追踪版本变化
   if (!c()) return 'horizontal'
   const d = c().getAttribute('direction') || c().getAttribute('方向') || ''
   return (d === 'vertical' || d === '纵向') ? 'vertical' : 'horizontal'
 })
 const isVertical = computed(() => dir.value === 'vertical')
-const isShared = computed(() => c() && c().axisMode === 'shared')
+const isShared = computed(() => {
+  _attrRev.value
+  return c() && c().axisMode === 'shared'
+})
 const dirLabel = computed(() => isVertical.value ? '纵向' : '横向')
 const axisLabel = computed(() => isShared.value ? '共享轴' : '独立轴')
 const btnDirText = computed(() => isVertical.value ? '切换为横向' : '切换为纵向')
 const btnAxisText = computed(() => isShared.value ? '切换为独立轴' : '切换为共享轴')
 const sharedS = computed({
-  get: () => c() ? parseFloat(c().getAttribute('shared-start')) || 0 : 0,
-  set: (v) => { if (c()) c().setAttribute('shared-start', String(v)) }
+  get: () => {
+    _attrRev.value
+    return c() ? parseFloat(c().getAttribute('shared-start')) || 0 : 0
+  },
+  set: (v) => { if (c()) { c().setAttribute('shared-start', String(v)); bumpAttr() } }
 })
 const sharedE = computed({
-  get: () => c() ? parseFloat(c().getAttribute('shared-end')) || 24 : 24,
-  set: (v) => { if (c()) c().setAttribute('shared-end', String(v)) }
+  get: () => {
+    _attrRev.value
+    return c() ? parseFloat(c().getAttribute('shared-end')) || 24 : 24
+  },
+  set: (v) => { if (c()) { c().setAttribute('shared-end', String(v)); bumpAttr() } }
 })
 
 // ── 方法 ──
@@ -146,6 +160,7 @@ function toggleDir() {
   if (!c()) return
   const next = isVertical.value ? 'horizontal' : 'vertical'
   c().setAttribute('direction', next)
+  bumpAttr()
   addLog('dir', next)
 }
 
@@ -154,6 +169,7 @@ function toggleAxis() {
   const cur = c().axisMode
   const next = cur === 'shared' ? 'per-track' : 'shared'
   c().setAttribute('axis-mode', next)
+  bumpAttr()
   addLog('axis-mode', next)
 }
 
@@ -241,6 +257,7 @@ function resetDemo() {
     </time-line-track>`
   selectedTrackIdx.value = 0
   addLog('dir', 'horizontal (reset)')
+  bumpAttr()
 }
 
 function setRadius() {
@@ -248,7 +265,7 @@ function setRadius() {
 }
 
 function setLabel(attr, val) {
-  if (c()) c().setAttribute(attr, val)
+  if (c()) { c().setAttribute(attr, val); bumpAttr() }
 }
 
 function setSize() {
@@ -260,6 +277,7 @@ function setSize() {
 function updateTip() {
   if (!c()) return
   c().tooltipPos = tipSide.value + '-' + tipAlign.value
-  addLog('api', 'tooltip-pos = ' + c().tooltipPos)
+  bumpAttr()
+  addLog("api", "tooltip-pos = " + c().tooltipPos)
 }
 </script>
