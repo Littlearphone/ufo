@@ -144,20 +144,27 @@ export class TimeContainer extends HTMLElement {
 
   /* ---- 粘性轴尺管理 ---- */
 
+  /** 清除轴尺的 ResizeObserver 并移除 DOM */
+  _cleanupRuler() {
+    if (this._rulerResObs) { this._rulerResObs.disconnect(); this._rulerResObs = null }
+    if (this._axisRuler) { this._axisRuler.remove(); this._axisRuler = null }
+  }
+
   _syncAxisRuler() {
     if (this.axisRulerActive) {
-      if (!this._axisRuler) this._createAxisRuler()
+      // 轴尺不存在、被 innerHTML 等操作移出 DOM、或方向变更时重新创建
+      const isVertical = this.direction === 'vertical' || this.direction === '纵向'
+      const staleDir = this._axisRuler && this._axisRuler.classList.contains('vertical') !== isVertical
+      if (!this._axisRuler || !this._axisRuler.isConnected || staleDir) {
+        this._cleanupRuler()
+        this._createAxisRuler()
+      }
       requestAnimationFrame(() => this._drawAxisRuler())
       this.style.setProperty('--tlc-gap', '0')
       this.style.setProperty('--tlc-padding', '0')
-      const isHorizontal = this.direction !== 'vertical' && this.direction !== '纵向'
-      this.style.overflowX = isHorizontal ? 'hidden' : ''
+      this.style.overflowX = isVertical ? '' : 'hidden'
     } else {
-      if (this._axisRuler) {
-        if (this._rulerResObs) { this._rulerResObs.disconnect(); this._rulerResObs = null }
-        this._axisRuler.remove()
-        this._axisRuler = null
-      }
+      this._cleanupRuler()
       this.style.removeProperty('overflow-x')
       this.style.removeProperty('--tlc-gap')
       this.style.setProperty('--tlc-padding', '14px 16px')
