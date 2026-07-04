@@ -6,6 +6,7 @@
 
 import { ensureCSS } from './css.js'
 import { clamp, esc, fmtTime, snap } from './utils.js'
+import { showContextMenu, showDeleteConfirm, showTrackEditDialog } from './contextmenu.js'
 
 export class TimeTrack extends HTMLElement {
   constructor() {
@@ -111,6 +112,18 @@ export class TimeTrack extends HTMLElement {
     return seg
   }
 
+  /** 程序化删除本轨道（发送可取消事件，供右键菜单调用） */
+  _deleteTrack() {
+    const ok = this.dispatchEvent(new CustomEvent('track-before-delete', {
+      bubbles: true, cancelable: true, detail: { track: this }
+    }))
+    if (!ok) return
+    this.remove()
+    this.dispatchEvent(new CustomEvent('track-deleted', {
+      bubbles: true, detail: { track: this }
+    }))
+  }
+
   /* ---- 生命周期 ---- */
   connectedCallback() {
     ensureCSS()
@@ -170,6 +183,22 @@ export class TimeTrack extends HTMLElement {
     // 事件绑定
     const body = this.querySelector('.tlt-body')
     body.addEventListener('pointerdown', e => this._bodyDown(e))
+
+    // 右键菜单（段已在自身处理并 stopPropagation，此处的右键事件只来自轨道头部或空白区域）
+    this.addEventListener('contextmenu', e => {
+      if (this._creating) return              // 拖拽创建中不响应
+      e.preventDefault()
+      const name = this.label || '未命名'
+      showContextMenu([
+        { label: '修改属性', action: () => showTrackEditDialog(this) },
+        { type: 'divider' },
+        { label: '删除轨道', danger: true, action: () => {
+          showDeleteConfirm(`确定要删除轨道「${name}」(${fmtTime(this.tStart)} – ${fmtTime(this.tEnd)}) 吗？`, () => {
+            this._deleteTrack()
+          })
+        }}
+      ], e.clientX, e.clientY)
+    })
 
     // ResizeObserver 监听尺寸变化
     this._resObs = new ResizeObserver(() => { this._drawGrid(); this._refreshPositions() })

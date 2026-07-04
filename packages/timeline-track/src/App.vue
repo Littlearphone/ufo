@@ -318,5 +318,6 @@ onMounted(() => {
   document.addEventListener('segment-changed', e => addLog('changed', e.detail))
   document.addEventListener('segment-deleted', e => addLog('deleted', e.detail))
   document.addEventListener('segment-limit-reached', e => addLog('limit', e.detail))
+  document.addEventListener('track-deleted', e => addLog('track-deleted', e.detail))
 })
 </script>

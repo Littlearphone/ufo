@@ -6,6 +6,7 @@
 
 import { clamp, esc, fmtTime, snap } from './utils.js'
 import { hideGlobalTip, showGlobalTip } from './tooltip.js'
+import { showContextMenu, showDeleteConfirm, showSegmentEditDialog } from './contextmenu.js'
 
 export class TimeSegment extends HTMLElement {
   constructor() {
@@ -118,6 +119,25 @@ export class TimeSegment extends HTMLElement {
     this.addEventListener('mouseleave', () => {
       hideGlobalTip()
       _tipShown = false
+    })
+
+    // 右键菜单
+    this.addEventListener('contextmenu', e => {
+      if (this._ptrActive) return               // 拖拽中不响应
+      if (e.target.closest('[data-role="del"]')) return // 删除按钮上不响应
+      e.preventDefault()
+      e.stopPropagation()                       // 阻止冒泡到轨道
+      const name = this.label || '未命名'
+      showContextMenu([
+        { label: '修改属性', action: () => showSegmentEditDialog(this) },
+        { type: 'divider' },
+        { label: '删除', danger: true, action: () => {
+          showDeleteConfirm(
+            `确定要删除时间段「${name}」(${fmtTime(this.start)} – ${fmtTime(this.end)}) 吗？`,
+            () => this._deleteSegment()
+          )
+        }}
+      ], e.clientX, e.clientY)
     })
   }
 
@@ -262,6 +282,18 @@ export class TimeSegment extends HTMLElement {
     }))
     origEvent.preventDefault()
     origEvent.stopPropagation()
+  }
+
+  /** 程序化删除（无事件参数，供右键菜单调用） */
+  _deleteSegment() {
+    const ok = this.dispatchEvent(new CustomEvent('segment-before-delete', {
+      bubbles: true, cancelable: true, detail: { segment: this }
+    }))
+    if (!ok) return
+    this.remove()
+    this.dispatchEvent(new CustomEvent('segment-deleted', {
+      bubbles: true, detail: { segment: this }
+    }))
   }
 
   /** 颜色加深 */
