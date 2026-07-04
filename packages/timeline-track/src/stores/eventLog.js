@@ -11,7 +11,7 @@ const MAX_LOG = 80
 
 /**
  * 添加一条日志
- * @param {'create'|'change'|'changed'|'deleted'|'track-add'|'track-del'|'dir'|'axis-mode'|'api'|'gen'} kind
+ * @param {'create'|'change'|'changed'|'deleted'|'track-add'|'track-del'|'dir'|'axis-mode'|'api'|'gen'|'limit'} kind
  * @param {string|object} detail
  */
 export function addLog(kind, detail) {
@@ -48,6 +48,9 @@ export function addLog(kind, detail) {
       break
     case 'gen':
       msg = `生成数据: ${detail}`
+      break
+    case 'limit':
+      msg = `⚠ 达上限: ${typeof detail === 'string' ? detail : '轨道已达 ' + detail.current + '/' + detail.max + ' 段'}`
       break
   }
   logLines.push({ ts, kind, msg })

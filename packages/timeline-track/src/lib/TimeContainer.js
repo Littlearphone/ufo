@@ -24,7 +24,7 @@ export class TimeContainer extends HTMLElement {
   }
 
   static get observedAttributes() {
-    return ['direction', '方向', 'label-h', 'label-v', 'axis-mode', 'shared-start', 'shared-end', 'tooltip-pos']
+    return ['direction', '方向', 'label-h', 'label-v', 'axis-mode', 'shared-start', 'shared-end', 'tooltip-pos', 'max-segments']
   }
 
   attributeChangedCallback(name, _ov, nv) {
@@ -90,6 +90,17 @@ export class TimeContainer extends HTMLElement {
 
   /* ---- 公共 API ---- */
 
+  /** 全局默认最大段数（各轨道可单独覆盖） */
+  get maxSegments() {
+    const v = this.getAttribute('max-segments')
+    if (v != null) { const n = parseInt(v, 10); return n > 0 ? n : 0 }
+    return 0 // 0 = 无限制
+  }
+  set maxSegments(v) {
+    if (v == null || v <= 0) this.removeAttribute('max-segments')
+    else this.setAttribute('max-segments', String(v))
+  }
+
   /** 获取所有轨道 */
   allTracks() { return Array.from(this.querySelectorAll(':scope > time-line-track')) }
 
@@ -99,8 +110,9 @@ export class TimeContainer extends HTMLElement {
     t.setAttribute('label', label || '')
     t.setAttribute('start', String(start ?? 0))
     t.setAttribute('end',   String(end ?? 24))
-    if (opts.step)        t.setAttribute('step',        String(opts.step))
-    if (opts.minDuration) t.setAttribute('min-duration', String(opts.minDuration))
+    if (opts.step)         t.setAttribute('step',         String(opts.step))
+    if (opts.minDuration)  t.setAttribute('min-duration',  String(opts.minDuration))
+    if (opts.maxSegments)  t.setAttribute('max-segments', String(opts.maxSegments))
     this.appendChild(t)
     return t
   }

@@ -9,6 +9,7 @@
           <label>start <input type="text" v-model="apiStart" style="width:30px"></label>
           <label>end <input type="text" v-model="apiEnd" style="width:30px"></label>
           <label>step <input type="text" v-model="apiStep" style="width:30px"></label>
+          <label>上限 <input type="text" v-model="apiMaxSeg" style="width:30px" title="max-segments，0=无限制"></label>
           <button class="primary" style="font-size:10px" @click="doAddTrack">执行</button>
         </div>
       </div>
@@ -44,6 +45,25 @@
           <button class="danger" style="font-size:10px" @click="doDelTrack">删除</button>
           <span class="ctrl-sep"></span>
           <button class="danger" style="font-size:10px" @click="doClearSegs">清空所有段</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- max-segments / segment-limit-reached -->
+    <div class="ctrl-group">
+      <div class="ctrl-header"><code style="font-size:10px;background:#e3f2fd;padding:0 5px">max-segments</code> 段数上限测试</div>
+      <div class="ctrl-body">
+        <div class="ctrl-row">
+          <label>
+            当前轨道
+            <select v-model="limitTrackIdx" style="max-width:100px">
+              <option v-for="(t, i) in trackList" :key="i" :value="i">{{ t.label || '轨道 '+(i+1) }}</option>
+            </select>
+          </label>
+          <label>上限 <input type="number" v-model.number="limitVal" min="0" max="999" style="width:48px" title="0=无限制"></label>
+          <button @click="doSetLimit">设置</button>
+          <span class="ctrl-sep"></span>
+          <button @click="doTestLimit">追加段（测上限）</button>
         </div>
       </div>
     </div>
@@ -96,6 +116,7 @@ const apiLabel = ref('新轨道')
 const apiStart = ref('0')
 const apiEnd = ref('24')
 const apiStep = ref('0.5')
+const apiMaxSeg = ref('')
 
 // addSegment
 const addSegTrackIdx = ref(0)
@@ -106,6 +127,10 @@ const segColor = ref('#27ae60')
 
 // delTrack
 const delTrackIdx = ref(0)
+
+// max-segments test
+const limitTrackIdx = ref(0)
+const limitVal = ref(0)
 
 // API call display
 const apiCall = ref('')
@@ -122,8 +147,13 @@ function doAddTrack() {
   const start = parseFloat(apiStart.value) || 0
   const end = parseFloat(apiEnd.value) || 24
   const step = parseFloat(apiStep.value) || 0.5
-  c().addTrack(label, start, end, { step })
-  const cmd = `addTrack("${label}", ${start}, ${end}, { step: ${step} })`
+  const maxSegN = parseInt(apiMaxSeg.value, 10) || 0
+  const opts = { step }
+  if (maxSegN > 0) opts.maxSegments = maxSegN
+  c().addTrack(label, start, end, opts)
+  let extras = ''
+  if (maxSegN > 0) extras = `, maxSegments: ${maxSegN}`
+  const cmd = `addTrack("${label}", ${start}, ${end}, { step: ${step}${extras} })`
   showApi(cmd, '→ 轨道 "' + label + '" 已添加')
   addLog('api', cmd)
 }
@@ -137,10 +167,49 @@ function doAddSeg() {
   const end = parseFloat(segEnd.value) || 12
   const label = segLabel.value || '新段'
   const color = segColor.value || pick(COLORS)
+  // 检查段数上限
+  const max = track.maxSegments
+  if (max > 0 && track.sortedSegs().length >= max) {
+    showApi('addSegment(...)', '⚠ 已达上限 ' + max + ' 段，阻止创建')
+    addLog('api', 'addSegment 被拒：已达 max-segments=' + max)
+    return
+  }
   track.addSegment(start, end, { label, color })
   const cmd = `addSegment(${start}, ${end}, { label: "${label}", color: "${color}" }) — 轨道: "${track.label}"`
   showApi(cmd, '→ 段已添加')
   addLog('api', cmd)
+}
+
+function doSetLimit() {
+  if (!c()) return
+  const tracks = c().allTracks()
+  const track = tracks[limitTrackIdx.value]
+  if (!track) { showApi('setLimit(...)', '请选中轨道'); return }
+  const n = limitVal.value
+  track.setAttribute('max-segments', n > 0 ? String(n) : '')
+  const label = track.label
+  const cmd = n > 0
+    ? `setAttribute("max-segments", "${n}") — 轨道: "${label}"`
+    : `removeAttribute("max-segments") — 轨道: "${label}"`
+  showApi(cmd, n > 0 ? '→ 每轨道上限 = ' + n : '→ 已移除限制')
+  addLog('api', cmd)
+}
+
+function doTestLimit() {
+  if (!c()) return
+  const tracks = c().allTracks()
+  const track = tracks[limitTrackIdx.value]
+  if (!track) { showApi('testLimit(...)', '请选中轨道'); return }
+  const before = track.sortedSegs().length
+  const max = track.maxSegments
+  const seg = track.addSegment(0, 1, { label: '测试', color: '#e74c3c' })
+  if (seg) {
+    showApi('addSegment(0,1) — ' + track.label, '→ 已添加（原 ' + before + ' → ' + track.sortedSegs().length + ' 段）')
+    addLog('api', 'testLimit: addSegment 成功')
+  } else {
+    showApi('addSegment(0,1) — ' + track.label, '⚠ 被拒绝（已达上限 ' + max + '）')
+    addLog('api', 'testLimit: addSegment 被拒（上限 ' + max + '）')
+  }
 }
 
 function doDelTrack() {

@@ -596,6 +596,7 @@ h1 {
 #log .kind.axis-mode { color: #f39c12; }
 #log .kind.api { color: #4285f4; }
 #log .kind.gen { color: #8e44ad; }
+#log .kind.limit { color: #e53935; font-weight: 700; }
 
 @media (max-width: 860px) {
   .layout {

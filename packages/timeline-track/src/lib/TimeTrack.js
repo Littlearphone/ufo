@@ -35,6 +35,19 @@ export class TimeTrack extends HTMLElement {
     // 默认最小宽度为范围的 0.5%
     return (this.tEnd - this.tStart) * 0.005
   }
+  /** 最大段数：轨道自身属性 > 容器全局配置 > 无限制 */
+  get maxSegments() {
+    const mine = this.getAttribute('max-segments')
+    if (mine != null) {
+      const n = parseInt(mine, 10)
+      return n > 0 ? n : 0
+    }
+    const c = this.closest('time-line-container')
+    if (c && c.maxSegments) return c.maxSegments
+    return 0 // 0 = 无限制
+  }
+  set maxSegments(v) { this.setAttribute('max-segments', v) }
+
   get isVertical() {
     const c = this.closest('time-line-container')
     if (!c) return false
@@ -77,6 +90,9 @@ export class TimeTrack extends HTMLElement {
 
   /** 编程式创建时间段 */
   addSegment(start, end, opts = {}) {
+    // 检查段数上限
+    if (!this._checkSegmentLimit()) return null
+
     const seg = document.createElement('time-line-segment')
     const { start: ts, end: te } = this._effRange()
     seg.start = clamp(start, ts, te)
@@ -110,7 +126,7 @@ export class TimeTrack extends HTMLElement {
     if (this._winResizeHandler) window.removeEventListener('resize', this._winResizeHandler)
   }
 
-  static get observedAttributes() { return ['label', 'start', 'end', 'step', 'min-duration'] }
+  static get observedAttributes() { return ['label', 'start', 'end', 'step', 'min-duration', 'max-segments'] }
 
   attributeChangedCallback(name, _ov, nv) {
     if (!this._init) return
@@ -347,7 +363,25 @@ export class TimeTrack extends HTMLElement {
     const { start: ts, end: te } = this._effRange()
     lo = clamp(lo, ts, te)
     hi = clamp(hi, ts, te)
-    if (hi - lo >= this.minDur) this.addSegment(lo, hi)
+    if (hi - lo >= this.minDur) {
+      // 检查段数上限（拖拽创建）
+      if (!this._checkSegmentLimit()) return
+      this.addSegment(lo, hi)
+    }
+  }
+
+  /** 检查当前段数是否已达上限，超限则派发事件并阻止创建 */
+  _checkSegmentLimit() {
+    const max = this.maxSegments
+    if (max <= 0) return true
+    const current = this.sortedSegs().length
+    if (current < max) return true
+    // 已超限：派发通知事件（fire-and-forget），始终阻止创建
+    this.dispatchEvent(new CustomEvent('segment-limit-reached', {
+      bubbles: true,
+      detail: { track: this, current, max }
+    }))
+    return false
   }
 
   /* ---- 网格绘制 ---- */

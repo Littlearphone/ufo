@@ -31,6 +31,10 @@
               <option value="4">4</option>
             </select>
           </label>
+          <label>
+            每轨道上限
+            <input type="number" v-model.number="maxSeg" min="0" max="999" style="width:54px" title="0=无限制">
+          </label>
           <label style="gap:4px">
             <input type="checkbox" v-model="packed">
             <span>完全铺满（无间隙）</span>
@@ -81,6 +85,7 @@ const props = defineProps({
 const trackCount = ref(5)
 const segCount = ref(20)
 const stepVal = ref('0')
+const maxSeg = ref(0)
 const packed = ref(false)
 const radiusOpts = ['0', '3px', '5px', '8px', '12px', '20px']
 const radiusVal = ref('0')
@@ -97,10 +102,11 @@ const btnDirText = computed(() => isVertical.value ? '切换为横向' : '切换
 function generate() {
   if (!c()) return
   const trackN = trackCount.value
-  const segN = segCount.value
+  const segN = Math.min(segCount.value, maxSeg.value > 0 ? maxSeg.value : segCount.value)
   const step = parseFloat(stepVal.value) || 0
   const totalRange = 24
   const isPacked = packed.value
+  const limit = maxSeg.value > 0 ? maxSeg.value : 0
 
   c().innerHTML = ''
   const t0 = performance.now()
@@ -111,6 +117,7 @@ function generate() {
     track.setAttribute('start', '0')
     track.setAttribute('end', String(totalRange))
     if (step) track.setAttribute('step', String(step))
+    if (limit) track.setAttribute('max-segments', String(limit))
 
     if (isPacked) {
       // 完全铺满模式：时间段无间隙，首尾相接填满整个时间轴
@@ -148,7 +155,8 @@ function generate() {
 
   const elapsed = (performance.now() - t0).toFixed(0)
   const label = isPacked ? '铺满' : '随机间隙'
-  addLog('gen', trackN + ' 轨道 × ' + segN + ' 段 [' + label + '] = ' + (trackN * segN) + ' 个段（' + elapsed + 'ms）')
+  const limitNote = limit ? ' 上限' + limit + '/轨道' : ''
+  addLog('gen', trackN + ' 轨道 × ' + segN + ' 段 [' + label + ']' + limitNote + ' = ' + (trackN * segN) + ' 个段（' + elapsed + 'ms）')
 }
 
 function clearAll() {
