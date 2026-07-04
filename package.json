@@ -5,6 +5,7 @@
   "description": "UFO 自定义元素组件库 — Monorepo",
   "scripts": {
     "build": "pnpm -r run build",
+    "build:all": "pnpm -r run build:all",
     "build:lib": "pnpm -r run build:lib",
     "dev": "pnpm -r --parallel run dev",
     "lint": "pnpm -r run lint"

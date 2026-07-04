@@ -1,0 +1,58 @@
+# 每当推送到 master 时，构建所有组件 demo 并部署到 GitHub Pages
+# 访问地址：https://littlearphone.github.io/ufo/<组件名>/
+
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [master]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      # 构建所有组件（demo + 库）
+      - run: pnpm -r run build:all
+
+      # 将每个组件的 dist/ 整理到部署目录，按组件名分层
+      - name: Prepare deployment
+        run: |
+          mkdir -p _deploy
+          for pkg in packages/*/; do
+            name=$(basename "$pkg")
+            if [ -d "${pkg}dist" ]; then
+              mkdir -p "_deploy/$name"
+              cp -r "${pkg}dist/"* "_deploy/$name/"
+            fi
+          done
+
+      # 生成根目录索引页（列出所有组件链接）
+      - name: Generate root index
+        run: node .github/scripts/generate-root-index.mjs
+
+      - uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./_deploy
+          publish_branch: gh-pages
+          full_commit_message: '部署 ${{ github.sha }}'

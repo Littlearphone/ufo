@@ -1,19 +1,12 @@
-# ── 自动发布 ──
-# 推送 tag 格式: <package-dir>@<version>
-# 例如: git tag timeline-track@2.1.0 && git push --tags
-# 会构建对应组件并创建 GitHub Release（草稿）
+# 推送 tag 时自动构建对应组件，创建 Release Draft
+# tag 格式：<包名>@<版本号>  例如 timeline-track@2.1.0
 
-name: Release
+name: Create Release
 
 on:
   push:
     tags:
       - '*@*'
-  workflow_dispatch:
-    inputs:
-      tag:
-        description: 'Tag name (e.g. timeline-track@2.1.0)'
-        required: true
 
 jobs:
   release:
@@ -24,57 +17,44 @@ jobs:
       - uses: actions/checkout@v4
 
       - uses: pnpm/action-setup@v4
+
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'pnpm'
+          cache: pnpm
 
       - run: pnpm install --frozen-lockfile
 
-      # ── 解析 tag ──
+      # 从 tag 中解析包名和版本号
+      # tag 格式：timeline-track@2.1.0 → package=timeline-track, version=2.1.0
       - name: Parse tag
         id: tag
         run: |
-          TAG="${{ github.event_name == 'workflow_dispatch' && github.event.inputs.tag || github.ref_name }}"
-          PKG="${TAG%@*}"
-          VER="${TAG#*@}"
-          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
-          echo "package=$PKG" >> "$GITHUB_OUTPUT"
-          echo "version=$VER" >> "$GITHUB_OUTPUT"
+          TAG=${GITHUB_REF#refs/tags/}
+          PACKAGE=${TAG%@*}
+          VERSION=${TAG#*@}
+          echo "package=$PACKAGE" >> "$GITHUB_OUTPUT"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 
-      # ── 构建库 ──
-      - name: Build library
+      # 只构建对应组件的 demo + 库
+      - name: Build package
         run: |
           cd "packages/${{ steps.tag.outputs.package }}"
-          pnpm run build:lib
+          pnpm run build:all
 
-      # ── 收集构建产物文件名 ──
-      - name: Collect artifacts
-        id: artifacts
+      # 列出构建产物（用于调试）
+      - name: List artifacts
         run: |
-          cd "packages/${{ steps.tag.outputs.package }}"
-          FILES=$(ls dist/*.js 2>/dev/null | tr '\n' ',' | sed 's/,$//')
-          echo "files=$FILES" >> "$GITHUB_OUTPUT"
-          echo "Found: $FILES"
+          ls -lh "packages/${{ steps.tag.outputs.package }}/dist/"
 
-      # ── 创建 Release（草稿） ──
-      - name: Create Release
+      - name: Create Release Draft
         uses: softprops/action-gh-release@v2
         with:
-          name: ${{ steps.tag.outputs.package }} v${{ steps.tag.outputs.version }}
-          tag_name: ${{ steps.tag.outputs.tag }}
-          body: |
-            ## ${{ steps.tag.outputs.package }} v${{ steps.tag.outputs.version }}
-
-            组件 `packages/${{ steps.tag.outputs.package }}` 的自动构建版本。
-
-            ### 使用
-            下载 `dist/` 中的 JS 文件并在 HTML 中引用：
-            ```html
-            <script src="./<组件名>.js"></script>
-            ```
-
-            查看本包 `demo/` 目录下的示例页了解具体用法。
+          draft: true
+          name: "${{ steps.tag.outputs.package }} v${{ steps.tag.outputs.version }}"
+          tag_name: ${{ github.ref_name }}
+          generate_release_notes: true
           files: |
             packages/${{ steps.tag.outputs.package }}/dist/*.js
-          draft: true
+            packages/${{ steps.tag.outputs.package }}/dist/index.html
+          fail_on_unmatched_files: true

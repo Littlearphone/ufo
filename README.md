@@ -4,21 +4,17 @@
 
 采用 **pnpm workspace monorepo** 结构，每个组件独立构建发布。
 
-## 项目结构
+[![GitHub Pages](https://img.shields.io/badge/GitHub%20Pages-在线演示-4285f4?logo=githubpages&logoColor=white)](https://littlearphone.github.io/ufo/)
 
-```
-ufo/
-├── packages/
-│   └── timeline-track/        # 时间线轨道组件
-│       ├── src/lib/           #   Custom Elements 源码
-│       ├── demo/              #   静态示例页（浏览器直接打开）
-│       ├── dist/              #   构建产物（gitignored）
-│       ├── index.html         #   Vite 开发入口
-│       └── README.md          #   组件文档
-├── .github/workflows/         # GitHub Actions 自动发布
-├── pnpm-workspace.yaml
-└── package.json
-```
+---
+
+## 组件列表
+
+| 组件 | 描述 | 演示 | 版本 |
+|---|---|---|---|
+| `@ufo/timeline-track` | 时间线轨道（拖拽创建/移动/缩放时间段） | [![Live Demo](https://img.shields.io/badge/演示-时间线轨道-34a853)](https://littlearphone.github.io/ufo/timeline-track/) | [![timeline-track](https://img.shields.io/github/v/tag/Littlearphone/ufo?filter=timeline-track*&label=)](https://github.com/Littlearphone/ufo/releases) |
+
+---
 
 ## 快速开始
 
@@ -26,21 +22,38 @@ ufo/
 # 安装依赖（根目录）
 pnpm install
 
-# 开发单个组件
+# 开发单个组件（HMR 热更新）
 cd packages/timeline-track && pnpm run dev
 
-# 构建单个组件的独立库
-cd packages/timeline-track && pnpm run build:lib   # → dist/TimelineTrack.js
+# 构建全部（demo + 库）
+cd packages/timeline-track && pnpm run build:all
 
-# 构建所有组件
-pnpm -r run build:lib
+# 或从根目录构建所有组件
+pnpm -r run build:all
 ```
 
-## 组件列表
+### 构建产物
 
-| 组件 | 描述 | 目录 |
+每个组件构建后产出两个文件：
+
+| 文件 | 说明 | 用途 |
 |---|---|---|
-| `@ufo/timeline-track` | 时间线轨道（拖拽创建/移动/缩放时间段） | `packages/timeline-track/` |
+| `dist/<组件名>.js` | UMD 独立库 | 外部项目引入、npm 发布 |
+| `dist/index.html` | 自包含演示页 | GitHub Pages 展示、浏览器直接打开 |
+
+---
+
+## GitHub Pages
+
+每次推送到 `master`，Actions 自动将各组件演示部署到：
+
+```
+https://littlearphone.github.io/ufo/<组件名>/
+```
+
+点击组件名旁边的 **演示** 徽章即可一键打开。
+
+---
 
 ## 发布流程
 
@@ -56,11 +69,39 @@ git push --tags
 # 3. Actions 自动构建并创建 Draft Release → 审核后发布
 ```
 
+Release 附件包含 `dist/*.js`（库文件）和 `dist/index.html`（演示页），可直接下载使用。
+
 > 构建产物由 Actions 构建并附加到 Release，不提交到 git。
+
+---
+
+## 项目结构
+
+```
+ufo/
+├── .github/
+│   ├── workflows/
+│   │   ├── deploy-pages.yml     # Pages 自动部署
+│   │   └── release.yml          # Release 自动发布
+│   └── scripts/
+│       └── generate-root-index.mjs  # Pages 根索引生成
+├── packages/
+│   └── timeline-track/          # 时间线轨道组件
+│       ├── src/lib/             #   Custom Elements 源码
+│       ├── src/components/      #   Vue 3 演示组件
+│       ├── index.html           #   唯一入口（开发/构建共用）
+│       ├── vite.config.js       #   构建配置
+│       ├── package.json         #   @ufo/timeline-track
+│       └── dist/                #   构建产物（gitignored）
+│           ├── TimelineTrack.js #   UMD 库
+│           └── index.html       #   自包含 demo
+├── pnpm-workspace.yaml
+└── package.json
+```
 
 ## 组件开发规范
 
-- 所有用户可见文本支持中英文属性名
+- 所有用户可见文本支持中英文属性名（如 `direction` / `方向`）
 - CSS 变量以 `--tlc-`（Container）、`--tlt-`（Track）、`--tls-`（Segment）为前缀
 - 事件命名 kebab-case，统一冒泡到 `document`
-- 修改源码后刷新对应 `demo/` 页面即可验证
+- 新增组件时复制现有 `packages/*` 目录结构作为模板
