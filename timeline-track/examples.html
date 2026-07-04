@@ -203,7 +203,7 @@
           overflow-y: auto;
           flex: 1;
           min-height: 0;
-          padding-right: 2px;
+          padding-right: 4px;
       }
 
       .controls-content {
@@ -214,70 +214,109 @@
           display: block;
       }
 
-      /* ── 工具栏（控制台内） ── */
-      .toolbar {
+      /* ── 功能分组卡片 ── */
+      .ctrl-group {
+          border: 1px solid #eef0f2;
+          border-radius: 8px;
+          background: #fafbfc;
+          margin-bottom: 8px;
+          overflow: hidden;
+      }
+      .ctrl-group:last-child { margin-bottom: 0; }
+
+      .ctrl-header {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          padding: 5px 12px;
+          background: #f4f6f8;
+          border-bottom: 1px solid #e8eaed;
+          font-size: 11px;
+          font-weight: 600;
+          color: #4a5568;
+          user-select: none;
+      }
+
+      .ctrl-header .badge {
+          display: inline-block;
+          font-size: 9px;
+          font-weight: 600;
+          padding: 1px 7px;
+          border-radius: 10px;
+          margin-left: auto;
+          white-space: nowrap;
+      }
+      .badge-info  { background: #e3f2fd; color: #1565c0; }
+      .badge-ok    { background: #e8f5e9; color: #2e7d32; }
+      .badge-warn  { background: #fff3e0; color: #e65100; }
+      .badge-muted { background: #eceff1; color: #546e7a; }
+
+      .ctrl-body {
+          padding: 8px 12px 10px;
+      }
+
+      /* ── 控件行 ── */
+      .ctrl-row {
           display: flex;
           flex-wrap: wrap;
-          gap: 5px;
+          gap: 6px;
           align-items: center;
-          margin-bottom: 6px;
       }
+      .ctrl-row + .ctrl-row { margin-top: 6px; }
 
-      .toolbar + .toolbar {
-          margin-top: -2px;
-      }
-
-      .toolbar button, .toolbar select, .toolbar input[type="text"],
-      .toolbar input[type="number"] {
+      .ctrl-row button,
+      .ctrl-row select,
+      .ctrl-row input[type="text"],
+      .ctrl-row input[type="number"] {
           font-size: 11px;
           padding: 4px 8px;
           border-radius: 5px;
           border: 1px solid #ccd4dc;
           background: #fff;
           cursor: pointer;
-          transition: background .14s, border-color .14s;
+          transition: all .12s ease;
           font-family: inherit;
+          line-height: 1.4;
       }
-
-      .toolbar input[type="text"], .toolbar input[type="number"] {
+      .ctrl-row select { cursor: pointer; }
+      .ctrl-row input[type="text"],
+      .ctrl-row input[type="number"] {
           cursor: text;
           width: auto;
       }
+      .ctrl-row input[type="text"]:focus,
+      .ctrl-row input[type="number"]:focus {
+          outline: none;
+          border-color: #4285f4;
+          box-shadow: 0 0 0 2px rgba(66,133,244,.15);
+      }
 
-      .toolbar button:hover {
-          background: #f4f6f8;
+      .ctrl-row button:hover {
+          background: #f0f2f5;
           border-color: #a0aab4;
       }
 
-      .toolbar button.primary {
+      .ctrl-row button.primary {
           background: #4285f4;
           color: #fff;
           border-color: #4285f4;
       }
-
-      .toolbar button.primary:hover {
+      .ctrl-row button.primary:hover {
           background: #3367d6;
+          box-shadow: 0 1px 4px rgba(66,133,244,.3);
       }
 
-      .toolbar button.danger {
-          background: #fff;
+      .ctrl-row button.danger {
           color: #e53935;
           border-color: #e53935;
+          background: #fff;
       }
-
-      .toolbar button.danger:hover {
+      .ctrl-row button.danger:hover {
           background: #fdecea;
       }
 
-      .toolbar .sep {
-          width: 1px;
-          height: 20px;
-          background: #dfe3e8;
-          flex-shrink: 0;
-      }
-
-      .toolbar label {
-          font-size: 11px;
+      .ctrl-row label {
+          font-size: 10px;
           color: #5f6b7a;
           display: inline-flex;
           align-items: center;
@@ -285,42 +324,65 @@
           white-space: nowrap;
       }
 
-      .toolbar input[type="range"] {
-          width: 64px;
+      .ctrl-row input[type="range"] {
+          width: 72px;
           vertical-align: middle;
           cursor: pointer;
+          padding: 0;
+          border: none;
+          background: transparent;
       }
+      .ctrl-row input[type="range"]:focus { outline: none; }
 
-      .toolbar .range-val {
+      .ctrl-row .range-val {
           font-weight: 600;
           color: #37474f;
           min-width: 22px;
+          font-size: 12px;
       }
 
-      .toolbar .code-display {
+      /* ── 分隔线 ── */
+      .ctrl-sep {
+          width: 1px;
+          height: 18px;
+          background: #dde0e4;
+          flex-shrink: 0;
+      }
+
+      /* ── 颜色预览 ── */
+      .color-swatch {
+          display: inline-block;
+          width: 12px;
+          height: 12px;
+          border-radius: 3px;
+          border: 1px solid rgba(0,0,0,.1);
+          vertical-align: middle;
+          margin-right: 2px;
+      }
+
+      /* ── 代码显示（API Tab） ── */
+      .ctrl-code {
           font-family: "SF Mono", "Cascadia Code", Consolas, monospace;
           font-size: 10px;
-          background: #f4f6f8;
-          padding: 4px 8px;
-          border-radius: 4px;
-          color: #2c3e50;
-          width: 100%;
-          margin-top: 4px;
+          background: #1e272e;
+          color: #a5d6ff;
+          padding: 5px 10px;
+          border-radius: 6px;
+          margin-top: 6px;
           overflow-x: auto;
           white-space: nowrap;
-          border: 1px solid #e5e8ec;
-          min-height: 20px;
+          min-height: 22px;
+          border: none;
       }
 
-      /* api 调用的简短结果展示 */
-      .api-result {
+      .ctrl-result {
           font-size: 10px;
           color: #27ae60;
-          padding: 2px 8px;
-          margin-top: 2px;
-          min-height: 16px;
+          padding: 3px 2px;
+          min-height: 18px;
+          transition: opacity .2s;
       }
-      .api-result.err { color: #e53935; }
+      .ctrl-result.err { color: #e53935; }
 
       /* 紧凑段按钮组 */
       .inline-group {
@@ -524,185 +586,262 @@
       <h2>🔧 控制台</h2>
       <div class="controls-scroll">
 
-        <!-- ════ Tab 0 控制 ════ -->
+        <!-- ════ Tab 0 基础操作 ════ -->
         <div class="controls-content active" data-tab="0">
-          <div class="toolbar">
-            <button id="t0_btnDir">切换为纵向</button>
-            <button id="t0_btnAxis">切换为共享轴</button>
-            <span class="sep"></span>
-            <label id="t0_sharedRangeLbl" style="display:none">
-              共享
-              <input type="text" id="t0_sharedS" value="0" style="width:26px">
-              ~
-              <input type="text" id="t0_sharedE" value="24" style="width:26px">
-            </label>
+
+          <div class="ctrl-group">
+            <div class="ctrl-header">📐 方向与轴 <span class="badge badge-info" id="t0_dirBadge">横向</span><span class="badge badge-muted" id="t0_axisBadge">独立轴</span></div>
+            <div class="ctrl-body">
+              <div class="ctrl-row">
+                <button id="t0_btnDir">切换为纵向</button>
+                <button id="t0_btnAxis">切换为共享轴</button>
+                <span class="ctrl-sep"></span>
+                <label id="t0_sharedRangeLbl" style="display:none">
+                  共享
+                  <input type="text" id="t0_sharedS" value="0" style="width:26px">
+                  ~
+                  <input type="text" id="t0_sharedE" value="24" style="width:26px">
+                </label>
+              </div>
+            </div>
           </div>
-          <div class="toolbar">
-            <select id="t0_selTrack" style="max-width:110px"></select>
-            <button id="t0_addTrack" class="primary">＋ 轨道</button>
-            <button id="t0_addSeg">＋ 段</button>
-            <button id="t0_delTrack" class="danger">删轨道</button>
-            <span class="sep"></span>
-            <button id="t0_clearSegs" class="danger">清空段</button>
-            <button id="t0_reset">重置</button>
+
+          <div class="ctrl-group">
+            <div class="ctrl-header">🎯 轨道管理</div>
+            <div class="ctrl-body">
+              <div class="ctrl-row">
+                <select id="t0_selTrack" style="max-width:110px"></select>
+                <button id="t0_addTrack" class="primary">＋ 轨道</button>
+                <button id="t0_addSeg">＋ 段</button>
+                <button id="t0_delTrack" class="danger">删轨道</button>
+                <span class="ctrl-sep"></span>
+                <button id="t0_clearSegs" class="danger">清空段</button>
+                <button id="t0_reset">重置</button>
+              </div>
+            </div>
           </div>
-          <div class="toolbar">
-            <label>圆角 <select id="t0_radius" style="max-width:72px">
-              <option value="0">0</option>
-              <option value="3px">3px</option>
-              <option value="5px" selected>5px</option>
-              <option value="8px">8px</option>
-              <option value="12px">12px</option>
-              <option value="20px">20px</option>
-            </select></label>
-            <span class="sep"></span>
-            <label>横轴 <select id="t0_labelH" style="max-width:60px">
-              <option value="top">上</option>
-              <option value="bottom">下</option>
-            </select></label>
-            <label>纵轴 <select id="t0_labelV" style="max-width:60px">
-              <option value="right">右</option>
-              <option value="left">左</option>
-            </select></label>
-            <span class="sep"></span>
-            <label>高 <input type="text" id="t0_height" placeholder="auto" style="width:48px"></label>
-            <label>宽 <input type="text" id="t0_width" placeholder="auto" style="width:48px"></label>
+
+          <div class="ctrl-group">
+            <div class="ctrl-header">🎨 外观</div>
+            <div class="ctrl-body">
+              <div class="ctrl-row">
+                <label>圆角 <select id="t0_radius" style="max-width:72px">
+                  <option value="0" selected>0</option>
+                  <option value="3px">3px</option>
+                  <option value="5px">5px</option>
+                  <option value="8px">8px</option>
+                  <option value="12px">12px</option>
+                  <option value="20px">20px</option>
+                </select></label>
+                <span class="ctrl-sep"></span>
+                <label id="t0_labelHWrap">横轴 <select id="t0_labelH" style="max-width:60px">
+                  <option value="top">上</option>
+                  <option value="bottom">下</option>
+                </select></label>
+                <label id="t0_labelVWrap" style="display:none">纵轴 <select id="t0_labelV" style="max-width:60px">
+                  <option value="right">右</option>
+                  <option value="left">左</option>
+                </select></label>
+                <span class="ctrl-sep"></span>
+                <label>高 <input type="text" id="t0_height" placeholder="auto" style="width:48px"></label>
+                <label>宽 <input type="text" id="t0_width" placeholder="auto" style="width:48px"></label>
+              </div>
+            </div>
           </div>
+
         </div>
 
-        <!-- ════ Tab 1 控制 ════ -->
+        <!-- ════ Tab 1 海量数据 ════ -->
         <div class="controls-content" data-tab="1">
-          <div class="toolbar">
-            <label>轨道
-              <input type="range" id="t1_trackCount" min="1" max="15" value="5">
-              <span class="range-val" id="t1_trackCountVal">5</span>
-            </label>
-            <label>每轨道段数
-              <input type="range" id="t1_segCount" min="1" max="150" value="20">
-              <span class="range-val" id="t1_segCountVal">20</span>
-            </label>
+
+          <div class="ctrl-group">
+            <div class="ctrl-header">📊 数据量配置</div>
+            <div class="ctrl-body">
+              <div class="ctrl-row">
+                <label>轨道
+                  <input type="range" id="t1_trackCount" min="1" max="15" value="5">
+                  <span class="range-val" id="t1_trackCountVal">5</span>
+                </label>
+                <label>每轨道段数
+                  <input type="range" id="t1_segCount" min="1" max="150" value="20">
+                  <span class="range-val" id="t1_segCountVal">20</span>
+                </label>
+              </div>
+              <div class="ctrl-row">
+                <label>步长 <select id="t1_step" style="max-width:76px">
+                  <option value="0" selected>无</option>
+                  <option value="0.01">0.01</option>
+                  <option value="0.05">0.05</option>
+                  <option value="0.1">0.1</option>
+                  <option value="0.25">0.25</option>
+                  <option value="0.5">0.5</option>
+                  <option value="1">1</option>
+                  <option value="2">2</option>
+                  <option value="4">4</option>
+                </select></label>
+              </div>
+            </div>
           </div>
-          <div class="toolbar">
-            <label>步长 <select id="t1_step" style="max-width:70px">
-              <option value="0.25">0.25</option>
-              <option value="0.5">0.5</option>
-              <option value="1" selected>1</option>
-              <option value="2">2</option>
-              <option value="4">4</option>
-            </select></label>
-            <span class="sep"></span>
-            <button id="t1_btnGen" class="primary">⚡ 生成数据</button>
-            <button id="t1_btnClear" class="danger">清空</button>
-            <span class="sep"></span>
-            <button id="t1_btnDir">切换为纵向</button>
+
+          <div class="ctrl-group">
+            <div class="ctrl-header">⚡ 操作</div>
+            <div class="ctrl-body">
+              <div class="ctrl-row">
+                <button id="t1_btnGen" class="primary">⚡ 生成数据</button>
+                <button id="t1_btnClear" class="danger">清空</button>
+                <span class="ctrl-sep"></span>
+                <button id="t1_btnDir">切换为纵向</button>
+              </div>
+            </div>
           </div>
-          <div class="toolbar">
-            <label>圆角 <select id="t1_radius" style="max-width:72px">
-              <option value="0">0</option>
-              <option value="3px">3px</option>
-              <option value="5px" selected>5px</option>
-              <option value="8px">8px</option>
-              <option value="12px">12px</option>
-              <option value="20px">20px</option>
-            </select></label>
+
+          <div class="ctrl-group">
+            <div class="ctrl-header">🎨 外观</div>
+            <div class="ctrl-body">
+              <div class="ctrl-row">
+                <label>圆角 <select id="t1_radius" style="max-width:72px">
+                  <option value="0" selected>0</option>
+                  <option value="3px">3px</option>
+                  <option value="5px">5px</option>
+                  <option value="8px">8px</option>
+                  <option value="12px">12px</option>
+                  <option value="20px">20px</option>
+                </select></label>
+              </div>
+            </div>
           </div>
+
         </div>
 
-        <!-- ════ Tab 2 控制 ════ -->
+        <!-- ════ Tab 2 API 调用 ════ -->
         <div class="controls-content" data-tab="2">
-          <div class="toolbar" style="border-bottom:1px solid #eee;padding-bottom:4px;margin-bottom:4px">
-            <span style="font-size:10px;font-weight:600;color:#6b7d8e">addTrack</span>
-            <span class="sep"></span>
-            <label>label <input type="text" id="t2_apiLabel" value="新轨道" style="width:70px"></label>
-            <label>start <input type="text" id="t2_apiStart" value="0" style="width:30px"></label>
-            <label>end <input type="text" id="t2_apiEnd" value="24" style="width:30px"></label>
-            <label>step <input type="text" id="t2_apiStep" value="0.5" style="width:30px"></label>
-            <button id="t2_btnAddTrack" class="primary" style="font-size:10px">执行</button>
+
+          <div class="ctrl-group">
+            <div class="ctrl-header"><code style="font-size:10px;background:#e3f2fd;padding:0 5px">addTrack</code> 添加轨道</div>
+            <div class="ctrl-body">
+              <div class="ctrl-row">
+                <label>label <input type="text" id="t2_apiLabel" value="新轨道" style="width:70px"></label>
+                <label>start <input type="text" id="t2_apiStart" value="0" style="width:30px"></label>
+                <label>end <input type="text" id="t2_apiEnd" value="24" style="width:30px"></label>
+                <label>step <input type="text" id="t2_apiStep" value="0.5" style="width:30px"></label>
+                <button id="t2_btnAddTrack" class="primary" style="font-size:10px">执行</button>
+              </div>
+            </div>
           </div>
-          <div class="toolbar" style="border-bottom:1px solid #eee;padding-bottom:4px;margin-bottom:4px">
-            <span style="font-size:10px;font-weight:600;color:#6b7d8e">addSegment</span>
-            <span class="sep"></span>
-            <label>轨道 <select id="t2_selTrack" style="max-width:80px"></select></label>
-            <label>start <input type="text" id="t2_segStart" value="8" style="width:30px"></label>
-            <label>end <input type="text" id="t2_segEnd" value="12" style="width:30px"></label>
-            <label>label <input type="text" id="t2_segLabel" value="新段" style="width:50px"></label>
-            <label>color <input type="text" id="t2_segColor" value="#27ae60" style="width:60px"></label>
-            <button id="t2_btnAddSeg" class="primary" style="font-size:10px">执行</button>
+
+          <div class="ctrl-group">
+            <div class="ctrl-header"><code style="font-size:10px;background:#e3f2fd;padding:0 5px">addSegment</code> 添加时间段</div>
+            <div class="ctrl-body">
+              <div class="ctrl-row">
+                <label>轨道 <select id="t2_selTrack" style="max-width:80px"></select></label>
+                <label>start <input type="text" id="t2_segStart" value="8" style="width:30px"></label>
+                <label>end <input type="text" id="t2_segEnd" value="12" style="width:30px"></label>
+                <label>label <input type="text" id="t2_segLabel" value="新段" style="width:50px"></label>
+                <label>color <input type="text" id="t2_segColor" value="#27ae60" style="width:60px"></label>
+                <button id="t2_btnAddSeg" class="primary" style="font-size:10px">执行</button>
+              </div>
+            </div>
           </div>
-          <div class="toolbar" style="border-bottom:1px solid #eee;padding-bottom:4px;margin-bottom:4px">
-            <span style="font-size:10px;font-weight:600;color:#6b7d8e">removeTrack</span>
-            <span class="sep"></span>
-            <select id="t2_selDelTrack" style="max-width:110px"></select>
-            <button id="t2_btnDelTrack" class="danger" style="font-size:10px">执行</button>
-            <span class="sep"></span>
-            <button id="t2_btnClearSegs" class="danger" style="font-size:10px">清空所有段</button>
+
+          <div class="ctrl-group">
+            <div class="ctrl-header"><code style="font-size:10px;background:#e3f2fd;padding:0 5px">removeTrack</code> 删除与清理</div>
+            <div class="ctrl-body">
+              <div class="ctrl-row">
+                <select id="t2_selDelTrack" style="max-width:110px"></select>
+                <button id="t2_btnDelTrack" class="danger" style="font-size:10px">删除</button>
+                <span class="ctrl-sep"></span>
+                <button id="t2_btnClearSegs" class="danger" style="font-size:10px">清空所有段</button>
+              </div>
+            </div>
           </div>
-          <div class="toolbar">
-            <span style="font-size:10px;font-weight:600;color:#6b7d8e">setGlobalRadius</span>
-            <span class="sep"></span>
-            <select id="t2_radius" style="max-width:72px">
-              <option value="0">0</option>
-              <option value="3px">3px</option>
-              <option value="5px">5px</option>
-              <option value="8px">8px</option>
-              <option value="12px">12px</option>
-              <option value="20px">20px</option>
-            </select>
-            <span class="sep"></span>
-            <button id="t2_btnReset">重置组件</button>
+
+          <div class="ctrl-group">
+            <div class="ctrl-header"><code style="font-size:10px;background:#e3f2fd;padding:0 5px">setGlobalRadius</code> 设置与重置</div>
+            <div class="ctrl-body">
+              <div class="ctrl-row">
+                <label>圆角 <select id="t2_radius" style="max-width:72px">
+                  <option value="0">0</option>
+                  <option value="3px">3px</option>
+                  <option value="5px">5px</option>
+                  <option value="8px">8px</option>
+                  <option value="12px">12px</option>
+                  <option value="20px">20px</option>
+                </select></label>
+                <span class="ctrl-sep"></span>
+                <button id="t2_btnReset">重置组件</button>
+              </div>
+            </div>
           </div>
-          <div class="toolbar">
-            <div class="code-display" id="t2_apiCall">&nbsp;</div>
+
+          <div class="ctrl-group">
+            <div class="ctrl-header">💻 API 调用记录</div>
+            <div class="ctrl-body">
+              <div class="ctrl-code" id="t2_apiCall">&nbsp;</div>
+              <div class="ctrl-result" id="t2_apiResult">&nbsp;</div>
+            </div>
           </div>
-          <div class="api-result" id="t2_apiResult">&nbsp;</div>
+
         </div>
 
-        <!-- ════ Tab 3 控制 ════ -->
+        <!-- ════ Tab 3 布局 / 共用轴 ════ -->
         <div class="controls-content" data-tab="3">
-          <div class="toolbar">
-            <button id="t3_btnDir">切换为纵向</button>
-            <button id="t3_btnAxis">切换为独立轴</button>
+
+          <div class="ctrl-group">
+            <div class="ctrl-header">📐 方向与轴 <span class="badge badge-info" id="t3_dirBadge">横向</span><span class="badge badge-ok" id="t3_axisBadge">共享轴</span></div>
+            <div class="ctrl-body">
+              <div class="ctrl-row">
+                <button id="t3_btnDir">切换为纵向</button>
+                <button id="t3_btnAxis">切换为独立轴</button>
+                <span class="ctrl-sep"></span>
+                <label id="t3_sharedRangeLbl">
+                  共用范围
+                  <input type="text" id="t3_sharedS" value="0" style="width:26px"> ~
+                  <input type="text" id="t3_sharedE" value="24" style="width:26px">
+                </label>
+              </div>
+              <div class="ctrl-row">
+                <label>步长 <select id="t3_step" style="max-width:70px">
+                  <option value="0.25">0.25</option>
+                  <option value="0.5">0.5</option>
+                  <option value="1" selected>1</option>
+                  <option value="2">2</option>
+                  <option value="4">4</option>
+                </select></label>
+              </div>
+            </div>
           </div>
-          <div class="toolbar">
-            <label id="t3_sharedRangeLbl">
-              共用范围
-              <input type="text" id="t3_sharedS" value="0" style="width:26px"> ~
-              <input type="text" id="t3_sharedE" value="24" style="width:26px">
-            </label>
-            <span class="sep"></span>
-            <label>步长 <select id="t3_step" style="max-width:70px">
-              <option value="0.25">0.25</option>
-              <option value="0.5">0.5</option>
-              <option value="1" selected>1</option>
-              <option value="2">2</option>
-              <option value="4">4</option>
-            </select></label>
+
+          <div class="ctrl-group">
+            <div class="ctrl-header">🎨 外观</div>
+            <div class="ctrl-body">
+              <div class="ctrl-row">
+                <label id="t3_labelHWrap">横轴标签 <select id="t3_labelH" style="max-width:60px">
+                  <option value="top">上</option>
+                  <option value="bottom">下</option>
+                </select></label>
+                <label id="t3_labelVWrap" style="display:none">纵轴标签 <select id="t3_labelV" style="max-width:60px">
+                  <option value="right">右</option>
+                  <option value="left">左</option>
+                </select></label>
+                <span class="ctrl-sep"></span>
+                <label>圆角 <select id="t3_radius" style="max-width:72px">
+                  <option value="0" selected>0</option>
+                  <option value="3px">3px</option>
+                  <option value="5px">5px</option>
+                  <option value="8px">8px</option>
+                  <option value="12px">12px</option>
+                  <option value="20px">20px</option>
+                </select></label>
+              </div>
+              <div class="ctrl-row">
+                <label>容器高 <input type="text" id="t3_height" placeholder="auto" style="width:48px"></label>
+                <label>容器宽 <input type="text" id="t3_width" placeholder="auto" style="width:48px"></label>
+                <span class="ctrl-sep"></span>
+                <button id="t3_btnReset">重置</button>
+              </div>
+            </div>
           </div>
-          <div class="toolbar">
-            <label>横轴标签 <select id="t3_labelH" style="max-width:60px">
-              <option value="top">上</option>
-              <option value="bottom">下</option>
-            </select></label>
-            <label>纵轴标签 <select id="t3_labelV" style="max-width:60px">
-              <option value="right">右</option>
-              <option value="left">左</option>
-            </select></label>
-            <span class="sep"></span>
-            <label>圆角 <select id="t3_radius" style="max-width:72px">
-              <option value="0">0</option>
-              <option value="3px">3px</option>
-              <option value="5px" selected>5px</option>
-              <option value="8px">8px</option>
-              <option value="12px">12px</option>
-              <option value="20px">20px</option>
-            </select></label>
-          </div>
-          <div class="toolbar">
-            <label>容器高 <input type="text" id="t3_height" placeholder="auto" style="width:48px"></label>
-            <label>容器宽 <input type="text" id="t3_width" placeholder="auto" style="width:48px"></label>
-            <span class="sep"></span>
-            <button id="t3_btnReset">重置</button>
-          </div>
+
         </div>
 
       </div><!-- /controls-scroll -->
@@ -881,12 +1020,29 @@
       refreshTrackSelect(selTrack, c);
     }
 
+    function _updateDirBadge(dir) {
+      const el = $('#t0_dirBadge');
+      if (el) { el.textContent = dir === 'vertical' ? '纵向' : '横向'; }
+      // 横向显示横轴标签，纵向显示纵轴标签
+      const hw = $('#t0_labelHWrap');
+      const vw = $('#t0_labelVWrap');
+      if (hw) hw.style.display = dir === 'vertical' ? 'none' : '';
+      if (vw) vw.style.display = dir === 'vertical' ? '' : 'none';
+    }
+    function _updateAxisBadge(mode) {
+      const el = $('#t0_axisBadge');
+      if (!el) return;
+      el.textContent = mode === 'shared' ? '共享轴' : '独立轴';
+      el.className = 'badge ' + (mode === 'shared' ? 'badge-ok' : 'badge-muted');
+    }
+
     // 方向切换
     $('#t0_btnDir').addEventListener('click', () => {
       const cur = c.direction;
       const next = (cur === 'vertical' || cur === '纵向') ? 'horizontal' : 'vertical';
       c.setAttribute('direction', next);
       $('#t0_btnDir').textContent = (next === 'vertical') ? '切换为横向' : '切换为纵向';
+      _updateDirBadge(next);
       addLog('dir', next);
     });
 
@@ -897,6 +1053,7 @@
       c.setAttribute('axis-mode', next);
       $('#t0_btnAxis').textContent = next === 'shared' ? '切换为独立轴' : '切换为共享轴';
       document.getElementById('t0_sharedRangeLbl').style.display = next === 'shared' ? '' : 'none';
+      _updateAxisBadge(next);
       addLog('axis-mode', next);
     });
 
@@ -968,6 +1125,8 @@
       c.removeAttribute('shared-end');
       $('#t0_sharedS').value = '0';
       $('#t0_sharedE').value = '24';
+      _updateDirBadge('horizontal');
+      _updateAxisBadge('per-track');
       c.innerHTML = `
         <time-line-track label="摄像头-A（前门）" start="0" end="24" step="0.25">
           <time-line-segment start="6"  end="9"  label="早班值守" color="#27ae60"></time-line-segment>
@@ -984,8 +1143,8 @@
         </time-line-track>
       `;
       refreshSel();
-      $('#t0_radius').value = '5px';
-      c.setGlobalRadius('5px');
+      $('#t0_radius').value = '0';
+      c.setGlobalRadius('0');
       $('#t0_labelH').value = 'top';
       $('#t0_labelV').value = 'left';
       c.removeAttribute('label-h');
@@ -1020,8 +1179,8 @@
 
     // 初始化
     refreshSel();
-    $('#t0_radius').value = '5px';
-    c.setGlobalRadius('5px');
+    $('#t0_radius').value = '0';
+    c.setGlobalRadius('0');
   })();
 
   // =============================================================
@@ -1041,7 +1200,7 @@
     function generate() {
       const trackN = parseInt($('#t1_trackCount').value);
       const segN   = parseInt($('#t1_segCount').value);
-      const step   = parseFloat($('#t1_step').value) || 1;
+      const step   = parseFloat($('#t1_step').value) || 0;
       const totalRange = 24;
 
       // 清空
@@ -1216,6 +1375,12 @@
       const next = (cur === 'vertical' || cur === '纵向') ? 'horizontal' : 'vertical';
       c.setAttribute('direction', next);
       $('#t3_btnDir').textContent = (next === 'vertical') ? '切换为横向' : '切换为纵向';
+      const dEl = $('#t3_dirBadge');
+      if (dEl) dEl.textContent = next === 'vertical' ? '纵向' : '横向';
+      const hw3 = $('#t3_labelHWrap');
+      const vw3 = $('#t3_labelVWrap');
+      if (hw3) hw3.style.display = next === 'vertical' ? 'none' : '';
+      if (vw3) vw3.style.display = next === 'vertical' ? '' : 'none';
       addLog('dir', next);
     });
 
@@ -1226,6 +1391,11 @@
       c.setAttribute('axis-mode', next);
       $('#t3_btnAxis').textContent = next === 'shared' ? '切换为独立轴' : '切换为共享轴';
       document.getElementById('t3_sharedRangeLbl').style.display = next === 'shared' ? '' : 'none';
+      const aEl = $('#t3_axisBadge');
+      if (aEl) {
+        aEl.textContent = next === 'shared' ? '共享轴' : '独立轴';
+        aEl.className = 'badge ' + (next === 'shared' ? 'badge-ok' : 'badge-muted');
+      }
       addLog('axis-mode', next);
     });
 
@@ -1275,17 +1445,21 @@
       c.setAttribute('shared-start', '0');
       c.setAttribute('shared-end', '24');
       $('#t3_sharedS').value = '0';
+      const dEl3 = $('#t3_dirBadge'); if (dEl3) dEl3.textContent = '横向';
+      const aEl3 = $('#t3_axisBadge'); if (aEl3) { aEl3.textContent = '共享轴'; aEl3.className = 'badge badge-ok'; }
       $('#t3_sharedE').value = '24';
       c.removeAttribute('label-h');
       c.removeAttribute('label-v');
       $('#t3_labelH').value = 'top';
       $('#t3_labelV').value = 'left';
+      const hw3r = $('#t3_labelHWrap'); if (hw3r) hw3r.style.display = '';
+      const vw3r = $('#t3_labelVWrap'); if (vw3r) vw3r.style.display = 'none';
       c.style.height = '';
       c.style.width = '';
       $('#t3_height').value = '';
       $('#t3_width').value = '';
-      $('#t3_radius').value = '5px';
-      c.setGlobalRadius('5px');
+      $('#t3_radius').value = '0';
+      c.setGlobalRadius('0');
       $('#t3_step').value = '1';
       c.innerHTML = `
         <time-line-track label="早班段" start="0" end="12" step="0.5">
@@ -1306,7 +1480,7 @@
     });
 
     // 初始圆角
-    c.setGlobalRadius('5px');
+    c.setGlobalRadius('0');
   })();
 
   // =============================================================
@@ -1315,7 +1489,7 @@
   function doInit() {
     // 为每个容器设置初始圆角
     CONTAINERS.forEach(c => {
-      if (c && c.setGlobalRadius) c.setGlobalRadius('5px');
+      if (c && c.setGlobalRadius) c.setGlobalRadius('0');
     });
   }
 
