@@ -1,0 +1,6 @@
+# pnpm workspace 定义
+# 所有组件包放在 packages/ 目录下，每个独立构建
+packages:
+  - 'packages/*'
+allowBuilds:
+  esbuild: true

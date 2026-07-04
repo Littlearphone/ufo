@@ -1,0 +1,22 @@
+{
+  "name": "@ufo/timeline-track",
+  "version": "2.0.0",
+  "private": true,
+  "type": "module",
+  "description": "时间线轨道组件 — Custom Elements v1 + Pointer Events",
+  "main": "dist/TimelineTrack.js",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "build:lib": "vite build --mode lib",
+    "build:lib:watch": "vite build --mode lib --watch",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "vue": "^3.5.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^5.2.0",
+    "vite": "^6.3.0"
+  }
+}

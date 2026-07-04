@@ -1,76 +1,94 @@
-# CLAUDE.md
+# UFO — 自定义元素组件库
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+## 项目概览
 
-## Project Overview
+基于 **Custom Elements v1** + **Pointer Events** 的原生 Web 组件库。采用 **pnpm workspace monorepo** 结构，每个组件独立构建发布。
 
-时间线轨道组件（Timeline Track）—— 一个零框架依赖的原生 Web 组件库，基于 **Custom Elements v1** + **Pointer Events**，用于在时间轴上展示和交互操作时间段。
+## 项目结构
 
-## 代码架构
+```
+ufo/                              # GitHub repo 根
+├── pnpm-workspace.yaml           # 工作空间定义
+├── package.json                  # 根 workspace
+│
+└── packages/
+    ├── timeline-track/           # ▸ 时间线轨道组件
+    │   ├── src/lib/              #   Custom Elements 源码（框架无关）
+    │   │   ├── index.js          #   入口 & 注册
+    │   │   ├── TimeContainer.js  #   <time-line-container>
+    │   │   ├── TimeTrack.js      #   <time-line-track>
+    │   │   ├── TimeSegment.js    #   <time-line-segment>
+    │   │   ├── css.js            #   样式注入
+    │   │   ├── tooltip.js        #   全局 Tooltip
+    │   │   └── utils.js          #   工具函数
+    │   ├── src/components/       #   Vue 3 演示组件
+    │   ├── dist/TimelineTrack.js  #   构建产物（UMD 库，由 Actions 构建发布）
+    │   ├── demo/index.html       #   静态演示页（浏览器直接打开）
+    │   ├── index.html            #   Vite 开发入口
+    │   ├── vite.config.js        #   构建配置（SPA + 库模式）
+    │   └── package.json          #   @ufo/timeline-track
+    │
+    └── 其他组件/                   # ▸ 未来新增组件（相同结构）
+        ├── src/lib/
+        ├── dist/OtherModule.js   #   构建产物（UMD 库，由 Actions 构建发布）
+        ├── demo/index.html
+        ├── package.json
+        └── vite.config.js
+```
 
-**单文件架构**：`timeline-track/TimelineTrack.js`（~60KB，自执行 IIFE）
+## 包管理（pnpm）
 
-### 三个自定义元素
+```bash
+# 安装全部依赖（根目录执行）
+pnpm install
 
-| 元素 | 职责 |
+# 开发单个组件
+cd packages/timeline-track && pnpm run dev
+
+# 构建单个组件的独立库
+cd packages/timeline-track && pnpm run build:lib
+
+# 构建所有组件
+pnpm -r run build:lib
+
+# 构建所有 SPA 演示
+pnpm -r run build
+```
+
+## 组件开发规范
+
+每个组件包遵循同一结构：
+
+| 目录/文件 | 说明 |
 |---|---|
-| `<time-line-container>` | 顶层容器，管理方向布局（横向/纵向）、共享轴模式、全局圆角 |
-| `<time-line-track>` | 单条轨道，管理独立时间范围（start/end）、网格刻度、段碰撞检测 |
-| `<time-line-segment>` | 时间段，支持拖拽移动、两端手柄调长度、悬停删除 |
+| `src/lib/` | Custom Elements 源码，纯原生、零框架依赖 |
+| `dist/组件名.js` | 构建产出的 UMD 独立库，**由 Actions 构建发布** |
+| `demo/index.html` | 静态演示页，浏览器直接打开即可使用 |
+| `index.html` + `src/` (除 lib) | Vite 开发服务器 + Vue 3 演示页 |
+| `vite.config.js` | `mode=lib` 输出独立库，默认模式输出 SPA |
+| `package.json` | 独立版本号，`build:lib` 脚本产出库文件到 `dist/` |
 
-**嵌套约束**：Segment 必须位于 Track 内，Track 必须位于 Container 内。
+### 自定义元素约定
 
-### 内部结构
-
-- **CSS**：在 IIFE 内定义字符串常量，运行时通过 `ensureCSS()` 一次性注入 `<head>`
-- **Tooltip**：全局 portal 模式，将 tooltip DOM 追加到 `document.body` 并使用 `position:fixed` 避免祖先 `overflow` 裁剪
-- **网格绘制**：使用 `<canvas>` 在轨道体内绘制网格线，`ResizeObserver` 监听尺寸变化自动重绘
-- **交互**：基于 Pointer Events（`pointerdown/move/up/cancel`），`setPointerCapture` 确保拖拽过程中不会丢失事件
-
-### 事件系统（全部冒泡至 document）
-
-| 事件 | 触发时机 | detail 载荷 |
-|---|---|---|
-| `segment-change` | 拖动/缩放中连续触发 | `{ segment, start, end }` |
-| `segment-changed` | 拖动/缩放结束 | `{ segment, start, end }` |
-| `segment-created` | 新段创建完成 | `{ segment }` |
-| `segment-before-delete` | 删除前（可取消） | `{ segment }` |
-| `segment-deleted` | 删除后 | `{ segment }` |
-
-### 关键 API
-
-Container：
-- `addTrack(label, start, end, opts)` — 编程式创建轨道
-- `removeTrack(track)` — 移除轨道
-- `setGlobalRadius(val)` — 设置全局段圆角
-- `allTracks()` — 获取所有轨道
-
-Track：
-- `addSegment(start, end, opts)` — 编程式创建时间段
-- `sortedSegs()` — 按时间排序的所有段
-- `px2Time(px)`, `time2Px(t)` — 像素与时间互转
-
-### 渲染模式
-
-- **独立轴模式**（默认 `axis-mode="per-track"`）：每条轨道独立绘制自己的时间轴刻度
-- **共享轴模式**（`axis-mode="shared"`）：所有轨道共享同一时间范围，顶部/左侧显示粘性轴尺（sticky ruler），各轨道只画网格线不画标签
-
-## 开发与测试
-
-- **无构建步骤**：纯浏览器端运行，无需 npm install/bundler
-- **测试方式**：直接在浏览器中打开 `timeline-track/examples.html`
-- **项目结构**：
-  ```
-  ufo/
-  └── timeline-track/
-      ├── TimelineTrack.js   # 主组件库（唯一源代码文件）
-      └── examples.html      # 多标签测试/演示页
-  ```
-- **浏览器兼容**：依赖 Custom Elements v1、Pointer Events、ResizeObserver、Canvas，需现代浏览器
-
-## 开发约定
-
-- 修改 JS 文件后直接刷新 `examples.html` 即可验证效果
-- `examples.html` 中的 tabs 按功能主题组织（横向基础、纵向、共享轴、无标签等），新增功能应添加对应的演示 tab
-- 所有用户可见文本同时支持中英文属性名（如 `direction` / `方向`）
+- 所有用户可见文本支持中英文属性名（如 `direction` / `方向`）
 - CSS 变量以 `--tlc-`（Container）、`--tlt-`（Track）、`--tls-`（Segment）为前缀
+- 事件命名 kebab-case，统一冒泡到 document
+- 修改源码后刷新对应 `demo/index.html` 即可验证
+
+## GitHub Release 策略
+
+```
+依赖单独列出一个 "发布" 或者 "release"
+```
+
+每个组件包独立版本化：
+
+1. **打标签**：`git tag <name>@<version>`（如 `timeline-track@2.1.0`）
+2. **推送**：`git push --tags`
+3. **自动发布**：GitHub Actions 检测到 tag 后自动构建对应组件，在 Releases 页创建 Draft Release
+4. **检查发布**：在 GitHub Releases 页面审核 Draft，确认后点击发布
+5. **（可选）发布 npm**：`cd packages/<name> && npm publish`
+
+> 构建产物 `dist/<name>.js` 由 Actions 自动构建并附加到 Release，无需提交到 git。
+
+新增组件时，复制现有组件包的结构模板即可。

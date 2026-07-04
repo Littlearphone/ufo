@@ -1,0 +1,22 @@
+<template>
+  <div class="tab-bar">
+    <button
+      v-for="(name, i) in tabs"
+      :key="i"
+      class="tab"
+      :class="{ active: activeTab === i }"
+      :data-tab="i"
+      @click="$emit('select', i)"
+    >{{ icons[i] }} {{ name }}</button>
+  </div>
+</template>
+
+<script setup>
+defineProps({
+  activeTab: { type: Number, required: true }
+})
+defineEmits(['select'])
+
+const tabs = ['基础操作', '海量数据', 'API 调用', '布局 / 共用轴']
+const icons = ['📋', '📊', '🔌', '📐']
+</script>
