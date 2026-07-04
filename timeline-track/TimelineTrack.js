@@ -149,7 +149,7 @@
       flex: 1;
       min-width: 0;
       background: #fdfdfd;
-      cursor: crosshair;
+      cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20'%3E%3Ccircle cx='10' cy='10' r='1.8' fill='%23444'/%3E%3Cline x1='10' y1='2' x2='10' y2='6' stroke='%23444' stroke-width='2' stroke-linecap='round'/%3E%3Cline x1='10' y1='14' x2='10' y2='18' stroke='%23444' stroke-width='2' stroke-linecap='round'/%3E%3Cline x1='2' y1='10' x2='6' y2='10' stroke='%23444' stroke-width='2' stroke-linecap='round'/%3E%3Cline x1='14' y1='10' x2='18' y2='10' stroke='%23444' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E") 10 10, crosshair;
       touch-action: none;
     }
     time-line-track.vertical .tlt-body {
@@ -184,12 +184,12 @@
       -webkit-user-select: none;
       touch-action: none;
       z-index: 2;
-      cursor: grab;
+      cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20'%3E%3Cpath d='M10 2l-4 4h3v3H6V6L2 10l4 4v-3h3v3H6l4 4 4-4h-3v-3h3v3l4-4-4-4v3h-3V6h3z' stroke='%23fff' stroke-width='3.5' fill='none' stroke-linejoin='round' stroke-linecap='round'/%3E%3Cpath d='M10 2l-4 4h3v3H6V6L2 10l4 4v-3h3v3H6l4 4 4-4h-3v-3h3v3l4-4-4-4v3h-3V6h3z' stroke='%23444' stroke-width='2' fill='none' stroke-linejoin='round' stroke-linecap='round'/%3E%3C/svg%3E") 10 10, grab;
       overflow: visible;              /* 允许删除按钮/tooltip 超出边界 */
     }
     time-line-segment:hover { z-index: 4; }
     time-line-segment.dragging,
-    time-line-segment.resizing { z-index: 12; cursor: grabbing; }
+    time-line-segment.resizing { z-index: 12; cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20'%3E%3Cpath d='M10 2l-4 4h3v3H6V6L2 10l4 4v-3h3v3H6l4 4 4-4h-3v-3h3v3l4-4-4-4v3h-3V6h3z' stroke='%23fff' stroke-width='3.5' fill='none' stroke-linejoin='round' stroke-linecap='round'/%3E%3Cpath d='M10 2l-4 4h3v3H6V6L2 10l4 4v-3h3v3H6l4 4 4-4h-3v-3h3v3l4-4-4-4v3h-3V6h3z' fill='%23444' stroke='none'/%3E%3C/svg%3E") 10 10, grabbing; }
 
     time-line-segment .tls-bar {
       position: relative;
@@ -212,31 +212,29 @@
       z-index: 3;
       /* 热区完全透明，仅通过子元素 .tls-hdl-bar 展示视觉条 */
     }
-    time-line-segment .tls-hdl-left  { left: 0; top: 0; bottom: 0; width: 14px; cursor: ew-resize; }
-    time-line-segment .tls-hdl-right { right: 0; top: 0; bottom: 0; width: 14px; cursor: ew-resize; }
+    time-line-segment .tls-hdl-left  { left: -2px; top: 0; bottom: 0; width: 4px; cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24'%3E%3Cpolygon points='18,5 7,12 18,19' fill='%23444' stroke='%23fff' stroke-width='1.5' stroke-linejoin='round'/%3E%3C/svg%3E") 12 12, ew-resize; }
+    time-line-segment .tls-hdl-right { right: -2px; top: 0; bottom: 0; width: 4px; cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24'%3E%3Cpolygon points='6,5 17,12 6,19' fill='%23444' stroke='%23fff' stroke-width='1.5' stroke-linejoin='round'/%3E%3C/svg%3E") 12 12, ew-resize; }
 
     time-line-segment .tls-hdl-bar {
       position: absolute;
       top: 20%;
       bottom: 20%;
       width: 4px;
-      background: rgba(255,255,255,.78);
+      background: linear-gradient(to right, rgba(0,0,0,0.04), rgba(255,255,255,0.10));
       border-radius: 0;
       opacity: 0;
       transition: opacity .14s;
       pointer-events: none;           /* 点击穿透到父级 .tls-hdl */
     }
-    time-line-segment .tls-hdl-left  .tls-hdl-bar { left: 5px; }
-    time-line-segment .tls-hdl-right .tls-hdl-bar { right: 5px; }
+    time-line-segment .tls-hdl-left  .tls-hdl-bar { left: 0; width: 4px; border-right: 1px solid rgba(0,0,0,0.08); }
+    time-line-segment .tls-hdl-right .tls-hdl-bar { right: 0; width: 4px; border-left: 1px solid rgba(0,0,0,0.08); }
     time-line-segment:hover .tls-hdl-bar              { opacity: 1; }
     time-line-segment.dragging .tls-hdl-bar,
     time-line-segment.resizing .tls-hdl-bar           { opacity: 0; }
 
     /* 纵向模式手柄：显式覆盖 top/bottom 防止基础选择器导致两个手柄都贴在 top:0 处重叠 */
-    time-line-track.vertical time-line-segment .tls-hdl-left  { left: 0; right: 0; top: 0; bottom: auto; width: auto; height: 14px; cursor: ns-resize; }
-    time-line-track.vertical time-line-segment .tls-hdl-right { left: 0; right: 0; bottom: 0; top: auto; width: auto; height: 14px; cursor: ns-resize; }
-    time-line-track.vertical time-line-segment .tls-hdl-left  .tls-hdl-bar { left: 20%; right: 20%; top: 5px;  width: auto; height: 4px; }
-    time-line-track.vertical time-line-segment .tls-hdl-right .tls-hdl-bar { left: 20%; right: 20%; bottom: 5px; width: auto; height: 4px; }
+    time-line-track.vertical time-line-segment .tls-hdl-left  { left: 0; right: 0; top: -2px; bottom: auto; width: auto; height: 4px; cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24'%3E%3Cpolygon points='5,18 12,7 19,18' fill='%23444' stroke='%23fff' stroke-width='1.5' stroke-linejoin='round'/%3E%3C/svg%3E") 12 12, ns-resize; }
+    time-line-track.vertical time-line-segment .tls-hdl-right { left: 0; right: 0; bottom: -2px; top: auto; width: auto; height: 4px; cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24'%3E%3Cpolygon points='5,6 12,17 19,6' fill='%23444' stroke='%23fff' stroke-width='1.5' stroke-linejoin='round'/%3E%3C/svg%3E") 12 12, ns-resize; }
 
     /* ── 内容 ── */
     time-line-segment .tls-inner {
@@ -351,6 +349,7 @@
     time-line-segment .tls-tip-label { font-weight: 600; }
     time-line-segment .tls-tip-time  { opacity: .75; font-size: 10px; }
 
+    
     /* ---- Ghost（拖拽创建时的半透明预览） ---- */
     .tlt-ghost {
       position: absolute;
@@ -1207,20 +1206,20 @@
         seg.style.top    = p1 + 'px';
         seg.style.left   = '0';
         seg.style.right  = '0';
-        seg.style.height = Math.max(4, p2 - p1) + 'px';
+        seg.style.height = Math.max(6, p2 - p1) + 'px';
         seg.style.width  = '';
-        seg.style.bottom = '';  // 清除横向模式遗留的 bottom:0，避免段拉伸到底部重叠
+        seg.style.bottom = '';
       } else {
         seg.style.left   = p1 + 'px';
         seg.style.top    = '0';
         seg.style.bottom = '0';
-        seg.style.width  = Math.max(4, p2 - p1) + 'px';
+        seg.style.width  = Math.max(6, p2 - p1) + 'px';
         seg.style.height = '';
-        seg.style.right  = '';  // 清除纵向模式遗留的 right:0，避免段拉伸到右侧重叠
+        seg.style.right  = '';
       }
     }
 
-    _refreshPositions() { this.sortedSegs().forEach(s => this._positionOne(s)); }
+        _refreshPositions() { this.sortedSegs().forEach(s => this._positionOne(s)); }
 
     /** 是否处于共享轴模式 */
     _isSharedMode() {
