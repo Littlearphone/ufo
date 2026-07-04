@@ -22,18 +22,21 @@ ufo/                              # GitHub repo 根
     │   │   ├── tooltip.js        #   全局 Tooltip
     │   │   └── utils.js          #   工具函数
     │   ├── src/components/       #   Vue 3 演示组件
-    │   ├── dist/TimelineTrack.js  #   构建产物（UMD 库，由 Actions 构建发布）
-    │   ├── demo/index.html       #   静态演示页（浏览器直接打开）
-    │   ├── index.html            #   Vite 开发入口
-    │   ├── vite.config.js        #   构建配置（SPA + 库模式）
+    │   ├── dist/
+    │   │   ├── TimelineTrack.js  #   构建产物（UMD 库）
+    │   │   └── index.html        #   构建产物（自包含 demo）
+    │   ├── index.html            #   Vite 唯一入口（开发/构建共用）
+    │   ├── vite.config.js        #   构建配置
     │   └── package.json          #   @ufo/timeline-track
     │
     └── 其他组件/                   # ▸ 未来新增组件（相同结构）
         ├── src/lib/
-        ├── dist/OtherModule.js   #   构建产物（UMD 库，由 Actions 构建发布）
-        ├── demo/index.html
-        ├── package.json
-        └── vite.config.js
+        ├── dist/
+        │   ├── OtherModule.js    #   构建产物（UMD 库）
+        │   └── index.html        #   构建产物（自包含 demo）
+        ├── index.html
+        ├── vite.config.js
+        └── package.json
 ```
 
 ## 包管理（pnpm）
@@ -48,11 +51,14 @@ cd packages/timeline-track && pnpm run dev
 # 构建单个组件的独立库
 cd packages/timeline-track && pnpm run build:lib
 
-# 构建所有组件
-pnpm -r run build:lib
+# 构建单文件 demo（自包含 HTML）
+cd packages/timeline-track && pnpm run build
 
-# 构建所有 SPA 演示
-pnpm -r run build
+# 构建全部（demo + 库）
+cd packages/timeline-track && pnpm run build:all
+
+# 构建所有组件
+pnpm -r run build:all
 ```
 
 ## 组件开发规范
@@ -62,18 +68,18 @@ pnpm -r run build
 | 目录/文件 | 说明 |
 |---|---|
 | `src/lib/` | Custom Elements 源码，纯原生、零框架依赖 |
-| `dist/组件名.js` | 构建产出的 UMD 独立库，**由 Actions 构建发布** |
-| `demo/index.html` | 静态演示页，浏览器直接打开即可使用 |
-| `index.html` + `src/` (除 lib) | Vite 开发服务器 + Vue 3 演示页 |
-| `vite.config.js` | `mode=lib` 输出独立库，默认模式输出 SPA |
-| `package.json` | 独立版本号，`build:lib` 脚本产出库文件到 `dist/` |
+| `dist/TimelineTrack.js` | 构建产出的 UMD 独立库，**由 Actions 构建发布** |
+| `dist/index.html` | 构建产出的自包含 demo 页面，**可 GH Pages / 直接打开** |
+| `index.html` | Vite 唯一入口（开发 HMR + 构建共用） |
+| `src/` (除 lib) | Vue 3 演示组件源码 |
+| `vite.config.js` | `mode=lib` 输出 UMD 库；默认模式输出单文件 demo |
+| `package.json` | 独立版本号，`build:all` 一次产出库 + demo |
 
 ### 自定义元素约定
 
 - 所有用户可见文本支持中英文属性名（如 `direction` / `方向`）
 - CSS 变量以 `--tlc-`（Container）、`--tlt-`（Track）、`--tls-`（Segment）为前缀
 - 事件命名 kebab-case，统一冒泡到 document
-- 修改源码后刷新对应 `demo/index.html` 即可验证
 
 ## GitHub Release 策略
 
@@ -89,6 +95,6 @@ pnpm -r run build
 4. **检查发布**：在 GitHub Releases 页面审核 Draft，确认后点击发布
 5. **（可选）发布 npm**：`cd packages/<name> && npm publish`
 
-> 构建产物 `dist/<name>.js` 由 Actions 自动构建并附加到 Release，无需提交到 git。
+> 构建产物 `dist/<name>.js` + `dist/index.html` 由 Actions 自动构建并附加到 Release，无需提交到 git。
 
 新增组件时，复制现有组件包的结构模板即可。
