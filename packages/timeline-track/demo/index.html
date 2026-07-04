@@ -574,7 +574,7 @@
 <!-- ═══ 标签栏 ═══ -->
 <div class="tab-bar" id="tabBar">
   <button class="tab active" data-tab="0">📋 基础操作</button>
-  <button class="tab" data-tab="1">📊 海量数据</button>
+  <button class="tab" data-tab="1">📊 密集数据</button>
   <button class="tab" data-tab="2">🔌 API 调用</button>
   <button class="tab" data-tab="3">📐 布局 / 共用轴</button>
 </div>
@@ -609,7 +609,7 @@
           </time-line-track>
         </time-line-container>
 
-        <!-- ─────── Tab 1: 海量数据 ─────── -->
+        <!-- ─────── Tab 1: 密集数据 ─────── -->
         <time-line-container id="demo1" direction="horizontal">
           <!-- 运行时由 JS 生成 -->
         </time-line-container>
@@ -781,7 +781,7 @@
 
         </div>
 
-        <!-- ════ Tab 1 海量数据 ════ -->
+        <!-- ════ Tab 1 密集数据 ════ -->
         <div class="controls-content" data-tab="1">
 
           <div class="ctrl-group">
@@ -1041,8 +1041,8 @@
   //  源码展示 — 容器标签属性从 DOM 实时读取，内部保持示例源码
   // =============================================================
 
-  // 海量数据标签页的 JS 生成代码（容器 HTML 仅为空壳）
-  const JS_SOURCE = `// 海量数据由 JavaScript 动态生成
+  // 密集数据标签页的 JS 生成代码（容器 HTML 仅为空壳）
+  const JS_SOURCE = `// 密集数据由 JavaScript 动态生成
 // 用户可通过滑块控制轨道数和每轨道段数
 // 时间段自动非重叠分布，颜色随机分配
 
@@ -1052,7 +1052,7 @@ const colors = ['#27ae60','#e67e22','#2980b9', /* ... */ ];
 
 for (let t = 0; t < trackN; t++) {
   const track = document.createElement('time-line-track');
-  track.setAttribute('label', '海量轨道-' + (t + 1));
+  track.setAttribute('label', '密集轨道-' + (t + 1));
   track.setAttribute('start', '0');
   track.setAttribute('end', '24');
   container.appendChild(track);
@@ -1217,7 +1217,7 @@ for (let t = 0; t < trackN; t++) {
   //  标签切换
   // =============================================================
   let activeTab = 0;
-  const TAB_NAMES = ['基础操作', '海量数据', 'API 调用', '布局 / 共用轴'];
+  const TAB_NAMES = ['基础操作', '密集数据', 'API 调用', '布局 / 共用轴'];
   const TAB_DESCS = [
     '空白处<strong>拖拽</strong>创建段 · 拖拽段体<strong>移动</strong> · 拖拽两端<strong>调长度</strong> · 悬停 <strong>×</strong> 删除',
     '调节下方滑块，点击「生成数据」快速创建大量时间段，测试组件渲染与交互性能',
@@ -1491,7 +1491,7 @@ for (let t = 0; t < trackN; t++) {
   })();
 
   // =============================================================
-  //  Tab 1 — 海量数据
+  //  Tab 1 — 密集数据
   // =============================================================
   (function () {
     const c = CONTAINERS[1];
@@ -1517,7 +1517,7 @@ for (let t = 0; t < trackN; t++) {
 
       for (let t = 0; t < trackN; t++) {
         const track = document.createElement('time-line-track');
-        track.setAttribute('label', '海量轨道-' + (t + 1));
+        track.setAttribute('label', '密集轨道-' + (t + 1));
         track.setAttribute('start', '0');
         track.setAttribute('end', String(totalRange));
         track.setAttribute('step', String(step));

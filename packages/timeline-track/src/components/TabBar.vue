@@ -17,6 +17,6 @@ defineProps({
 })
 defineEmits(['select'])
 
-const tabs = ['基础操作', '海量数据', 'API 调用', '布局 / 共用轴']
+const tabs = ['基础操作', '密集数据', 'API 调用', '布局 / 共用轴']
 const icons = ['📋', '📊', '🔌', '📐']
 </script>

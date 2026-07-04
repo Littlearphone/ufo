@@ -33,7 +33,7 @@
             </time-line-track>
           </time-line-container>
 
-          <!-- Tab 1: 海量数据 -->
+          <!-- Tab 1: 密集数据 -->
           <time-line-container ref="c1" id="demo1" direction="horizontal" :class="{ active: activeTab === 1 }"></time-line-container>
 
           <!-- Tab 2: API 调用 -->
@@ -151,13 +151,13 @@ const TAB_INNER = [
     <time-line-segment start="18" end="24" label="夜间巡检" color="#2c3e50"></time-line-segment>
   </time-line-track>`,
   // Tab 1 — JS 生成数据
-  `// 海量数据由 JavaScript 动态生成
+  `// 密集数据由 JavaScript 动态生成
 // 可通过滑块控制轨道数和每轨道段数
 
 const trackN = 5, segN = 20;
 for (let t = 0; t < trackN; t++) {
   const track = document.createElement('time-line-track');
-  track.setAttribute('label', '海量轨道-' + (t + 1));
+  track.setAttribute('label', '密集轨道-' + (t + 1));
   track.setAttribute('start', '0');
   track.setAttribute('end', '24');
   container.appendChild(track);

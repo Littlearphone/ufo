@@ -8,7 +8,7 @@
         <Tab0Controls :container="containers[0]" />
       </div>
 
-      <!-- ════ Tab 1: 海量数据 ════ -->
+      <!-- ════ Tab 1: 密集数据 ════ -->
       <div class="controls-content" :class="{ active: activeTab === 1 }">
         <Tab1Controls :container="containers[1]" />
       </div>

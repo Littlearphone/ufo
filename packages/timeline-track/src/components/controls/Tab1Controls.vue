@@ -101,7 +101,7 @@ function generate() {
 
   for (let t = 0; t < trackN; t++) {
     const track = document.createElement('time-line-track')
-    track.setAttribute('label', '海量轨道-' + (t + 1))
+    track.setAttribute('label', '密集轨道-' + (t + 1))
     track.setAttribute('start', '0')
     track.setAttribute('end', String(totalRange))
     if (step) track.setAttribute('step', String(step))

@@ -8,7 +8,7 @@ export const COLORS = [
   '#3498db', '#9b59b6', '#e91e63', '#00bcd4', '#ff5722'
 ]
 
-export const TAB_NAMES = ['基础操作', '海量数据', 'API 调用', '布局 / 共用轴']
+export const TAB_NAMES = ['基础操作', '密集数据', 'API 调用', '布局 / 共用轴']
 export const TAB_DESCS = [
   '空白处<strong>拖拽</strong>创建段 · 拖拽段体<strong>移动</strong> · 拖拽两端<strong>调长度</strong> · 悬停 <strong>×</strong> 删除',
   '调节下方滑块，点击「生成数据」快速创建大量时间段，测试组件渲染与交互性能',
