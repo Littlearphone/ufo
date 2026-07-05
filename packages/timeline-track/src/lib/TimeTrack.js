@@ -601,7 +601,7 @@ export class TimeTrack extends HTMLElement {
       seg.style.right  = ''
     }
 
-    // 太窄的段自动隐藏 × 删除按钮（右键菜单仍可用）
+    // 太窄的段自动隐藏 × 删除按钮（右键菜单及 tooltip 仍可用）
     seg.classList.toggle('tls-del-hidden', segW < 28)
   }
 
@@ -651,6 +651,12 @@ export class TimeTrack extends HTMLElement {
       // 太窄的段自动隐藏 × 删除按钮（右键菜单仍可用）
       seg.classList.toggle('tls-del-hidden', segW < 28)
     }
+    // 批量检查文字溢出（下一次 layout 后）
+    if (this._segTextCheckRaf) cancelAnimationFrame(this._segTextCheckRaf)
+    this._segTextCheckRaf = requestAnimationFrame(() => {
+      this._segTextCheckRaf = 0
+      segs.forEach(s => s.classList.toggle('tls-text-hidden', s._isTruncated()))
+    })
   }
 
   /** 是否处于共享轴模式 */

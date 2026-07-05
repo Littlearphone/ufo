@@ -7,7 +7,7 @@
 import { clamp, esc, snap } from './utils.js'
 import { createFormatter } from './formatter.js'
 import { hideGlobalTip, showGlobalTip } from './tooltip.js'
-import { showContextMenu, showDeleteConfirm, showSegmentEditDialog } from './contextmenu.js'
+import { hideContextMenu, showContextMenu, showDeleteConfirm, showSegmentEditDialog } from './contextmenu.js'
 import { resolveLocale } from './locale.js'
 
 export class TimeSegment extends HTMLElement {
@@ -76,6 +76,7 @@ export class TimeSegment extends HTMLElement {
       this._buildDOM()
       const t = this._track
       if (t && t._positionOne) t._positionOne(this)
+      this._updateTextVisibility()
     }
   }
 
@@ -181,6 +182,16 @@ export class TimeSegment extends HTMLElement {
   /** 容器 locale 属性变更时刷新文字相关 DOM */
   _onLocaleChange() {
     this._buildDOM()
+    this._updateTextVisibility()
+  }
+
+  /** 容器 locale 属性变更时刷新文字相关 DOM */
+  _updateTextVisibility() {
+    cancelAnimationFrame(this._tvRaf)
+    this._tvRaf = requestAnimationFrame(() => {
+      this._tvRaf = 0
+      this.classList.toggle('tls-text-hidden', this._isTruncated())
+    })
   }
 
   /** 检测段内文本是否被截断 */
@@ -198,6 +209,7 @@ export class TimeSegment extends HTMLElement {
   _onDown(e) {
     if (e.target.closest('[data-role="del"]')) return // 让 click 处理
     if (e.button !== 0) return
+    hideContextMenu() // 左键点击段时关闭可能存在的右键菜单
 
     const hdl = e.target.closest('[data-role]')
     if (hdl && hdl.dataset.role === 'hdl-left')  this._mode = 'resize-left'
@@ -254,6 +266,7 @@ export class TimeSegment extends HTMLElement {
 
     t._positionOne(this)
     this._buildDOM()
+    this._updateTextVisibility()
 
     // 拖拽/缩放期间同步更新 tooltip
     if (this.tooltip !== 'none') {

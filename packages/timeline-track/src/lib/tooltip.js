@@ -5,7 +5,6 @@
  */
 
 import { clamp, esc } from './utils.js'
-import { resolveLocale } from './locale.js'
 
 let _globalTip = null
 
@@ -45,11 +44,10 @@ export function showGlobalTip(seg) {
     }
   }
 
-  const loc = resolveLocale(seg)
   const fmt = seg._formatter
   tip.innerHTML =
-    `<div class="tls-global-tip-label">${esc(seg.label) || loc.unnamed}</div>
-     <div class="tls-global-tip-time">${fmt.formatRange(seg.start, seg.end, 'tooltip')}</div>`
+    (seg.label ? `<div class="tls-global-tip-label">${esc(seg.label)}</div>` : '') +
+    `<div class="tls-global-tip-time">${fmt.formatRange(seg.start, seg.end, 'tooltip')}</div>`
 
   // 重置样式和类
   tip.className = 'tls-global-tip'
