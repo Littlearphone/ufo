@@ -226,6 +226,7 @@ export const CSS = /* css */ `
   time-line-segment.resizing .tls-del { opacity: 0; }
   time-line-segment.tls-del-hidden .tls-del { display: none; }
   time-line-segment.tls-text-hidden .tls-inner { visibility: hidden; }
+  time-line-segment.tls-selected .tls-bar { box-shadow: inset 0 0 0 2px rgba(255,255,255,.65); }
 
   .tls-global-tip {
     position: fixed;

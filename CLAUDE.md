@@ -80,7 +80,7 @@ pnpm -r run build:all
 
 ### 自定义元素约定
 
-- 所有用户可见文本支持中英文属性名（如 `direction` / `方向`）
+- 自定义元素属性名统一使用英文 kebab-case（如 `direction`、`max-segments`）
 - CSS 变量以 `--tlc-`（Container）、`--tlt-`（Track）、`--tls-`（Segment）为前缀
 - 事件命名 kebab-case，统一冒泡到 document
 
@@ -134,6 +134,7 @@ pnpm -r run build:all
 | `clearSegments` | `loc-clear-segments` | `清空时间段` | 右键菜单项 |
 | `confirmDeleteTrack` | `loc-confirm-delete-track` | `确定要删除轨道「{name}」({range}) 吗？` | 删除轨道确认模板，支持 `{name}`/`{range}` 占位符 |
 | `confirmDeleteSegment` | `loc-confirm-delete-segment` | `确定要删除时间段「{name}」({range}) 吗？` | 删除段确认模板 |
+| `confirmClearSegments` | `loc-confirm-clear-segments` | `确定要清空轨道「{name}」的所有时间段吗？` | 清空轨道所有段确认模板，支持 `{name}` 占位符 |
 | `segmentEditTitle` | `loc-segment-edit-title` | `修改时间段属性` | 编辑段弹窗标题 |
 | `trackEditTitle` | `loc-track-edit-title` | `修改轨道属性` | 编辑轨道弹窗标题 |
 | `labelField` | `loc-label` | `标签` | 表单字段名 |

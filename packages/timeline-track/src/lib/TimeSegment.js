@@ -210,6 +210,7 @@ export class TimeSegment extends HTMLElement {
     if (e.target.closest('[data-role="del"]')) return // 让 click 处理
     if (e.button !== 0) return
     hideContextMenu() // 左键点击段时关闭可能存在的右键菜单
+    this.classList.add('tls-selected')
 
     const hdl = e.target.closest('[data-role]')
     if (hdl && hdl.dataset.role === 'hdl-left')  this._mode = 'resize-left'
@@ -283,7 +284,7 @@ export class TimeSegment extends HTMLElement {
     if (!this._ptrActive) return
     this._ptrActive = false
     this._mode = null
-    this.classList.remove('dragging', 'resizing')
+    this.classList.remove('dragging', 'resizing', 'tls-selected')
     this.removeEventListener('pointermove', this._onMove)
     this.removeEventListener('pointerup',   this._onUp)
     this.removeEventListener('pointercancel', this._onUp)
