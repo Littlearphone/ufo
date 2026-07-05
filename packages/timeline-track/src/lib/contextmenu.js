@@ -50,6 +50,17 @@ const POPUP_CSS = /* css */ `
 .tlc-context-item:active {
   background: #e5e8ec;
 }
+.tlc-context-header {
+  padding: 7px 14px 5px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #999;
+  cursor: default;
+  border-bottom: 1px solid #f0f0f0;
+  margin-bottom: 4px;
+  white-space: nowrap;
+  line-height: 1.4;
+}
 .tlc-context-item-danger {
   color: #e53935;
 }
@@ -253,12 +264,18 @@ export function showContextMenu(items, x, y) {
   }
 
   // 渲染菜单项
+  let headerHtml = ''
   _menuEl.innerHTML = items.map((item, i) => {
     if (item.type === 'divider') return '<div class="tlc-context-divider"></div>'
+    if (item.type === 'header') {
+      headerHtml = `<div class="tlc-context-header">${esc(item.label)}</div>`
+      return null
+    }
     const cls = ['tlc-context-item']
     if (item.danger) cls.push('tlc-context-item-danger')
     return `<div class="${cls.join(' ')}" data-idx="${i}">${esc(item.label)}</div>`
-  }).join('')
+  }).filter(Boolean).join('')
+  if (headerHtml) _menuEl.innerHTML = headerHtml + _menuEl.innerHTML
 
   // 菜单项点击处理
   _menuEl.addEventListener('click', (e) => {

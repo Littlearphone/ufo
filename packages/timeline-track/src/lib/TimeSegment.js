@@ -138,9 +138,10 @@ export class TimeSegment extends HTMLElement {
       e.stopPropagation()                       // 阻止冒泡到轨道
       const l = resolveLocale(this)
       const name = this.label || l.unnamed
+      const segLabel = this.label || l.unnamed
       showContextMenu([
+        { type: 'header', label: '🔖 ' + segLabel + '  ' + this._formatter.formatRange(this.start, this.end, 'axis') },
         { label: l.modifyProps, action: () => showSegmentEditDialog(this) },
-        { type: 'divider' },
         { label: l.deleteBtnTitle, danger: true, action: () => {
           showDeleteConfirm(
             l.confirmDeleteSegment

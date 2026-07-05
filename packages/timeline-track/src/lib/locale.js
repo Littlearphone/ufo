@@ -17,6 +17,8 @@ export const DEFAULT_LOCALE = {
   modifyProps: '修改属性',
   /** 删除轨道菜单项 */
   deleteTrack: '删除轨道',
+  /** 清空时间段菜单项 */
+  clearSegments: '清空时间段',
   /** 删除轨道确认模板，{name}=轨道名，{range}=时间范围 */
   confirmDeleteTrack: '确定要删除轨道「{name}」({range}) 吗？',
   /** 删除段确认模板 */

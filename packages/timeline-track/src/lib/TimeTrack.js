@@ -119,6 +119,11 @@ export class TimeTrack extends HTMLElement {
     return seg
   }
 
+  /** 清空本轨道所有时间段 */
+  clearAllSegments() {
+    this.sortedSegs().forEach(s => s.remove())
+  }
+
   /** 程序化删除本轨道（发送可取消事件，供右键菜单调用） */
   _deleteTrack() {
     const ok = this.dispatchEvent(new CustomEvent('track-before-delete', {
@@ -202,14 +207,15 @@ export class TimeTrack extends HTMLElement {
       if (this._creating) return              // 拖拽创建中不响应
       e.preventDefault()
       const l = resolveLocale(this)
-      const name = this.label || l.unnamed
+      const trackLabel = this.label || l.unnamed
       showContextMenu([
+        { type: 'header', label: '📋 ' + trackLabel },
         { label: l.modifyProps, action: () => showTrackEditDialog(this) },
-        { type: 'divider' },
+        { label: l.clearSegments, action: () => this.clearAllSegments() },
         { label: l.deleteTrack, danger: true, action: () => {
           showDeleteConfirm(
             l.confirmDeleteTrack
-              .replace('{name}', name)
+              .replace('{name}', trackLabel)
               .replace('{range}', this._formatter.formatRange(this.tStart, this.tEnd, 'axis')),
             () => { this._deleteTrack() },
             this

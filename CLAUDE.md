@@ -129,6 +129,7 @@ pnpm -r run build:all
 | `deleteBtnTitle` | `loc-delete-btn-title` | `删除` | 段上删除按钮的 title 提示 |
 | `modifyProps` | `loc-modify-props` | `修改属性` | 右键菜单项 |
 | `deleteTrack` | `loc-delete-track` | `删除轨道` | 右键菜单项 |
+| `clearSegments` | `loc-clear-segments` | `清空时间段` | 右键菜单项 |
 | `confirmDeleteTrack` | `loc-confirm-delete-track` | `确定要删除轨道「{name}」({range}) 吗？` | 删除轨道确认模板，支持 `{name}`/`{range}` 占位符 |
 | `confirmDeleteSegment` | `loc-confirm-delete-segment` | `确定要删除时间段「{name}」({range}) 吗？` | 删除段确认模板 |
 | `segmentEditTitle` | `loc-segment-edit-title` | `修改时间段属性` | 编辑段弹窗标题 |

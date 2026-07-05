@@ -123,7 +123,7 @@ const apiLabel = ref('新轨道')
 const apiStart = ref('0')
 const apiEnd = ref('24')
 const apiStep = ref('0.5')
-const apiMaxSeg = ref('')
+const apiMaxSeg = ref('0')
 
 // addSegment
 const addSegTrackIdx = ref(0)
