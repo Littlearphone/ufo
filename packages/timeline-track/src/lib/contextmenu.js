@@ -388,13 +388,16 @@ export function closeModal() {
 export function showSegmentEditDialog(segment) {
   injectCSS()
   const loc = resolveLocale(segment)
+  const fmt = segment._formatter
   const modal = _getModal()
+  const sAttrs = fmt.inputAttrs(segment.start)
+  const eAttrs = fmt.inputAttrs(segment.end)
   modal.innerHTML = `
     <div class="tlc-modal-header">${esc(loc.segmentEditTitle)}</div>
     <div class="tlc-modal-body">
       <label><span>${esc(loc.labelField)}</span><input name="label" type="text" value="${esc(segment.label)}"></label>
-      <label><span>${esc(loc.startTime)}</span><input name="start" type="number" step="0.1" value="${segment.start}"></label>
-      <label><span>${esc(loc.endTime)}</span><input name="end" type="number" step="0.1" value="${segment.end}"></label>
+      <label><span>${esc(loc.startTime)}</span><input name="start" type="${sAttrs.type}"${sAttrs.step ? ` step="${sAttrs.step}"` : ''} value="${esc(sAttrs.value)}"></label>
+      <label><span>${esc(loc.endTime)}</span><input name="end" type="${eAttrs.type}"${eAttrs.step ? ` step="${eAttrs.step}"` : ''} value="${esc(eAttrs.value)}"></label>
       <label><span>${esc(loc.color)}</span><input name="color" type="color" value="${segment.color}"></label>
     </div>
     <div class="tlc-modal-footer">
@@ -412,8 +415,8 @@ export function showSegmentEditDialog(segment) {
     const vals = {}
     inputs.forEach(inp => { vals[inp.name] = inp.value })
 
-    const start = parseFloat(vals.start)
-    const end   = parseFloat(vals.end)
+    const start = fmt.parse(vals.start)
+    const end   = fmt.parse(vals.end)
     if (isNaN(start) || isNaN(end) || start >= end) return // 不合法则不处理
 
     segment.label = vals.label
@@ -434,14 +437,17 @@ export function showSegmentEditDialog(segment) {
 export function showTrackEditDialog(track) {
   injectCSS()
   const loc = resolveLocale(track)
+  const fmt = track._formatter
   const modal = _getModal()
+  const sAttrs = fmt.inputAttrs(track.tStart)
+  const eAttrs = fmt.inputAttrs(track.tEnd)
   modal.innerHTML = `
     <div class="tlc-modal-header">${esc(loc.trackEditTitle)}</div>
     <div class="tlc-modal-body">
       <label><span>${esc(loc.name)}</span><input name="label" type="text" value="${esc(track.label)}"></label>
-      <label><span>${esc(loc.startTime)}</span><input name="start" type="number" step="0.1" value="${track.tStart}"></label>
-      <label><span>${esc(loc.endTime)}</span><input name="end" type="number" step="0.1" value="${track.tEnd}"></label>
-      <label><span>${esc(loc.step)}</span><input name="step" type="number" step="0.01" min="0" value="${track.step}"></label>
+      <label><span>${esc(loc.startTime)}</span><input name="start" type="${sAttrs.type}"${sAttrs.step ? ` step="${sAttrs.step}"` : ''} value="${esc(sAttrs.value)}"></label>
+      <label><span>${esc(loc.endTime)}</span><input name="end" type="${eAttrs.type}"${eAttrs.step ? ` step="${eAttrs.step}"` : ''} value="${esc(eAttrs.value)}"></label>
+      <label><span>${esc(loc.step)}</span><input name="step" type="text" value="${track.step}"></label>
       <label><span>${esc(loc.maxSegmentsField)}</span><input name="maxSegments" type="number" step="1" min="0" placeholder="${esc(loc.zeroUnlimited)}" value="${track.maxSegments || ''}"></label>
     </div>
     <div class="tlc-modal-footer">
@@ -459,9 +465,9 @@ export function showTrackEditDialog(track) {
     const vals = {}
     inputs.forEach(inp => { vals[inp.name] = inp.value })
 
-    const start  = parseFloat(vals.start)
-    const end    = parseFloat(vals.end)
-    const step   = parseFloat(vals.step)
+    const start  = fmt.parse(vals.start)
+    const end    = fmt.parse(vals.end)
+    const step   = fmt.parse(vals.step)
     const maxSeg = parseInt(vals.maxSegments, 10)
 
     if (isNaN(start) || isNaN(end) || start >= end) return

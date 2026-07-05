@@ -4,7 +4,8 @@
  * @module TimeSegment
  */
 
-import { clamp, esc, fmtTime, snap } from './utils.js'
+import { clamp, esc, snap } from './utils.js'
+import { createFormatter } from './formatter.js'
 import { hideGlobalTip, showGlobalTip } from './tooltip.js'
 import { showContextMenu, showDeleteConfirm, showSegmentEditDialog } from './contextmenu.js'
 import { resolveLocale } from './locale.js'
@@ -25,10 +26,16 @@ export class TimeSegment extends HTMLElement {
   }
 
   /* ---- 属性 ---- */
-  get start()    { return parseFloat(this.getAttribute('start')) || 0 }
-  set start(v)   { this.setAttribute('start', String(Math.round(v * 1e4) / 1e4)) }
-  get end()      { return parseFloat(this.getAttribute('end')) || 0 }
-  set end(v)     { this.setAttribute('end',   String(Math.round(v * 1e4) / 1e4)) }
+  /** 从容器获取 Formatter（找不到时用默认 TimeFormatter） */
+  get _formatter() {
+    const c = this.closest('time-line-container')
+    return c ? c.getFormatter() : (this._fmtFallback || (this._fmtFallback = createFormatter('time', 'hour')))
+  }
+
+  get start()    { return this._formatter.parse(this.getAttribute('start'), 0) }
+  set start(v)   { this.setAttribute('start', String(typeof v === 'number' ? Math.round(v * 1e4) / 1e4 : v)) }
+  get end()      { return this._formatter.parse(this.getAttribute('end'), 0) }
+  set end(v)     { this.setAttribute('end',   String(typeof v === 'number' ? Math.round(v * 1e4) / 1e4 : v)) }
   get label()    { return this.getAttribute('label') || '' }
   set label(v)   { this.setAttribute('label', v) }
   get color()    { return this.getAttribute('color') || '#5c9ce6' }
@@ -89,7 +96,7 @@ export class TimeSegment extends HTMLElement {
       <div class="tls-bar" style="background:${col};border:1px solid ${darker};border-radius:${r};">
         <div class="tls-inner">
           ${this.label ? `<span class="tls-label">${esc(this.label)}</span>` : ''}
-          <span class="tls-time">${fmtTime(this.start)} – ${fmtTime(this.end)}</span>
+          <span class="tls-time">${this._formatter.formatRange(this.start, this.end, 'segment')}</span>
         </div>
       </div>
       <button class="tls-del" data-role="del" title="${esc(loc.deleteBtnTitle)}">&times;</button>`
@@ -138,7 +145,7 @@ export class TimeSegment extends HTMLElement {
           showDeleteConfirm(
             l.confirmDeleteSegment
               .replace('{name}', name)
-              .replace('{range}', fmtTime(this.start) + ' – ' + fmtTime(this.end)),
+              .replace('{range}', this._formatter.formatRange(this.start, this.end, 'axis')),
             () => this._deleteSegment(),
             this
           )

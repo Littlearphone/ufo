@@ -5,8 +5,8 @@
  */
 
 import { ensureCSS } from './css.js'
-import { fmtTime } from './utils.js'
 import { LOCALE_ATTRS, resolveLocale } from './locale.js'
+import { createFormatter } from './formatter.js'
 
 export class TimeContainer extends HTMLElement {
   constructor() {
@@ -14,12 +14,14 @@ export class TimeContainer extends HTMLElement {
     this._init = false
     this._axisRuler = null
     this._rulerResObs = null
+    this._formatter = null
   }
 
   connectedCallback() {
     ensureCSS()
     if (this._init) return
     this._init = true
+    this._formatter = createFormatter(this.type, this.unitValue)
     this._applyDir()
     this._syncAxisRuler() // 处理初始共享模式
   }
@@ -28,6 +30,7 @@ export class TimeContainer extends HTMLElement {
     return [
       'direction', '方向', 'label-h', 'label-v', 'axis-mode',
       'shared-start', 'shared-end', 'tooltip-pos', 'max-segments',
+      'type', 'unit',
       ...LOCALE_ATTRS
     ]
   }
@@ -42,6 +45,12 @@ export class TimeContainer extends HTMLElement {
       return
     }
     if (name === 'tooltip-pos') return // 仅在鼠标悬停时读取
+    // type / unit 变更 → 重建 formatter 并刷新所有轨道
+    if (name === 'type' || name === 'unit') {
+      this._formatter = createFormatter(this.type, this.unit)
+      this._onSharedConfigChange()
+      return
+    }
     if (name === 'label-h' || name === 'label-v') {
       this.querySelectorAll('time-line-track').forEach(t => {
         if (t._onLabelPosChange) t._onLabelPosChange()
@@ -59,6 +68,25 @@ export class TimeContainer extends HTMLElement {
 
   get direction() { return this.getAttribute('direction') || this.getAttribute('方向') || 'horizontal' }
   set direction(v) { this.setAttribute('direction', v); this.setAttribute('方向', v) }
+
+  /** 值模式：'time' | 'number' */
+  get type() { return this.getAttribute('type') || 'time' }
+  set type(v) { this.setAttribute('type', v) }
+
+  /** 归一化/显示单位：'hour' | 'minute' | 'second' | ''（自定义） */
+  get unit() { return this.getAttribute('unit') || 'hour' }
+  set unit(v) {
+    if (v == null || v === 'hour') this.removeAttribute('unit')
+    else this.setAttribute('unit', v)
+  }
+
+  /** 获取当前 Formatter 实例 */
+  getFormatter() {
+    if (!this._formatter) {
+      this._formatter = createFormatter(this.type, this.unit)
+    }
+    return this._formatter
+  }
 
   /** 横向模式轴标签位置 */
   get labelH() { return this.getAttribute('label-h') || 'top' }
@@ -89,7 +117,7 @@ export class TimeContainer extends HTMLElement {
 
   get sharedStart() {
     const v = this.getAttribute('shared-start')
-    if (v != null) return parseFloat(v)
+    if (v != null) return this.getFormatter().parse(v, 0)
     const tracks = this.allTracks()
     if (!tracks.length) return 0
     return Math.min(...tracks.map(t => t.tStart))
@@ -98,7 +126,7 @@ export class TimeContainer extends HTMLElement {
 
   get sharedEnd() {
     const v = this.getAttribute('shared-end')
-    if (v != null) return parseFloat(v)
+    if (v != null) return this.getFormatter().parse(v, 24)
     const tracks = this.allTracks()
     if (!tracks.length) return 24
     return Math.max(...tracks.map(t => t.tEnd))
@@ -209,9 +237,10 @@ export class TimeContainer extends HTMLElement {
     const ruler = this._axisRuler
     if (!ruler) return
 
+    const fmt = this.getFormatter()
     const isHorizontal = this.direction !== 'vertical' && this.direction !== '纵向'
     const rangeEl = ruler.querySelector('.tlc-axis-range')
-    if (rangeEl) rangeEl.textContent = fmtTime(this.sharedStart, false) + ' – ' + fmtTime(this.sharedEnd, false)
+    if (rangeEl) rangeEl.textContent = fmt.formatRange(this.sharedStart, this.sharedEnd, 'axis')
 
     const canvas = ruler.querySelector('.tlc-axis-canvas')
     const body   = ruler.querySelector('.tlc-axis-body')
@@ -231,7 +260,7 @@ export class TimeContainer extends HTMLElement {
     if (!range) return
 
     const dim  = isHorizontal ? rect.width : rect.height
-    const step = this._niceStepForAxis(range, dim)
+    const step = fmt.niceStep(range, dim)
 
     if (isHorizontal) {
       // 横向轴尺（顶部，刻度朝下）
@@ -260,13 +289,13 @@ export class TimeContainer extends HTMLElement {
       for (let t = Math.floor(this.sharedStart / step) * step; t <= this.sharedEnd; t += step) {
         const px = ((t - this.sharedStart) / range) * dim
         if (px < 20 || px > dim - 20) continue
-        ctx.fillText(fmtTime(t, step < 1), px, rect.height - 9)
+        ctx.fillText(fmt.format(t, 'axis'), px, rect.height - 9)
       }
       // 强制显示首尾
       ctx.textAlign = 'left'
-      if (0 < 20) ctx.fillText(fmtTime(this.sharedStart, step < 1), Math.max(0, 2), rect.height - 9)
+      if (0 < 20) ctx.fillText(fmt.format(this.sharedStart, 'axis'), Math.max(0, 2), rect.height - 9)
       ctx.textAlign = 'right'
-      if (dim > dim - 20) ctx.fillText(fmtTime(this.sharedEnd, step < 1), Math.min(dim, dim - 2), rect.height - 9)
+      if (dim > dim - 20) ctx.fillText(fmt.format(this.sharedEnd, 'axis'), Math.min(dim, dim - 2), rect.height - 9)
     } else {
       // 纵向轴尺（左侧，刻度朝右）
       ctx.strokeStyle = '#d0d4da'; ctx.lineWidth = 1
@@ -294,21 +323,12 @@ export class TimeContainer extends HTMLElement {
       for (let t = Math.floor(this.sharedStart / step) * step; t <= this.sharedEnd; t += step) {
         const py = ((t - this.sharedStart) / range) * dim
         if (py < 12 || py > dim - 12) continue
-        ctx.fillText(fmtTime(t, step < 1), rect.width - 11, py)
+        ctx.fillText(fmt.format(t, 'axis'), rect.width - 11, py)
       }
       // 强制显示首尾
-      if (0 < 12) ctx.fillText(fmtTime(this.sharedStart, step < 1), rect.width - 11, Math.max(0, 8))
-      if (dim > dim - 12) ctx.fillText(fmtTime(this.sharedEnd, step < 1), rect.width - 11, Math.min(dim, dim - 8))
+      if (0 < 12) ctx.fillText(fmt.format(this.sharedStart, 'axis'), rect.width - 11, Math.max(0, 8))
+      if (dim > dim - 12) ctx.fillText(fmt.format(this.sharedEnd, 'axis'), rect.width - 11, Math.min(dim, dim - 8))
     }
-  }
-
-  _niceStepForAxis(range, pxSize) {
-    const targetPx = 72
-    const raw = range / (pxSize / targetPx)
-    const ticks = [0.1, 0.25, 0.5, 1, 2, 3, 4, 6, 8, 12, 24, 48]
-    for (const t of ticks) if (raw <= t) return t
-    let p = 1; while (p < raw) p *= 2
-    return p
   }
 
   /* ---- 内部 ---- */

@@ -5,7 +5,7 @@
  */
 
 import { ensureCSS } from './css.js'
-import { clamp, esc, fmtTime, snap } from './utils.js'
+import { clamp, esc, snap } from './utils.js'
 import { showContextMenu, showDeleteConfirm, showTrackEditDialog } from './contextmenu.js'
 import { resolveLocale } from './locale.js'
 
@@ -25,15 +25,15 @@ export class TimeTrack extends HTMLElement {
   }
 
   /* ---- 属性 ---- */
-  get tStart() { return parseFloat(this.getAttribute('start')) || 0 }
-  get tEnd()   { return parseFloat(this.getAttribute('end'))   || 24 }
+  get tStart() { return this._formatter.parse(this.getAttribute('start'), 0) }
+  get tEnd()   { return this._formatter.parse(this.getAttribute('end'),   24) }
   get label()  { return this.getAttribute('label') || '' }
   set label(v) { this.setAttribute('label', v) }
-  get step()   { return parseFloat(this.getAttribute('step'))  || 0 }
+  get step()   { return this._formatter.parse(this.getAttribute('step'),  0) }
   set step(v)  { this.setAttribute('step', v) }
   get minDur() {
     const a = this.getAttribute('min-duration')
-    if (a != null) return parseFloat(a)
+    if (a != null) return this._formatter.parse(a)
     // 默认最小宽度为范围的 0.5%
     return (this.tEnd - this.tStart) * 0.005
   }
@@ -55,6 +55,12 @@ export class TimeTrack extends HTMLElement {
     if (!c) return false
     const d = c.getAttribute('direction') || c.getAttribute('方向') || ''
     return d === 'vertical' || d === '纵向'
+  }
+
+  /** 从容器获取 Formatter（找不到时用默认 TimeFormatter） */
+  get _formatter() {
+    const c = this.closest('time-line-container')
+    return c ? c.getFormatter() : (this._fmtFallback || (this._fmtFallback = createFormatter('time', 'hour')))
   }
 
   /** 横向模式轴标签位置：从容器读取 */
@@ -169,7 +175,7 @@ export class TimeTrack extends HTMLElement {
       `<div class="tlt-row">
         <div class="tlt-head">
           <span class="tlt-head-label" title="${esc(labelTxt)}">${esc(labelTxt)}</span>
-          <span class="tlt-head-range">${fmtTime(this.tStart, false)} – ${fmtTime(this.tEnd, false)}</span>
+          <span class="tlt-head-range">${this._formatter.formatRange(this.tStart, this.tEnd, 'axis')}</span>
         </div>
         <div class="tlt-body">
           <canvas class="tlt-grid-canvas"></canvas>
@@ -204,7 +210,7 @@ export class TimeTrack extends HTMLElement {
           showDeleteConfirm(
             l.confirmDeleteTrack
               .replace('{name}', name)
-              .replace('{range}', fmtTime(this.tStart) + ' – ' + fmtTime(this.tEnd)),
+              .replace('{range}', this._formatter.formatRange(this.tStart, this.tEnd, 'axis')),
             () => { this._deleteTrack() },
             this
           )
@@ -451,12 +457,13 @@ export class TimeTrack extends HTMLElement {
     const ctx = canvas.getContext('2d')
     ctx.scale(dpr, dpr)
 
+    const fmt = this._formatter
     const v = this.isVertical
     const { start: gridStart, end: gridEnd } = this._effRange()
     const range = gridEnd - gridStart
     if (!range) return
     const dim  = v ? rect.height : rect.width
-    const step = this._niceStep(range, dim)
+    const step = fmt.niceStep(range, dim)
 
     // 计算 seg-area 相对于 body 的偏移量
     const segRect = this._segRect()
@@ -488,26 +495,26 @@ export class TimeTrack extends HTMLElement {
       const labelX = this.labelV === 'left' ? 6 : rect.width - 6
       for (let t = Math.floor(gridStart / step) * step; t <= gridEnd; t += step) {
         const px = this.time2Px(t)
-        if (px > 14 && px < rect.height - 8) ctx.fillText(fmtTime(t, step < 1), labelX, px + offY)
+        if (px > 14 && px < rect.height - 8) ctx.fillText(fmt.format(t, 'axis'), labelX, px + offY)
       }
       // 强制显示首尾
       const sp = this.time2Px(gridStart), ep = this.time2Px(gridEnd)
-      if (sp <= 14) ctx.fillText(fmtTime(gridStart, step < 1), labelX, sp + offY + 10)
-      if (ep >= rect.height - 8) ctx.fillText(fmtTime(gridEnd, step < 1), labelX, ep + offY - 10)
+      if (sp <= 14) ctx.fillText(fmt.format(gridStart, 'axis'), labelX, sp + offY + 10)
+      if (ep >= rect.height - 8) ctx.fillText(fmt.format(gridEnd, 'axis'), labelX, ep + offY - 10)
     } else {
       ctx.textAlign = 'center'
       ctx.textBaseline = this.labelH === 'bottom' ? 'bottom' : 'top'
       const labelY = this.labelH === 'bottom' ? rect.height - 4 : 4
       for (let t = Math.floor(gridStart / step) * step; t <= gridEnd; t += step) {
         const px = this.time2Px(t)
-        if (px > 24 && px < rect.width - 24) ctx.fillText(fmtTime(t, step < 1), px + offX, labelY)
+        if (px > 24 && px < rect.width - 24) ctx.fillText(fmt.format(t, 'axis'), px + offX, labelY)
       }
       // 强制显示首尾
       const sp = this.time2Px(gridStart), ep = this.time2Px(gridEnd)
       ctx.textAlign = 'left'
-      if (sp <= 24) ctx.fillText(fmtTime(gridStart, step < 1), Math.max(sp + offX, 2), labelY)
+      if (sp <= 24) ctx.fillText(fmt.format(gridStart, 'axis'), Math.max(sp + offX, 2), labelY)
       ctx.textAlign = 'right'
-      if (ep >= rect.width - 24) ctx.fillText(fmtTime(gridEnd, step < 1), Math.min(ep + offX, rect.width - 2), labelY)
+      if (ep >= rect.width - 24) ctx.fillText(fmt.format(gridEnd, 'axis'), Math.min(ep + offX, rect.width - 2), labelY)
     }
   }
 
@@ -522,15 +529,8 @@ export class TimeTrack extends HTMLElement {
     }
   }
 
-  /** 计算合适的网格步长 */
-  _niceStep(range, pxSize) {
-    const targetPx = 72
-    const raw = range / (pxSize / targetPx)
-    const ticks = [0.1, 0.25, 0.5, 1, 2, 3, 4, 6, 8, 12, 24, 48]
-    for (const t of ticks) if (raw <= t) return t
-    let p = 1; while (p < raw) p *= 2
-    return p
-  }
+  /** @deprecated 委托给 this._formatter.niceStep */
+  _niceStep(range, pxSize) { return this._formatter.niceStep(range, pxSize) }
 
   /* ---- 段定位 ---- */
 
