@@ -36,7 +36,7 @@
 
         <!-- 演示效果视图 -->
         <div v-show="demoView === 'demo'" class="demo-view-wrap">
-          <div class="tab-content-wrap" v-show="activeTab !== 4">
+          <div class="tab-content-wrap" v-show="activeTab < 4">
             <!-- Tab 0: 基础操作 -->
             <time-line-container ref="c0" id="demo0" direction="horizontal" :class="{ active: activeTab === 0 }">
               <time-line-track label="摄像头-A（前门）" start="0" end="24" step="0.25">
@@ -133,6 +133,22 @@
             </div>
           </div>
 
+          <!-- ════ Tab 5: Vue 3 集成 ════ -->
+          <div class="tab-content-vue" v-show="activeTab === 5">
+            <time-line-container ref="c5" direction="horizontal">
+              <time-line-track
+                v-for="(t, i) in vueDemoTracks" :key="i"
+                :label="t.label" :start="t.start" :end="t.end"
+              >
+                <time-line-segment
+                  v-for="(s, j) in t.segments" :key="j"
+                  :start="s.start" :end="s.end"
+                  :label="s.label" :color="s.color"
+                ></time-line-segment>
+              </time-line-track>
+            </time-line-container>
+          </div>
+
           <!-- 图例 -->
           <div class="legend" :class="{ active: activeTab === 0 }">
             <span><i style="background:#27ae60"></i> 早班值守</span>
@@ -143,6 +159,7 @@
             <span><i style="background:#16a085"></i> 凌晨巡检</span>
             <span><i style="background:#2c3e50"></i> 夜间巡检</span>
             <span><code>color</code> 自由指定 · <code>tooltip</code>: auto | always | none</span>
+            <span style="color:#e67e22"><strong>右键</strong>轨道/段弹出菜单</span>
           </div>
           <div class="legend" :class="{ active: activeTab === 1 }">
             <span>拖动滑块调节数据量后点击<strong>「生成数据」</strong>按钮</span>
@@ -165,6 +182,12 @@
             <span>每个示例独立容器，互不影响</span>
             <span>右键编辑自动适配 time / number 输入框</span>
           </div>
+          <div class="legend" :class="{ active: activeTab === 5 }">
+            <span><code>v-for</code> 循环渲染轨道和段</span>
+            <span><code>:label</code> / <code>:start</code> 等动态绑定响应式数据</span>
+            <span>右侧控制台「＋ 添加轨道」验证 Vue 响应式更新</span>
+            <span style="color:#e67e22"><strong>右键</strong>轨道/段弹出菜单 → 修改属性 / 删除</span>
+          </div>
         </div>
 
         <!-- 源码视图 -->
@@ -184,7 +207,7 @@
 
     <!-- 右栏：控制台 + 日志 -->
     <div class="col-right">
-      <ControlsPanel :activeTab="activeTab" :containers="containers" />
+      <ControlsPanel :activeTab="activeTab" :containers="containers" @add-track="addVueTrack" />
       <EventLog />
     </div>
 
@@ -213,7 +236,8 @@ const c1 = ref(null)
 const c2 = ref(null)
 const c3 = ref(null)
 const c4 = ref(null)
-const containers = computed(() => [c0.value, c1.value, c2.value, c3.value, c4.value])
+const c5 = ref(null)
+const containers = computed(() => [c0.value, c1.value, c2.value, c3.value, c4.value, c5.value])
 
 /** 版本计数器：每次切到 HTML 源码视图时 +1，迫使 currentHtmlCode 从真实 DOM 重新序列化 */
 const htmlRev = ref(0)
@@ -226,6 +250,25 @@ const _domObserver = new MutationObserver(() => {
   if (_domObserveRaf) cancelAnimationFrame(_domObserveRaf)
   _domObserveRaf = requestAnimationFrame(() => { htmlRev.value++ })
 })
+
+// ── Tab 5（Vue 3 集成）响应式演示数据 ──
+const vueDemoTracks = ref([
+  { label: '前端开发', start: '0', end: '24', segments: [
+    { start: '2', end: '8', label: '框架搭建', color: '#3498db' },
+    { start: '9', end: '16', label: '功能开发', color: '#2ecc71' },
+    { start: '18', end: '22', label: '联调测试', color: '#e74c3c' },
+  ]},
+  { label: '后端开发', start: '0', end: '24', segments: [
+    { start: '1', end: '7', label: 'API 设计', color: '#9b59b6' },
+    { start: '8', end: '18', label: '业务实现', color: '#e67e22' },
+    { start: '19', end: '23', label: '性能优化', color: '#16a085' },
+  ]},
+])
+/** 添加 Vue 响应式轨道（从 Tab5Controls 通过事件触发，支持自定义标签） */
+function addVueTrack(label) {
+  const n = vueDemoTracks.value.length + 1
+  vueDemoTracks.value.push({ label: label || `新任务 ${n}`, start: '0', end: '24', segments: [] })
+}
 
 // ── 各标签页内部轨道/段 HTML（不含容器外层） ──
 const TAB_INNER_HTML = [
@@ -318,6 +361,20 @@ const TAB_INNER_HTML = [
       </time-line-track>
     </time-line-container>
   </div>`,
+  // Tab 5 — Vue 3 集成（显示 Vue 模板代码，非序列化 DOM）
+  `  <!-- 使用 v-for 渲染轨道和段 -->
+  <time-line-track
+    v-for="(t, i) in tracks"
+    :key="i" :label="t.label"
+    :start="t.start" :end="t.end"
+  >
+    <time-line-segment
+      v-for="(s, j) in t.segments"
+      :key="j" :start="s.start"
+      :end="s.end" :label="s.label"
+      :color="s.color"
+    ></time-line-segment>
+  </time-line-track>`,
 ]
 
 // ── JavaScript 生成代码（按标签页，无则为 null） ──
@@ -355,6 +412,49 @@ for (let t = 0; t < trackN; t++) {
   null,  // Tab 2
   null,  // Tab 3
   null,  // Tab 4 — 纯模板渲染，无需 JS 生成
+  // Tab 5 — Vue 3 集成（仅引入方式不同，逻辑代码一致）
+  `// ═══════════════════════════════════════════════
+// 引入方式 A：构建工具（Vite / Webpack / pnpm）
+// ═══════════════════════════════════════════════
+//   import { ref } from 'vue'
+//   import '@ufo/timeline-track'
+//
+// ═══════════════════════════════════════════════
+// 引入方式 B：<script> 标签（CDN / 直接打开）
+// ═══════════════════════════════════════════════
+//   <script src="vue.global.prod.js"><\/script>
+//   <script src="TimelineTrack.js"><\/script>
+//   <script> const { ref } = Vue <\/script>
+//
+// ═══ 下方代码 A / B 完全相同 ═══
+// ═══════════════════════════════════════════════
+
+const tracks = ref([
+  {
+    label: '前端开发', start: '0', end: '24',
+    segments: [
+      { start: '2', end: '8',  label: '框架搭建', color: '#3498db' },
+      { start: '9', end: '16', label: '功能开发', color: '#2ecc71' },
+      { start: '18', end: '22', label: '联调测试', color: '#e74c3c' },
+    ],
+  },
+  {
+    label: '后端开发', start: '0', end: '24',
+    segments: [
+      { start: '1', end: '7',  label: 'API 设计', color: '#9b59b6' },
+      { start: '8', end: '18', label: '业务实现', color: '#e67e22' },
+      { start: '19', end: '23', label: '性能优化', color: '#16a085' },
+    ],
+  },
+])
+
+function addTrack(label) {
+  const n = tracks.value.length + 1
+  tracks.value.push({
+    label: label || \`新任务 \${n}\`, start: '0', end: '24', segments: []
+  })
+}`,
+
 ]
 
 /**
@@ -413,10 +513,10 @@ function serializeCustomElement(el, indent = 0) {
   return `${pad}<${tag}${attrStr}></${tag}>`
 }
 
-/** 获取当前标签页的 HTML 源码：Tab 0-3 从真实 DOM 序列化，Tab 4 使用模板字符串 */
+/** 获取当前标签页的 HTML 源码：Tab 0-3 从真实 DOM 序列化，Tab 4-5 使用模板字符串 */
 function getHtmlSource(idx) {
-  // Tab 4 的容器不受控制台影响，保持静态模板
-  if (idx === 4) return TAB_INNER_HTML[4]
+  // Tab 4/5 的容器不受控制台影响，保持静态模板（Tab 5 显示 Vue 模板语法，无法从 DOM 复原）
+  if (idx === 4 || idx === 5) return TAB_INNER_HTML[idx]
 
   const container = containers.value[idx]
   if (!container) return ''

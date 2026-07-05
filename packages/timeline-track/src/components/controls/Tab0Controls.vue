@@ -31,8 +31,6 @@
             <option v-for="(t, i) in trackList" :key="i" :value="i">{{ t.label || '轨道 '+(i+1) }}</option>
           </select>
           <button class="primary" @click="addTrack">＋ 轨道</button>
-          <button @click="addSeg">＋ 段</button>
-          <button class="danger" @click="delTrack">删轨道</button>
           <span class="ctrl-sep"></span>
           <button class="danger" @click="clearSegs">清空段</button>
           <button @click="resetDemo">重置</button>
@@ -100,7 +98,6 @@
 
 <script setup>
 import { computed, ref } from 'vue'
-import { COLORS, pick } from '../../composables/constants.js'
 import { addLog } from '../../stores/eventLog.js'
 
 const props = defineProps({
@@ -187,38 +184,6 @@ function addTrack() {
   selectedTrackIdx.value = c().allTracks().length - 1
   bumpAttr() // 通知 trackList computed 重新求值
   addLog('track-add', t.label)
-}
-
-function addSeg() {
-  if (!c()) return
-  const tracks = c().allTracks()
-  const track = tracks[selectedTrackIdx.value]
-  if (!track) return
-  const segs = track.sortedSegs()
-  let s = track.tStart, e = Math.min(track.tStart + 2, track.tEnd)
-  let prev = track.tStart
-  for (const seg of segs) {
-    if (seg.start - prev >= 1) { s = prev; e = (prev + seg.start) / 2; break }
-    prev = seg.end
-  }
-  if (prev >= (segs[segs.length - 1]?.end || 0) && track.tEnd - prev >= 1) {
-    s = prev; e = Math.min(prev + 2, track.tEnd)
-  }
-  track.addSegment(s, e, { label: '新增录像', color: pick(COLORS) })
-}
-
-function delTrack() {
-  if (!c()) return
-  const tracks = c().allTracks()
-  if (tracks.length <= 1) return
-  const track = tracks[selectedTrackIdx.value]
-  if (!track) return
-  c().removeTrack(track)
-  bumpAttr() // 通知 trackList computed 重新求值
-  addLog('track-del', track.label)
-  if (selectedTrackIdx.value >= c().allTracks().length) {
-    selectedTrackIdx.value = c().allTracks().length - 1
-  }
 }
 
 function clearSegs() {

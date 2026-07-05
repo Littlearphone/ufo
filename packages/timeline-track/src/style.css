@@ -153,6 +153,20 @@ h1 {
   display: flex;
 }
 
+/* ── Vue 3 集成 Tab ── */
+.tab-content-vue {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 6px;
+}
+
+.tab-content-vue > time-line-container {
+  flex: 1;
+  min-height: 0;
+}
+
 /* ── 模式示例 Tab（栈式布局，非绝对定位） ── */
 .tab-content-stack {
   display: none;
@@ -550,6 +564,12 @@ h1 {
   white-space: nowrap;
   min-height: 22px;
   border: none;
+}
+.ctrl-code-wrap {
+  white-space: pre;
+  line-height: 1.6;
+  max-height: 260px;
+  overflow-y: auto;
 }
 
 .ctrl-result {
