@@ -91,7 +91,13 @@ const radiusOpts = ['0', '3px', '5px', '8px', '12px', '20px']
 const radiusVal = ref('0')
 
 const c = () => props.container
+
+// 版本计数器：DOM 属性每变更一次 +1，强制依赖 DOM 的 computed 重算
+const _attrRev = ref(0)
+function bumpAttr() { _attrRev.value++ }
+
 const dir = computed(() => {
+  _attrRev.value // 追踪版本变化
   if (!c()) return 'horizontal'
   const d = c().getAttribute('direction') || ''
   return d === 'vertical' ? 'vertical' : 'horizontal'
@@ -168,6 +174,7 @@ function toggleDir() {
   if (!c()) return
   const next = isVertical.value ? 'horizontal' : 'vertical'
   c().setAttribute('direction', next)
+  bumpAttr()
   addLog('dir', next)
 }
 

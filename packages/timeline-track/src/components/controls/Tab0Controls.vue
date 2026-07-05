@@ -27,9 +27,6 @@
       <div class="ctrl-header">🎯 轨道管理</div>
       <div class="ctrl-body">
         <div class="ctrl-row">
-          <select v-model="selectedTrackIdx" style="max-width:110px">
-            <option v-for="(t, i) in trackList" :key="i" :value="i">{{ t.label || '轨道 '+(i+1) }}</option>
-          </select>
           <button class="primary" @click="addTrack">＋ 轨道</button>
           <span class="ctrl-sep"></span>
           <button @click="resetDemo">重置</button>
@@ -104,7 +101,6 @@ const props = defineProps({
 })
 
 // ── 状态 ──
-const selectedTrackIdx = ref(0)
 const radiusOpts = ['0', '3px', '5px', '8px', '12px', '20px']
 const radiusVal = ref('0')
 const labelHVal = ref('top')
@@ -180,7 +176,6 @@ function addTrack() {
   if (!c()) return
   const idx = c().allTracks().length + 1
   const t = c().addTrack('摄像头-' + String.fromCharCode(64 + idx) + ' (新增)', 0, 24, { step: 0.5 })
-  selectedTrackIdx.value = c().allTracks().length - 1
   bumpAttr() // 通知 trackList computed 重新求值
   addLog('track-add', t.label)
 }
@@ -217,7 +212,6 @@ function resetDemo() {
       <time-line-segment start="0"  end="6"  label="凌晨巡检" color="#16a085"></time-line-segment>
       <time-line-segment start="18" end="24" label="夜间巡检" color="#2c3e50"></time-line-segment>
     </time-line-track>`
-  selectedTrackIdx.value = 0
   addLog('dir', 'horizontal (reset)')
   bumpAttr()
 }
