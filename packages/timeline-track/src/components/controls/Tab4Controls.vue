@@ -1,8 +1,8 @@
 <template>
   <div>
     <div class="ctrl-group">
-      <div class="ctrl-header">🎯 <code>type</code> / <code>unit</code> 模式说明</div>
-      <div class="ctrl-body" style="font-size:11px;line-height:1.7;color:#444">
+      <div class="ctrl-header" :class="{ collapsed: !state[0] }" @click="toggle(0)">🎯 <code>type</code> / <code>unit</code> 模式说明</div>
+      <div class="ctrl-body" v-show="state[0]" style="font-size:11px;line-height:1.7;color:#444">
         <p>每个示例使用独立 <code>time-line-container</code>，互不影响。</p>
         <br>
         <p><strong>① 自然时间输入</strong></p>
@@ -42,3 +42,9 @@
     </div>
   </div>
 </template>
+
+<script setup>
+import { useAccordion } from '../../composables/useAccordion.js'
+
+const { state, toggle } = useAccordion(1, 0)
+</script>

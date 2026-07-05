@@ -372,6 +372,31 @@ h1 {
   font-weight: 600;
   color: #4a5568;
   user-select: none;
+  cursor: pointer;
+  transition: background .1s;
+}
+.ctrl-header:hover {
+  background: #eef0f2;
+}
+
+/* 手风琴折叠箭头 */
+.ctrl-header::before {
+  content: '';
+  width: 0;
+  height: 0;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-top: 5px solid #8d9ba9;
+  transition: transform .15s ease;
+  flex-shrink: 0;
+}
+.ctrl-header.collapsed::before {
+  transform: rotate(-90deg);
+}
+
+/* 末组折叠时不要下边框 */
+.ctrl-header.collapsed {
+  border-bottom-color: transparent;
 }
 
 .ctrl-header .badge {

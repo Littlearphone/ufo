@@ -2,8 +2,8 @@
   <div>
     <!-- addTrack -->
     <div class="ctrl-group">
-      <div class="ctrl-header"><code style="font-size:10px;background:#e3f2fd;padding:0 5px">addTrack</code> 添加轨道</div>
-      <div class="ctrl-body">
+      <div class="ctrl-header" :class="{ collapsed: !state[0] }" @click="toggle(0)"><code style="font-size:10px;background:#e3f2fd;padding:0 5px">addTrack</code> 添加轨道</div>
+      <div class="ctrl-body" v-show="state[0]">
         <div class="ctrl-row">
           <label><span class="ctrl-label">label</span> <input type="text" v-model="apiLabel"></label>
           <label><span class="ctrl-label">start</span> <input type="text" v-model="apiStart"></label>
@@ -17,8 +17,8 @@
 
     <!-- addSegment -->
     <div class="ctrl-group">
-      <div class="ctrl-header"><code style="font-size:10px;background:#e3f2fd;padding:0 5px">addSegment</code> 添加时间段</div>
-      <div class="ctrl-body">
+      <div class="ctrl-header" :class="{ collapsed: !state[1] }" @click="toggle(1)"><code style="font-size:10px;background:#e3f2fd;padding:0 5px">addSegment</code> 添加时间段</div>
+      <div class="ctrl-body" v-show="state[1]">
         <div class="ctrl-row">
           <label><span class="ctrl-label">轨道</span>
             <select v-model="addSegTrackIdx">
@@ -36,8 +36,8 @@
 
     <!-- removeTrack -->
     <div class="ctrl-group">
-      <div class="ctrl-header"><code style="font-size:10px;background:#e3f2fd;padding:0 5px">removeTrack</code> 删除与清理</div>
-      <div class="ctrl-body">
+      <div class="ctrl-header" :class="{ collapsed: !state[2] }" @click="toggle(2)"><code style="font-size:10px;background:#e3f2fd;padding:0 5px">removeTrack</code> 删除与清理</div>
+      <div class="ctrl-body" v-show="state[2]">
         <div class="ctrl-row">
           <label><span class="ctrl-label">轨道</span>
             <select v-model="delTrackIdx">
@@ -52,8 +52,8 @@
 
     <!-- max-segments / segment-limit-reached -->
     <div class="ctrl-group">
-      <div class="ctrl-header"><code style="font-size:10px;background:#e3f2fd;padding:0 5px">max-segments</code> 段数上限测试</div>
-      <div class="ctrl-body">
+      <div class="ctrl-header" :class="{ collapsed: !state[3] }" @click="toggle(3)"><code style="font-size:10px;background:#e3f2fd;padding:0 5px">max-segments</code> 段数上限测试</div>
+      <div class="ctrl-body" v-show="state[3]">
         <div class="ctrl-row">
           <label><span class="ctrl-label">当前轨道</span>
             <select v-model="limitTrackIdx">
@@ -69,8 +69,8 @@
 
     <!-- setGlobalRadius -->
     <div class="ctrl-group">
-      <div class="ctrl-header"><code style="font-size:10px;background:#e3f2fd;padding:0 5px">setGlobalRadius</code> 设置</div>
-      <div class="ctrl-body">
+      <div class="ctrl-header" :class="{ collapsed: !state[4] }" @click="toggle(4)"><code style="font-size:10px;background:#e3f2fd;padding:0 5px">setGlobalRadius</code> 设置</div>
+      <div class="ctrl-body" v-show="state[4]">
         <div class="ctrl-row">
           <label><span class="ctrl-label">圆角</span>
             <select v-model="radiusVal" @change="doSetRadius">
@@ -83,8 +83,8 @@
 
     <!-- reset -->
     <div class="ctrl-group">
-      <div class="ctrl-header">🔄 重置</div>
-      <div class="ctrl-body">
+      <div class="ctrl-header" :class="{ collapsed: !state[5] }" @click="toggle(5)">🔄 重置</div>
+      <div class="ctrl-body" v-show="state[5]">
         <div class="ctrl-row">
           <button @click="doReset">重置组件</button>
         </div>
@@ -97,6 +97,9 @@
 import { computed, ref } from 'vue'
 import { COLORS, pick } from '../../composables/constants.js'
 import { addLog } from '../../stores/eventLog.js'
+import { useAccordion } from '../../composables/useAccordion.js'
+
+const { state, toggle } = useAccordion(6, 0)
 
 const props = defineProps({
   container: { type: Object, default: null }

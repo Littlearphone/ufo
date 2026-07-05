@@ -2,10 +2,10 @@
   <div>
     <!-- 方向与轴 -->
     <div class="ctrl-group">
-      <div class="ctrl-header">
+      <div class="ctrl-header" :class="{ collapsed: !state[0] }" @click="toggle(0)">
         📐 方向与轴
       </div>
-      <div class="ctrl-body">
+      <div class="ctrl-body" v-show="state[0]">
         <div class="ctrl-row">
           <button @click="toggleDir">{{ btnDirText }}</button>
           <button @click="toggleAxis">{{ btnAxisText }}</button>
@@ -23,8 +23,8 @@
 
     <!-- 轨道管理 -->
     <div class="ctrl-group">
-      <div class="ctrl-header">🎯 轨道管理</div>
-      <div class="ctrl-body">
+      <div class="ctrl-header" :class="{ collapsed: !state[1] }" @click="toggle(1)">🎯 轨道管理</div>
+      <div class="ctrl-body" v-show="state[1]">
         <div class="ctrl-row">
           <button class="primary" @click="addTrack">＋ 轨道</button>
           <button @click="resetDemo">重置</button>
@@ -34,8 +34,8 @@
 
     <!-- 外观 -->
     <div class="ctrl-group">
-      <div class="ctrl-header">🎨 外观</div>
-      <div class="ctrl-body">
+      <div class="ctrl-header" :class="{ collapsed: !state[2] }" @click="toggle(2)">🎨 外观</div>
+      <div class="ctrl-body" v-show="state[2]">
         <div class="ctrl-row">
           <label><span class="ctrl-label">圆角</span>
             <select v-model="radiusVal" @change="setRadius">
@@ -62,8 +62,8 @@
 
     <!-- Tooltip 位置 -->
     <div class="ctrl-group">
-      <div class="ctrl-header">💬 Tooltip 位置 <span class="badge badge-info">可配置</span></div>
-      <div class="ctrl-body">
+      <div class="ctrl-header" :class="{ collapsed: !state[3] }" @click="toggle(3)">💬 Tooltip 位置 <span class="badge badge-info">可配置</span></div>
+      <div class="ctrl-body" v-show="state[3]">
         <div class="ctrl-row">
           <label><span class="ctrl-label">弹出方向</span>
             <select v-model="tipSide" @change="updateTip">
@@ -90,6 +90,9 @@
 <script setup>
 import { computed, ref } from 'vue'
 import { addLog } from '../../stores/eventLog.js'
+import { useAccordion } from '../../composables/useAccordion.js'
+
+const { state, toggle } = useAccordion(4, 0)
 
 const props = defineProps({
   container: { type: Object, default: null }

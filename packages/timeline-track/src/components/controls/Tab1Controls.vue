@@ -2,8 +2,8 @@
   <div>
     <!-- 数据量配置 -->
     <div class="ctrl-group">
-      <div class="ctrl-header">📊 数据量配置</div>
-      <div class="ctrl-body">
+      <div class="ctrl-header" :class="{ collapsed: !state[0] }" @click="toggle(0)">📊 数据量配置</div>
+      <div class="ctrl-body" v-show="state[0]">
         <div class="ctrl-row">
           <label><span class="ctrl-label">轨道</span>
             <input type="range" v-model.number="trackCount" min="1" max="15">
@@ -41,8 +41,8 @@
 
     <!-- 操作 -->
     <div class="ctrl-group">
-      <div class="ctrl-header">⚡ 操作</div>
-      <div class="ctrl-body">
+      <div class="ctrl-header" :class="{ collapsed: !state[1] }" @click="toggle(1)">⚡ 操作</div>
+      <div class="ctrl-body" v-show="state[1]">
         <div class="ctrl-row">
           <button class="primary" @click="generate">⚡ 生成数据</button>
           <button class="danger" @click="clearAll">清空</button>
@@ -53,8 +53,8 @@
 
     <!-- 外观 -->
     <div class="ctrl-group">
-      <div class="ctrl-header">🎨 外观</div>
-      <div class="ctrl-body">
+      <div class="ctrl-header" :class="{ collapsed: !state[2] }" @click="toggle(2)">🎨 外观</div>
+      <div class="ctrl-body" v-show="state[2]">
         <div class="ctrl-row">
           <label><span class="ctrl-label">圆角</span>
             <select v-model="radiusVal" @change="setRadius">
@@ -71,6 +71,9 @@
 import { computed, onMounted, ref } from 'vue'
 import { COLORS, pick, rand } from '../../composables/constants.js'
 import { addLog } from '../../stores/eventLog.js'
+import { useAccordion } from '../../composables/useAccordion.js'
+
+const { state, toggle } = useAccordion(3, 0)
 
 const props = defineProps({
   container: { type: Object, default: null }

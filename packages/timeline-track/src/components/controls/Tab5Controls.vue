@@ -2,8 +2,8 @@
   <div>
     <!-- 添加轨道 -->
     <div class="ctrl-group">
-      <div class="ctrl-header">🎯 添加轨道 <span class="badge badge-info">Vue 响应式 v-for</span></div>
-      <div class="ctrl-body">
+      <div class="ctrl-header" :class="{ collapsed: !state[0] }" @click="toggle(0)">🎯 添加轨道 <span class="badge badge-info">Vue 响应式 v-for</span></div>
+      <div class="ctrl-body" v-show="state[0]">
         <div class="ctrl-row">
           <label><span class="ctrl-label">名称</span>
             <input type="text" v-model="newTrackLabel" placeholder="新任务">
@@ -15,8 +15,8 @@
 
     <!-- Vue 集成说明 -->
     <div class="ctrl-group">
-      <div class="ctrl-header">⚡ Vue 3 集成说明</div>
-      <div class="ctrl-body">
+      <div class="ctrl-header" :class="{ collapsed: !state[1] }" @click="toggle(1)">⚡ Vue 3 集成说明</div>
+      <div class="ctrl-body" v-show="state[1]">
         <div style="font-size:11px;color:#5f6b7a;line-height:1.6">
           <div>• <code>v-for</code> 循环渲染轨道和段</div>
           <div>• <code>:label</code> / <code>:start</code> 等动态绑定响应式数据</div>
@@ -33,6 +33,9 @@
 <script setup>
 import { ref } from 'vue'
 import { addLog } from '../../stores/eventLog.js'
+import { useAccordion } from '../../composables/useAccordion.js'
+
+const { state, toggle } = useAccordion(2, 0)
 
 const emit = defineEmits(['addTrack'])
 const newTrackLabel = ref('')
