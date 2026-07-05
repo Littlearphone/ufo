@@ -7,6 +7,9 @@
       </div>
       <div class="ctrl-body" v-show="state[0]">
         <div class="ctrl-row">
+          <button class="primary" @click="addTrack">＋ 轨道</button>
+        </div>
+        <div class="ctrl-row">
           <button @click="toggleDir">{{ btnDirText }}</button>
           <button @click="toggleAxis">{{ btnAxisText }}</button>
           <label v-show="isShared">
@@ -21,21 +24,10 @@
       </div>
     </div>
 
-    <!-- 轨道管理 -->
-    <div class="ctrl-group">
-      <div class="ctrl-header" :class="{ collapsed: !state[1] }" @click="toggle(1)">🎯 轨道管理</div>
-      <div class="ctrl-body" v-show="state[1]">
-        <div class="ctrl-row">
-          <button class="primary" @click="addTrack">＋ 轨道</button>
-          <button @click="resetDemo">重置</button>
-        </div>
-      </div>
-    </div>
-
     <!-- 外观 -->
     <div class="ctrl-group">
-      <div class="ctrl-header" :class="{ collapsed: !state[2] }" @click="toggle(2)">🎨 外观</div>
-      <div class="ctrl-body" v-show="state[2]">
+      <div class="ctrl-header" :class="{ collapsed: !state[1] }" @click="toggle(1)">🎨 外观</div>
+      <div class="ctrl-body" v-show="state[1]">
         <div class="ctrl-row">
           <label><span class="ctrl-label">圆角</span>
             <select v-model="radiusVal" @change="setRadius">
@@ -62,8 +54,8 @@
 
     <!-- Tooltip 位置 -->
     <div class="ctrl-group">
-      <div class="ctrl-header" :class="{ collapsed: !state[3] }" @click="toggle(3)">💬 Tooltip 位置 <span class="badge badge-info">可配置</span></div>
-      <div class="ctrl-body" v-show="state[3]">
+      <div class="ctrl-header" :class="{ collapsed: !state[2] }" @click="toggle(2)">💬 Tooltip 位置 <span class="badge badge-info">可配置</span></div>
+      <div class="ctrl-body" v-show="state[2]">
         <div class="ctrl-row">
           <label><span class="ctrl-label">弹出方向</span>
             <select v-model="tipSide" @change="updateTip">
@@ -84,6 +76,7 @@
         </div>
       </div>
     </div>
+
   </div>
 </template>
 
@@ -92,7 +85,7 @@ import { computed, ref } from 'vue'
 import { addLog } from '../../stores/eventLog.js'
 import { useAccordion } from '../../composables/useAccordion.js'
 
-const { state, toggle } = useAccordion(4, 0)
+const { state, toggle } = useAccordion(3, 0)
 
 const props = defineProps({
   container: { type: Object, default: null }
@@ -176,42 +169,6 @@ function addTrack() {
   addLog('track-add', t.label)
 }
 
-function resetDemo() {
-  if (!c()) return
-  c().setAttribute('direction', 'horizontal')
-  c().removeAttribute('axis-mode')
-  c().removeAttribute('shared-start')
-  c().removeAttribute('shared-end')
-  c().removeAttribute('label-h')
-  c().removeAttribute('label-v')
-  c().removeAttribute('tooltip-pos')
-  c().style.height = ''
-  c().style.width = ''
-  radiusVal.value = '0'
-  labelHVal.value = 'top'
-  labelVVal.value = 'left'
-  heightVal.value = ''
-  widthVal.value = ''
-  tipSide.value = 'top'
-  tipAlign.value = 'center'
-  c().innerHTML = `
-    <time-line-track label="摄像头-A（前门）" start="0" end="24" step="0.25">
-      <time-line-segment start="6"  end="9"  label="早班值守" color="#27ae60"></time-line-segment>
-      <time-line-segment start="14" end="15" label="超短时段" color="#e67e22" tooltip="always"></time-line-segment>
-    </time-line-track>
-    <time-line-track label="摄像头-B（后门）" start="0" end="24" step="0.5">
-      <time-line-segment start="8"  end="12" label="上午录像" color="#2980b9"></time-line-segment>
-      <time-line-segment start="13" end="17" label="中班录像一段较长名称" color="#8e44ad" tooltip="auto"></time-line-segment>
-      <time-line-segment start="20" end="23" label="夜间录像" color="#c0392b" tooltip="none"></time-line-segment>
-    </time-line-track>
-    <time-line-track label="摄像头-C（车库）" start="0" end="24">
-      <time-line-segment start="0"  end="6"  label="凌晨巡检" color="#16a085"></time-line-segment>
-      <time-line-segment start="18" end="24" label="夜间巡检" color="#2c3e50"></time-line-segment>
-    </time-line-track>`
-  addLog('dir', 'horizontal (reset)')
-  bumpAttr()
-}
-
 function setRadius() {
   if (c()) c().setGlobalRadius(radiusVal.value)
 }
@@ -232,4 +189,44 @@ function updateTip() {
   bumpAttr()
   addLog("api", "tooltip-pos = " + c().tooltipPos)
 }
+
+/** 重置当前标签页演示到初始状态（从控制台标题栏调用） */
+function reset() {
+  if (!c()) return
+  c().setAttribute('direction', 'horizontal')
+  c().removeAttribute('axis-mode')
+  c().removeAttribute('shared-start')
+  c().removeAttribute('shared-end')
+  c().removeAttribute('label-h')
+  c().removeAttribute('label-v')
+  c().removeAttribute('tooltip-pos')
+  c().style.height = ''
+  c().style.width = ''
+  radiusVal.value = '0'
+  c().setGlobalRadius('0')
+  labelHVal.value = 'top'
+  labelVVal.value = 'left'
+  heightVal.value = ''
+  widthVal.value = ''
+  tipSide.value = 'top'
+  tipAlign.value = 'center'
+  c().innerHTML = `\
+    <time-line-track label="摄像头-A（前门）" start="0" end="24" step="0.25">\
+      <time-line-segment start="6"  end="9"  label="早班值守" color="#27ae60"></time-line-segment>\
+      <time-line-segment start="14" end="15" label="超短时段" color="#e67e22" tooltip="always"></time-line-segment>\
+    </time-line-track>\
+    <time-line-track label="摄像头-B（后门）" start="0" end="24" step="0.5">\
+      <time-line-segment start="8"  end="12" label="上午录像" color="#2980b9"></time-line-segment>\
+      <time-line-segment start="13" end="17" label="中班录像一段较长名称" color="#8e44ad" tooltip="auto"></time-line-segment>\
+      <time-line-segment start="20" end="23" label="夜间录像" color="#c0392b" tooltip="none"></time-line-segment>\
+    </time-line-track>\
+    <time-line-track label="摄像头-C（车库）" start="0" end="24">\
+      <time-line-segment start="0"  end="6"  label="凌晨巡检" color="#16a085"></time-line-segment>\
+      <time-line-segment start="18" end="24" label="夜间巡检" color="#2c3e50"></time-line-segment>\
+    </time-line-track>`
+  addLog('dir', 'horizontal (reset)')
+  bumpAttr()
+}
+
+defineExpose({ reset })
 </script>

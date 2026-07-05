@@ -192,6 +192,15 @@ h1 {
   border-radius: 3px;
 }
 
+.mode-example-header .mode-desc {
+  font-size: 9px;
+  color: #8d9ba9;
+  margin-left: auto;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .mode-example-body {
   height: 80px;
   padding: 4px 10px !important;
@@ -336,11 +345,32 @@ h1 {
   max-height: 58%;
 }
 
+/* 控制台标题栏（和日志的 log-head 布局一致） */
+.controls-panel > .log-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-shrink: 0;
+  margin-bottom: 6px;
+}
+.controls-panel > .log-head button {
+  font-size: 10px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  border: 1px solid #ccd4dc;
+  background: #fff;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background .12s;
+}
+.controls-panel > .log-head button:hover {
+  background: #f4f6f8;
+}
+
 .controls-scroll {
   overflow-y: auto;
   flex: 1;
   min-height: 0;
-  padding-right: 4px;
 }
 
 .controls-content {
@@ -542,13 +572,14 @@ h1 {
 }
 
 .ctrl-row button.danger {
-  color: #e53935;
+  background: #e53935;
+  color: #fff;
   border-color: #e53935;
-  background: #fff;
 }
 
 .ctrl-row button.danger:hover {
-  background: #fdecea;
+  background: #c62828;
+  box-shadow: 0 1px 4px rgba(229,57,53,.3);
 }
 
 .ctrl-row input[type="range"] {
@@ -634,6 +665,7 @@ h1 {
   justify-content: space-between;
   align-items: center;
   flex-shrink: 0;
+  margin-bottom: 6px;
 }
 
 .log-panel .log-head button {

@@ -67,29 +67,6 @@
       </div>
     </div>
 
-    <!-- setGlobalRadius -->
-    <div class="ctrl-group">
-      <div class="ctrl-header" :class="{ collapsed: !state[4] }" @click="toggle(4)"><code style="font-size:10px;background:#e3f2fd;padding:0 5px">setGlobalRadius</code> 设置</div>
-      <div class="ctrl-body" v-show="state[4]">
-        <div class="ctrl-row">
-          <label><span class="ctrl-label">圆角</span>
-            <select v-model="radiusVal" @change="doSetRadius">
-              <option v-for="r in radiusOpts" :key="r" :value="r">{{ r || '0' }}</option>
-            </select>
-          </label>
-        </div>
-      </div>
-    </div>
-
-    <!-- reset -->
-    <div class="ctrl-group">
-      <div class="ctrl-header" :class="{ collapsed: !state[5] }" @click="toggle(5)">🔄 重置</div>
-      <div class="ctrl-body" v-show="state[5]">
-        <div class="ctrl-row">
-          <button @click="doReset">重置组件</button>
-        </div>
-      </div>
-    </div>
   </div>
 </template>
 
@@ -99,7 +76,7 @@ import { COLORS, pick } from '../../composables/constants.js'
 import { addLog } from '../../stores/eventLog.js'
 import { useAccordion } from '../../composables/useAccordion.js'
 
-const { state, toggle } = useAccordion(6, 0)
+const { state, toggle } = useAccordion(4, 0)
 
 const props = defineProps({
   container: { type: Object, default: null }
@@ -257,11 +234,16 @@ function doSetRadius() {
   addLog('api', cmd, '→ 全局圆角 = ' + radiusVal.value)
 }
 
-function doReset() {
+/** 重置当前标签页演示到初始状态（从控制台标题栏调用） */
+function reset() {
   if (!c()) return
-  c().innerHTML = ''
+  c().allTracks().forEach(t => t.remove())
   c().addTrack('空轨道-A', 0, 24)
   c().addTrack('空轨道-B', 0, 24)
+  radiusVal.value = '0'
+  if (c().setGlobalRadius) c().setGlobalRadius('0')
   addLog('api', 'reset()', '→ 已重置为 2 条空轨道')
 }
+
+defineExpose({ reset })
 </script>

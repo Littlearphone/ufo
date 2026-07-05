@@ -36,25 +36,19 @@
             <input type="checkbox" v-model="packed">
           </label>
         </div>
-      </div>
-    </div>
-
-    <!-- 操作 -->
-    <div class="ctrl-group">
-      <div class="ctrl-header" :class="{ collapsed: !state[1] }" @click="toggle(1)">⚡ 操作</div>
-      <div class="ctrl-body" v-show="state[1]">
         <div class="ctrl-row">
           <button class="primary" @click="generate">⚡ 生成数据</button>
-          <button class="danger" @click="clearAll">清空</button>
-          <button @click="toggleDir">{{ btnDirText }}</button>
         </div>
       </div>
     </div>
 
-    <!-- 外观 -->
+    <!-- 其他操作 -->
     <div class="ctrl-group">
-      <div class="ctrl-header" :class="{ collapsed: !state[2] }" @click="toggle(2)">🎨 外观</div>
-      <div class="ctrl-body" v-show="state[2]">
+      <div class="ctrl-header" :class="{ collapsed: !state[1] }" @click="toggle(1)">⚡ 其他</div>
+      <div class="ctrl-body" v-show="state[1]">
+        <div class="ctrl-row">
+          <button @click="toggleDir">{{ btnDirText }}</button>
+        </div>
         <div class="ctrl-row">
           <label><span class="ctrl-label">圆角</span>
             <select v-model="radiusVal" @change="setRadius">
@@ -73,7 +67,7 @@ import { COLORS, pick, rand } from '../../composables/constants.js'
 import { addLog } from '../../stores/eventLog.js'
 import { useAccordion } from '../../composables/useAccordion.js'
 
-const { state, toggle } = useAccordion(3, 0)
+const { state, toggle } = useAccordion(2, 0)
 
 const props = defineProps({
   container: { type: Object, default: null }

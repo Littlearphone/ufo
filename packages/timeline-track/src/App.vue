@@ -91,7 +91,7 @@
             <!-- ════ Tab 4: 模式示例（type/unit 多模式） ════ -->
             <div class="tab-pane tab-pane--stack" :class="{ active: activeTab === 4 }">
               <div class="mode-example">
-                <div class="mode-example-header"><strong>自然时间输入</strong> <code>type="time" unit="hour"</code></div>
+                <div class="mode-example-header"><strong>自然时间输入</strong> <code>type="time" unit="hour"</code> <span class="mode-desc">默认模式，支持 09:00 / 30min 等自然时间输入</span></div>
                 <time-line-container class="mode-example-body">
                   <time-line-track label="施工" start="09:00" end="17:00" step="30min">
                     <time-line-segment start="09:00" end="12:00" label="打桩" color="#e67e22"></time-line-segment>
@@ -100,7 +100,7 @@
                 </time-line-container>
               </div>
               <div class="mode-example">
-                <div class="mode-example-header"><strong>秒级精度</strong> <code>type="time" unit="second"</code></div>
+                <div class="mode-example-header"><strong>秒级精度</strong> <code>type="time" unit="second"</code> <span class="mode-desc">段标简化为 HH:MM，Tooltip 显示 HH:MM:SS</span></div>
                 <time-line-container class="mode-example-body" type="time" unit="second">
                   <time-line-track label="短时测试" start="00:00" end="00:30" step="5sec">
                     <time-line-segment start="00:00" end="00:12" label="前半段" color="#16a085"></time-line-segment>
@@ -109,7 +109,7 @@
                 </time-line-container>
               </div>
               <div class="mode-example">
-                <div class="mode-example-header"><strong>分钟模式</strong> <code>type="time" unit="minute"</code></div>
+                <div class="mode-example-header"><strong>分钟模式</strong> <code>type="time" unit="minute"</code> <span class="mode-desc">归一化输入为分钟，轴显示为时间格式</span></div>
                 <time-line-container class="mode-example-body" type="time" unit="minute">
                   <time-line-track label="日程" start="0min" end="1440min">
                     <time-line-segment start="480min" end="720min" label="工作" color="#27ae60"></time-line-segment>
@@ -119,7 +119,7 @@
                 </time-line-container>
               </div>
               <div class="mode-example">
-                <div class="mode-example-header"><strong>百分比</strong> <code>type="number" unit="%"</code></div>
+                <div class="mode-example-header"><strong>百分比</strong> <code>type="number" unit="%"</code> <span class="mode-desc">纯数值模式，显示 0% ~ 100%</span></div>
                 <time-line-container class="mode-example-body" type="number" unit="%">
                   <time-line-track label="开发进度" start="0%" end="100%" step="10%">
                     <time-line-segment start="0%"  end="30%"  label="需求" color="#3498db"></time-line-segment>
@@ -129,7 +129,7 @@
                 </time-line-container>
               </div>
               <div class="mode-example">
-                <div class="mode-example-header"><strong>像素坐标</strong> <code>type="number" unit="px"</code></div>
+                <div class="mode-example-header"><strong>像素坐标</strong> <code>type="number" unit="px"</code> <span class="mode-desc">数值范围标尺，可拖拽操作</span></div>
                 <time-line-container class="mode-example-body" type="number" unit="px">
                   <time-line-track label="图层位置" start="0px" end="800px">
                     <time-line-segment start="0px"   end="200px" label="头像" color="#9b59b6"></time-line-segment>
@@ -175,7 +175,7 @@
 
     <!-- 右栏：控制台 + 日志 -->
     <div class="col-right">
-      <ControlsPanel :activeTab="activeTab" :containers="containers" @add-track="addVueTrack" />
+      <ControlsPanel :activeTab="activeTab" :containers="containers" @add-track="addVueTrack" @reset="handleControlsReset" />
       <EventLog />
     </div>
 
@@ -236,6 +236,48 @@ const vueDemoTracks = ref([
 function addVueTrack(label) {
   const n = vueDemoTracks.value.length + 1
   vueDemoTracks.value.push({ label: label || `新任务 ${n}`, start: '0', end: '24', segments: [] })
+}
+
+/**
+ * 处理来自控制台标题栏的重置请求（Tab 1/4/5 由 App.vue 处理，Tab 0/2/3 由各自组件自处理）
+ * @param {number} idx - 标签页索引
+ */
+function handleControlsReset(idx) {
+  if (idx === 1) {
+    // Tab 1 密集数据：移除所有轨道（保留容器内部结构），恢复默认属性
+    const c = containers.value[1]
+    if (c) {
+      c.allTracks().forEach(t => t.remove())
+      c.setAttribute('direction', 'horizontal')
+      c.removeAttribute('axis-mode')
+      c.removeAttribute('shared-start')
+      c.removeAttribute('shared-end')
+      c.removeAttribute('label-h')
+      c.removeAttribute('label-v')
+      c.style.height = ''
+      c.style.width = ''
+    }
+  } else if (idx === 4) {
+    // Tab 4 模式示例：重建所有容器 DOM
+    const pane = document.querySelector('.tab-pane--stack')
+    if (pane) pane.innerHTML = TAB_INNER_HTML[4]
+  } else if (idx === 5) {
+    // Tab 5 Vue 集成：恢复默认响应式数据
+    vueDemoTracks.value = [
+      { label: '前端开发', start: '0', end: '24', segments: [
+        { start: '2', end: '8', label: '框架搭建', color: '#3498db' },
+        { start: '9', end: '16', label: '功能开发', color: '#2ecc71' },
+        { start: '18', end: '22', label: '联调测试', color: '#e74c3c' },
+      ]},
+      { label: '后端开发', start: '0', end: '24', segments: [
+        { start: '1', end: '7', label: 'API 设计', color: '#9b59b6' },
+        { start: '8', end: '18', label: '业务实现', color: '#e67e22' },
+        { start: '19', end: '23', label: '性能优化', color: '#16a085' },
+      ]},
+    ]
+  }
+  // 刷新 HTML 源码视图
+  if (demoView.value === 'html') htmlRev.value++
 }
 
 // ── 各标签页内部轨道/段 HTML（不含容器外层） ──
