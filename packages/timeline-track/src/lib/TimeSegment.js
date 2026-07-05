@@ -109,11 +109,12 @@ export class TimeSegment extends HTMLElement {
       if (e.target.closest('[data-role="del"]')) {
         e.stopPropagation()
         const loc = resolveLocale(this)
-        const name = this.label || loc.unnamed
+        const segRange = this._formatter.formatRange(this.start, this.end, 'axis')
+        const name = this.label || segRange
         showDeleteConfirm(
           loc.confirmDeleteSegment
             .replace('{name}', name)
-            .replace('{range}', this._formatter.formatRange(this.start, this.end, 'axis')),
+            .replace('{range}', segRange),
           () => this._deleteSegment(),
           this
         )
@@ -147,11 +148,12 @@ export class TimeSegment extends HTMLElement {
       e.preventDefault()
       e.stopPropagation()                       // 阻止冒泡到轨道
       const l = resolveLocale(this)
-      const name = this.label || l.unnamed
-      const segLabel = this.label || l.unnamed
       const segRange = this._formatter.formatRange(this.start, this.end, 'axis')
+      // 无标签时使用时间范围替代"未命名"，避免无意义占位文字
+      const segName = this.label || segRange
+      const name = this.label || segRange
       showContextMenu([
-        { type: 'header', label: l.segmentMenuHeader.replace('{name}', segLabel).replace('{range}', segRange) },
+        { type: 'header', label: l.segmentMenuHeader.replace('{name}', segName).replace('{range}', segRange) },
         { label: l.modifyProps, action: () => showSegmentEditDialog(this) },
         { label: l.deleteBtnTitle, danger: true, action: () => {
           showDeleteConfirm(

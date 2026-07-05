@@ -80,7 +80,7 @@
                   <time-line-segment start="8"  end="12" label="核心时段" color="#2980b9"></time-line-segment>
                   <time-line-segment start="14" end="18" label="下午班" color="#3498db"></time-line-segment>
                 </time-line-track>
-                <time-line-track label="全天段" start="0" end="24" step="1">
+                <time-line-track label="全天段" start="0" end="24" step="0.5">
                   <time-line-segment start="3"  end="7"  label="凌晨" color="#16a085"></time-line-segment>
                   <time-line-segment start="12" end="14" label="午休" color="#1abc9c"></time-line-segment>
                   <time-line-segment start="19" end="23" label="晚间" color="#27ae60"></time-line-segment>
@@ -312,7 +312,7 @@ const TAB_INNER_HTML = [
     <time-line-segment start="8"  end="12" label="核心时段" color="#2980b9"></time-line-segment>
     <time-line-segment start="14" end="18" label="下午班" color="#3498db"></time-line-segment>
   </time-line-track>
-  <time-line-track label="全天段" start="0" end="24" step="1">
+  <time-line-track label="全天段" start="0" end="24" step="0.5">
     <time-line-segment start="3"  end="7"  label="凌晨" color="#16a085"></time-line-segment>
     <time-line-segment start="12" end="14" label="午休" color="#1abc9c"></time-line-segment>
     <time-line-segment start="19" end="23" label="晚间" color="#27ae60"></time-line-segment>

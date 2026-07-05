@@ -54,7 +54,7 @@
 
     <!-- Tooltip 位置 -->
     <div class="ctrl-group">
-      <div class="ctrl-header" :class="{ collapsed: !state[2] }" @click="toggle(2)">💬 Tooltip 位置 <span class="badge badge-info">可配置</span></div>
+      <div class="ctrl-header" :class="{ collapsed: !state[2] }" @click="toggle(2)">💬 Tooltip 位置</div>
       <div class="ctrl-body" v-show="state[2]">
         <div class="ctrl-row">
           <label><span class="ctrl-label">弹出方向</span>
@@ -158,7 +158,13 @@ function toggleAxis() {
 }
 
 function setShared() {
-  // v-model.number handles the parsing
+  // 校验：确保共用范围的 start < end
+  if (!c()) return
+  const s = parseFloat(c().getAttribute('shared-start')) || 0
+  const e = parseFloat(c().getAttribute('shared-end')) || 24
+  if (s >= e) {
+    c().setAttribute('shared-end', String(s + 1))
+  }
 }
 
 function addTrack() {

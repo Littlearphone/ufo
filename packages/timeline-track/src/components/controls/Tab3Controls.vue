@@ -20,7 +20,7 @@
         </div>
         <div class="ctrl-row">
           <label><span class="ctrl-label">步长</span>
-            <select v-model="stepVal" @change="setStep">
+            <select v-model="stepVal">
               <option value="0.25">0.25</option>
               <option value="0.5">0.5</option>
               <option value="1">1</option>
@@ -64,7 +64,7 @@
 
     <!-- Tooltip 位置 -->
     <div class="ctrl-group">
-      <div class="ctrl-header" :class="{ collapsed: !state[2] }" @click="toggle(2)">💬 Tooltip 位置 <span class="badge badge-info">可配置</span></div>
+      <div class="ctrl-header" :class="{ collapsed: !state[2] }" @click="toggle(2)">💬 Tooltip 位置</div>
       <div class="ctrl-body" v-show="state[2]">
         <div class="ctrl-row">
           <label><span class="ctrl-label">弹出方向</span>
@@ -112,7 +112,25 @@ const labelHVal = ref('top')
 const labelVVal = ref('left')
 const heightVal = ref('')
 const widthVal = ref('')
-const stepVal = ref('1')
+const stepVal = computed({
+  get: () => {
+    _attrRev.value
+    if (!c()) return '1'
+    const tracks = c().allTracks()
+    if (tracks.length) {
+      // 从首条轨道的 step 属性读取，保持与控制台实际步长同步
+      const s = tracks[0].getAttribute('step')
+      if (s) return s
+    }
+    return '1'
+  },
+  set: (v) => {
+    if (c()) {
+      c().allTracks().forEach(t => t.setAttribute('step', String(v)))
+      bumpAttr()
+    }
+  }
+})
 const tipSide = ref('top')
 const tipAlign = ref('center')
 
@@ -162,12 +180,14 @@ function toggleAxis() {
   addLog('axis-mode', next)
 }
 
-function setShared() { bumpAttr() }
-
-function setStep() {
+function setShared() {
+  // 校验：确保共用范围的 start < end
   if (!c()) return
-  const v = parseFloat(stepVal.value)
-  c().allTracks().forEach(t => t.setAttribute('step', String(v)))
+  const s = parseFloat(c().getAttribute('shared-start')) || 0
+  const e = parseFloat(c().getAttribute('shared-end')) || 24
+  if (s >= e) {
+    c().setAttribute('shared-end', String(s + 1))
+  }
   bumpAttr()
 }
 
@@ -203,7 +223,7 @@ function reset() {
       <time-line-segment start="8"  end="12" label="核心时段" color="#2980b9"></time-line-segment>\
       <time-line-segment start="14" end="18" label="下午班" color="#3498db"></time-line-segment>\
     </time-line-track>\
-    <time-line-track label="全天段" start="0" end="24" step="1">\
+    <time-line-track label="全天段" start="0" end="24" step="0.5">\
       <time-line-segment start="3"  end="7"  label="凌晨" color="#16a085"></time-line-segment>\
       <time-line-segment start="12" end="14" label="午休" color="#1abc9c"></time-line-segment>\
       <time-line-segment start="19" end="23" label="晚间" color="#27ae60"></time-line-segment>\
@@ -223,7 +243,7 @@ function reset() {
   labelVVal.value = 'left'
   heightVal.value = ''
   widthVal.value = ''
-  stepVal.value = '1'
+  stepVal.value = '0.5'
   tipSide.value = 'top'
   tipAlign.value = 'center'
   bumpAttr()
