@@ -11,12 +11,13 @@
         <div class="ctrl-row">
           <button @click="toggleDir">{{ btnDirText }}</button>
           <button @click="toggleAxis">{{ btnAxisText }}</button>
-          <span class="ctrl-sep"></span>
           <label v-show="isShared">
-            共享
-            <input type="text" v-model.number="sharedS" style="width:26px" @input="setShared">
-            ~
-            <input type="text" v-model.number="sharedE" style="width:26px" @input="setShared">
+            <span class="ctrl-label">共享</span>
+            <span style="display:flex;align-items:center;gap:4px;flex:1">
+              <input type="text" v-model.number="sharedS" @input="setShared" style="flex:1;min-width:0">
+              <span style="flex-shrink:0">~</span>
+              <input type="text" v-model.number="sharedE" @input="setShared" style="flex:1;min-width:0">
+            </span>
           </label>
         </div>
       </div>
@@ -28,7 +29,6 @@
       <div class="ctrl-body">
         <div class="ctrl-row">
           <button class="primary" @click="addTrack">＋ 轨道</button>
-          <span class="ctrl-sep"></span>
           <button @click="resetDemo">重置</button>
         </div>
       </div>
@@ -39,27 +39,25 @@
       <div class="ctrl-header">🎨 外观</div>
       <div class="ctrl-body">
         <div class="ctrl-row">
-          <label>圆角
-            <select v-model="radiusVal" @change="setRadius" style="max-width:72px">
+          <label><span class="ctrl-label">圆角</span>
+            <select v-model="radiusVal" @change="setRadius">
               <option v-for="r in radiusOpts" :key="r" :value="r">{{ r || '0' }}</option>
             </select>
           </label>
-          <span class="ctrl-sep"></span>
-          <label v-show="!isVertical">横轴
-            <select v-model="labelHVal" @change="setLabel('label-h', labelHVal)" style="max-width:60px">
+          <label v-show="!isVertical"><span class="ctrl-label">横轴</span>
+            <select v-model="labelHVal" @change="setLabel('label-h', labelHVal)">
               <option value="top">上</option>
               <option value="bottom">下</option>
             </select>
           </label>
-          <label v-show="isVertical">纵轴
-            <select v-model="labelVVal" @change="setLabel('label-v', labelVVal)" style="max-width:60px">
+          <label v-show="isVertical"><span class="ctrl-label">纵轴</span>
+            <select v-model="labelVVal" @change="setLabel('label-v', labelVVal)">
               <option value="right">右</option>
               <option value="left">左</option>
             </select>
           </label>
-          <span class="ctrl-sep"></span>
-          <label>高 <input type="text" v-model="heightVal" @input="setSize" placeholder="auto" style="width:48px"></label>
-          <label>宽 <input type="text" v-model="widthVal" @input="setSize" placeholder="auto" style="width:48px"></label>
+          <label><span class="ctrl-label">高</span> <input type="text" v-model="heightVal" @input="setSize" placeholder="auto"></label>
+          <label><span class="ctrl-label">宽</span> <input type="text" v-model="widthVal" @input="setSize" placeholder="auto"></label>
         </div>
       </div>
     </div>
@@ -69,22 +67,21 @@
       <div class="ctrl-header">💬 Tooltip 位置 <span class="badge badge-info">可配置</span></div>
       <div class="ctrl-body">
         <div class="ctrl-row">
-          <label>弹出方向
-            <select v-model="tipSide" @change="updateTip" style="max-width:82px">
+          <label><span class="ctrl-label">弹出方向</span>
+            <select v-model="tipSide" @change="updateTip">
               <option value="top">上方 top</option>
               <option value="bottom">下方 bottom</option>
               <option value="left">左方 left</option>
               <option value="right">右方 right</option>
             </select>
           </label>
-          <label>对齐
-            <select v-model="tipAlign" @change="updateTip" style="max-width:78px">
+          <label><span class="ctrl-label">对齐</span>
+            <select v-model="tipAlign" @change="updateTip">
               <option value="start">起始 start</option>
               <option value="center">居中 center</option>
               <option value="end">末尾 end</option>
             </select>
           </label>
-          <span class="ctrl-sep"></span>
           <span style="font-size:10px;color:#8d9ba9">当前：<code>{{ tipSide }}-{{ tipAlign }}</code></span>
         </div>
       </div>

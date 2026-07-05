@@ -5,12 +5,12 @@
       <div class="ctrl-header"><code style="font-size:10px;background:#e3f2fd;padding:0 5px">addTrack</code> 添加轨道</div>
       <div class="ctrl-body">
         <div class="ctrl-row">
-          <label>label <input type="text" v-model="apiLabel" style="width:70px"></label>
-          <label>start <input type="text" v-model="apiStart" style="width:30px"></label>
-          <label>end <input type="text" v-model="apiEnd" style="width:30px"></label>
-          <label>step <input type="text" v-model="apiStep" style="width:30px"></label>
-          <label>上限 <input type="text" v-model="apiMaxSeg" style="width:30px" title="max-segments，0=无限制"></label>
-          <button class="primary" style="font-size:10px" @click="doAddTrack">执行</button>
+          <label><span class="ctrl-label">label</span> <input type="text" v-model="apiLabel"></label>
+          <label><span class="ctrl-label">start</span> <input type="text" v-model="apiStart"></label>
+          <label><span class="ctrl-label">end</span> <input type="text" v-model="apiEnd"></label>
+          <label><span class="ctrl-label">step</span> <input type="text" v-model="apiStep"></label>
+          <label><span class="ctrl-label">上限</span> <input type="text" v-model="apiMaxSeg" title="max-segments，0=无限制"></label>
+          <button class="primary" @click="doAddTrack">执行</button>
         </div>
       </div>
     </div>
@@ -20,16 +20,16 @@
       <div class="ctrl-header"><code style="font-size:10px;background:#e3f2fd;padding:0 5px">addSegment</code> 添加时间段</div>
       <div class="ctrl-body">
         <div class="ctrl-row">
-          <label>轨道
-            <select v-model="addSegTrackIdx" style="max-width:80px">
+          <label><span class="ctrl-label">轨道</span>
+            <select v-model="addSegTrackIdx">
               <option v-for="(t, i) in trackList" :key="i" :value="i">{{ t.label || '轨道 '+(i+1) }}</option>
             </select>
           </label>
-          <label>start <input type="text" v-model="segStart" style="width:30px"></label>
-          <label>end <input type="text" v-model="segEnd" style="width:30px"></label>
-          <label>label <input type="text" v-model="segLabel" style="width:50px"></label>
-          <label>color <input type="text" v-model="segColor" style="width:60px"></label>
-          <button class="primary" style="font-size:10px" @click="doAddSeg">执行</button>
+          <label><span class="ctrl-label">start</span> <input type="text" v-model="segStart"></label>
+          <label><span class="ctrl-label">end</span> <input type="text" v-model="segEnd"></label>
+          <label><span class="ctrl-label">label</span> <input type="text" v-model="segLabel"></label>
+          <label><span class="ctrl-label">color</span> <input type="text" v-model="segColor"></label>
+          <button class="primary" @click="doAddSeg">执行</button>
         </div>
       </div>
     </div>
@@ -42,9 +42,8 @@
           <select v-model="delTrackIdx" style="max-width:110px">
             <option v-for="(t, i) in trackList" :key="i" :value="i">{{ t.label || '轨道 '+(i+1) }}</option>
           </select>
-          <button class="danger" style="font-size:10px" @click="doDelTrack">删除</button>
-          <span class="ctrl-sep"></span>
-          <button class="danger" style="font-size:10px" @click="doClearSegs">清空所有段</button>
+          <button class="danger" @click="doDelTrack">删除</button>
+          <button class="danger" @click="doClearSegs">清空所有段</button>
         </div>
       </div>
     </div>
@@ -54,15 +53,13 @@
       <div class="ctrl-header"><code style="font-size:10px;background:#e3f2fd;padding:0 5px">max-segments</code> 段数上限测试</div>
       <div class="ctrl-body">
         <div class="ctrl-row">
-          <label>
-            当前轨道
-            <select v-model="limitTrackIdx" style="max-width:100px">
+          <label><span class="ctrl-label">当前轨道</span>
+            <select v-model="limitTrackIdx">
               <option v-for="(t, i) in trackList" :key="i" :value="i">{{ t.label || '轨道 '+(i+1) }}</option>
             </select>
           </label>
-          <label>上限 <input type="number" v-model.number="limitVal" min="0" max="999" style="width:48px" title="0=无限制"></label>
+          <label><span class="ctrl-label">上限</span> <input type="number" v-model.number="limitVal" min="0" max="999" title="0=无限制"></label>
           <button @click="doSetLimit">设置</button>
-          <span class="ctrl-sep"></span>
           <button @click="doTestLimit">追加段（测上限）</button>
         </div>
       </div>
@@ -73,13 +70,11 @@
       <div class="ctrl-header"><code style="font-size:10px;background:#e3f2fd;padding:0 5px">setGlobalRadius</code> 设置与重置</div>
       <div class="ctrl-body">
         <div class="ctrl-row">
-          <label>
-            圆角
-            <select v-model="radiusVal" @change="doSetRadius" style="max-width:72px">
+          <label><span class="ctrl-label">圆角</span>
+            <select v-model="radiusVal" @change="doSetRadius">
               <option v-for="r in radiusOpts" :key="r" :value="r">{{ r || '0' }}</option>
             </select>
           </label>
-          <span class="ctrl-sep"></span>
           <button @click="doReset">重置组件</button>
         </div>
       </div>

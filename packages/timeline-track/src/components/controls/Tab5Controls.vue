@@ -5,8 +5,8 @@
       <div class="ctrl-header">🎯 添加轨道 <span class="badge badge-info">Vue 响应式 v-for</span></div>
       <div class="ctrl-body">
         <div class="ctrl-row">
-          <label>名称
-            <input type="text" v-model="newTrackLabel" style="width:80px" placeholder="新任务">
+          <label><span class="ctrl-label">名称</span>
+            <input type="text" v-model="newTrackLabel" placeholder="新任务">
           </label>
           <button class="primary" @click="doAddTrack">＋ 添加轨道</button>
         </div>

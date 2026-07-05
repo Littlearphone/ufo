@@ -5,21 +5,18 @@
       <div class="ctrl-header">📊 数据量配置</div>
       <div class="ctrl-body">
         <div class="ctrl-row">
-          <label>
-            轨道
+          <label><span class="ctrl-label">轨道</span>
             <input type="range" v-model.number="trackCount" min="1" max="15">
             <span class="range-val">{{ trackCount }}</span>
           </label>
-          <label>
-            每轨道段数
+          <label><span class="ctrl-label">每轨道段数</span>
             <input type="range" v-model.number="segCount" min="1" max="300">
             <span class="range-val">{{ segCount }}</span>
           </label>
         </div>
         <div class="ctrl-row">
-          <label>
-            步长
-            <select v-model="stepVal" style="max-width:76px">
+          <label><span class="ctrl-label">步长</span>
+            <select v-model="stepVal">
               <option value="0">无</option>
               <option value="0.01">0.01</option>
               <option value="0.05">0.05</option>
@@ -31,9 +28,8 @@
               <option value="4">4</option>
             </select>
           </label>
-          <label>
-            每轨道上限
-            <input type="number" v-model.number="maxSeg" min="0" max="999" style="width:54px" title="0=无限制">
+          <label><span class="ctrl-label">每轨道上限</span>
+            <input type="number" v-model.number="maxSeg" min="0" max="999" title="0=无限制">
           </label>
           <label style="gap:4px">
             <input type="checkbox" v-model="packed">
@@ -50,7 +46,6 @@
         <div class="ctrl-row">
           <button class="primary" @click="generate">⚡ 生成数据</button>
           <button class="danger" @click="clearAll">清空</button>
-          <span class="ctrl-sep"></span>
           <button @click="toggleDir">{{ btnDirText }}</button>
         </div>
       </div>
@@ -61,9 +56,8 @@
       <div class="ctrl-header">🎨 外观</div>
       <div class="ctrl-body">
         <div class="ctrl-row">
-          <label>
-            圆角
-            <select v-model="radiusVal" @change="setRadius" style="max-width:72px">
+          <label><span class="ctrl-label">圆角</span>
+            <select v-model="radiusVal" @change="setRadius">
               <option v-for="r in radiusOpts" :key="r" :value="r">{{ r || '0' }}</option>
             </select>
           </label>
