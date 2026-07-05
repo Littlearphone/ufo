@@ -211,7 +211,13 @@ export class TimeTrack extends HTMLElement {
       showContextMenu([
         { type: 'header', label: l.trackMenuHeader.replace('{name}', trackLabel) },
         { label: l.modifyProps, action: () => showTrackEditDialog(this) },
-        { label: l.clearSegments, action: () => this.clearAllSegments() },
+        { label: l.clearSegments, action: () => {
+          showDeleteConfirm(
+            l.confirmClearSegments.replace('{name}', trackLabel),
+            () => this.clearAllSegments(),
+            this
+          )
+        } },
         { label: l.deleteTrack, danger: true, action: () => {
           showDeleteConfirm(
             l.confirmDeleteTrack

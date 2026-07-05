@@ -106,7 +106,16 @@ export class TimeSegment extends HTMLElement {
     this.addEventListener('pointerdown', e => this._onDown(e))
     this.addEventListener('click', e => {
       if (e.target.closest('[data-role="del"]')) {
-        this._emitDelete(e)
+        e.stopPropagation()
+        const loc = resolveLocale(this)
+        const name = this.label || loc.unnamed
+        showDeleteConfirm(
+          loc.confirmDeleteSegment
+            .replace('{name}', name)
+            .replace('{range}', this._formatter.formatRange(this.start, this.end, 'axis')),
+          () => this._deleteSegment(),
+          this
+        )
       }
     })
 
@@ -288,20 +297,6 @@ export class TimeSegment extends HTMLElement {
     const t = this._track
     if (!t) return e.clientX
     return t.isVertical ? e.clientY : e.clientX
-  }
-
-  /** 发起删除流程（可被 segment-before-deleted 取消） */
-  _emitDelete(origEvent) {
-    const ok = this.dispatchEvent(new CustomEvent('segment-before-delete', {
-      bubbles: true, cancelable: true, detail: { segment: this }
-    }))
-    if (!ok) return
-    this.remove()
-    this.dispatchEvent(new CustomEvent('segment-deleted', {
-      bubbles: true, detail: { segment: this }
-    }))
-    origEvent.preventDefault()
-    origEvent.stopPropagation()
   }
 
   /** 程序化删除（无事件参数，供右键菜单调用） */

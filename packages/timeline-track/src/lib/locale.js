@@ -27,6 +27,8 @@ export const DEFAULT_LOCALE = {
   confirmDeleteTrack: '确定要删除轨道「{name}」({range}) 吗？',
   /** 删除段确认模板 */
   confirmDeleteSegment: '确定要删除时间段「{name}」({range}) 吗？',
+  /** 清空轨道所有时间段确认模板，{name}=轨道名 */
+  confirmClearSegments: '确定要清空轨道「{name}」的所有时间段吗？',
 
   /* ---- 编辑弹窗 ---- */
   segmentEditTitle: '修改时间段属性',
