@@ -15,6 +15,127 @@
 
 将组件从「时间写死」架构抽象为「通用范围标尺」，支持可插拔的格式化/解析/刻度策略，同时完全向后兼容。
 
+## 使用示例
+
+以下示例覆盖所有模式，可直接在 HTML 中使用。
+
+### 一、时间模式（默认）
+
+**1. 标准时间线（兼容旧用法）**
+```html
+<time-line-container>
+  <time-line-track label="早班" start="0" end="24" step="0.5">
+    <time-line-segment start="6"  end="9"  label="早班值守" color="#27ae60"></time-line-segment>
+    <time-line-segment start="14" end="17" label="中班"     color="#2980b9"></time-line-segment>
+  </time-line-track>
+  <time-line-track label="夜班" start="18" end="24">
+    <time-line-segment start="20" end="23" label="夜巡" color="#8e44ad"></time-line-segment>
+  </time-line-track>
+</time-line-container>
+```
+`type="time" unit="hour"` 是默认值，不设置时行为与旧版完全一致。
+
+**2. 自然时间输入**
+```html
+<time-line-container>
+  <time-line-track label="施工" start="09:00" end="17:00" step="30min">
+    <time-line-segment start="09:00" end="12:00" label="上午" color="#e67e22"></time-line-segment>
+    <time-line-segment start="13:30" end="17:00" label="下午" color="#f39c12"></time-line-segment>
+  </time-line-track>
+</time-line-container>
+```
+`"09:00"`、`"30min"` 等自然格式自动识别，无需计算小数。
+
+**3. 秒级精度**
+```html
+<time-line-container type="time" unit="second">
+  <time-line-track label="短时测试" start="00:00" end="00:30" step="5sec">
+    <time-line-segment start="00:00" end="00:15" label="前半段" color="#16a085"></time-line-segment>
+    <time-line-segment start="00:15" end="00:30" label="后半段" color="#1abc9c"></time-line-segment>
+  </time-line-track>
+</time-line-container>
+```
+段内显示 `"00:00"` 短格式，Tooltip 显示 `"00:00:00 – 00:15:00"` 完整精度。
+
+### 二、分钟模式
+
+**4. 24 小时用分钟表示**
+```html
+<time-line-container type="time" unit="minute">
+  <time-line-track label="日程" start="0min" end="1440min">
+    <time-line-segment start="480min" end="720min" label="工作" color="#27ae60"></time-line-segment>
+    <time-line-segment start="720min" end="780min" label="午休" color="#e67e22"></time-line-segment>
+  </time-line-track>
+</time-line-container>
+```
+轴显示仍为 `"08:00"` 时间格式，但输入统一用分钟。也可混合：
+```html
+<time-line-track label="日程" start="0" end="1440">
+  <!-- 纯数字 480 等价于 "480min"，也等价于 "08:00" -->
+  <time-line-segment start="480" end="720" label="工作" color="#27ae60"></time-line-segment>
+</time-line-track>
+```
+
+**5. 一小时内的精细时段**
+```html
+<time-line-container type="time" unit="second">
+  <time-line-track label="录制片段" start="0sec" end="3600sec" step="15sec">
+    <time-line-segment start="0sec"    end="600sec"  label="开场"  color="#3498db"></time-line-segment>
+    <time-line-segment start="600sec"  end="2400sec" label="正文"  color="#2ecc71"></time-line-segment>
+    <time-line-segment start="2400sec" end="3600sec" label="收尾"  color="#e74c3c"></time-line-segment>
+  </time-line-track>
+</time-line-container>
+```
+
+### 三、数值模式
+
+**6. 百分比进度**
+```html
+<time-line-container type="number" unit="%">
+  <time-line-track label="开发进度" start="0%" end="100%" step="10%">
+    <time-line-segment start="0%"  end="30%"  label="需求" color="#3498db"></time-line-segment>
+    <time-line-segment start="30%" end="80%"  label="开发" color="#2ecc71"></time-line-segment>
+    <time-line-segment start="80%" end="100%" label="测试" color="#e74c3c"></time-line-segment>
+  </time-line-track>
+</time-line-container>
+```
+
+**7. 像素坐标**
+```html
+<time-line-container type="number" unit="px">
+  <time-line-track label="图层左" start="0px" end="800px">
+    <time-line-segment start="0px"   end="200px" label="头像" color="#9b59b6"></time-line-segment>
+    <time-line-segment start="250px" end="600px" label="内容" color="#2ecc71"></time-line-segment>
+  </time-line-track>
+</time-line-container>
+```
+
+### 四、API 调用
+
+`addTrack` 和 `addSegment` 的参数直接透传给 `setAttribute`，无需限制类型：
+```js
+// 字符串
+container.addTrack("早班", "09:00", "17:00", { step: "30min" })
+
+// 数字（旧兼容）
+container.addTrack("早班", 9, 17, { step: 0.5 })
+
+// 混合
+container.addTrack("测试", "0min", "60min")
+container.addTrack("测试", 100, "200px")
+
+// 段同理
+track.addSegment("09:00", "12:00", { label: "上午", color: "#27ae60" })
+track.addSegment(9, 12, { label: "上午", color: "#27ae60" })
+```
+
+### 五、右键编辑
+
+所有模式下右键 → 修改属性 都会自动适配：
+- `type="time"` → 显示 `<input type="time">` 时间选择器
+- `type="number"` → 显示 `<input type="number">` 数字输入框
+- 保存时统一通过 `formatter.parse()` 解析，输入 `"09:00"`、`"9"`、`"30min"` 均可
+
 ### 核心架构
 
 ```
@@ -100,13 +221,13 @@ NumberFormatter ──  type="number"
 
 | 文件 | 改动内容 |
 |---|---|
-| **新增** `formatter.js` | ValueFormatter 基类，TimeFormatter，NumberFormatter |
-| `utils.js` | 保留 `fmtTime` 委托给 TimeFormatter；新增 `parseTimeValue` |
-| `TimeContainer.js` | 添加 `type` / `unit` 属性；创建 formatter 实例；暴露 `getFormatter()` |
-| `TimeTrack.js` | getter 用 `formatter.parse()`；`_drawGrid` 用 `formatter.format()`；`_niceStep` 委托 formatter |
-| `TimeSegment.js` | getter 用 `formatter.parse()`；`_buildDOM` 用 `formatter.format()` |
-| `contextmenu.js` | 编辑框用 `formatter.inputAttrs()` 动态渲染 |
-| `tooltip.js` | 时间显示用 `formatter.format(val, 'tooltip')` |
+| **新增** `formatter.js` | ValueFormatter 基类 + TimeFormatter + NumberFormatter + createFormatter 工厂 |
+| `utils.js` | `fmtTime` 标记为 `@deprecated`（保留，不再被库代码使用） |
+| `TimeContainer.js` | 添加 `type` / `unit` 属性 + `getFormatter()`；轴尺用 formatter 渲染 |
+| `TimeTrack.js` | getter 用 `formatter.parse()`；`_drawGrid` 用 `formatter.format()` + `formatter.niceStep()` |
+| `TimeSegment.js` | getter 用 `formatter.parse()`；`_buildDOM`、确认弹窗用 `formatter.formatRange()` |
+| `contextmenu.js` | 编辑框用 `formatter.inputAttrs()` 动态渲染；保存时用 `formatter.parse()` |
+| `tooltip.js` | Tooltip 用 `formatter.format(val, 'tooltip')` |
 
 ### 实现阶段
 
@@ -139,3 +260,34 @@ addTrack("早班", "540min", 9)       // OK（混合格式）
 ---
 
 *方案制定日期：2026-07-05，当前代码 base：master@9c8ef70*
+
+## 实现状态（2026-07-05）
+
+### ✅ P0：抽象层（已完成）
+- `formatter.js` — `ValueFormatter` 基类 + `TimeFormatter`（完全等价旧行为）
+- 已通过 lib 和 demo 构建验证
+
+### ✅ P1：集成替换（已完成）
+| 文件 | 状态 |
+|---|---|
+| `TimeContainer.js` | 添加 `type`/`unit` 属性、`getFormatter()`、轴尺用 formatter |
+| `TimeTrack.js` | getter 用 `formatter.parse()`、grid 用 `formatter.format()` |
+| `TimeSegment.js` | getter/段内时间/确认弹窗用 formatter |
+| `contextmenu.js` | 编辑框用 `formatter.inputAttrs()` 动态渲染 |
+| `tooltip.js` | Tooltip 用 `formatter.format(val, 'tooltip')` |
+| `utils.js` | `fmtTime` 标记为 `@deprecated`（保留向后兼容） |
+
+> 默认 `type="time" unit="hour"` 行为零变化。
+
+### 🔄 P2：新模式（已实现，待端到端验证）
+- `NumberFormatter` — 纯数值模式，智能小数位，等比刻度
+- 自然单位解析 — `"2h"`、`"30min"`、`"15sec"` 全模式通用
+- `unit="minute"` / `unit="second"` 在 TimeFormatter 中支持
+- 编辑框根据 formatter 动态切换 `type="time"` / `type="number"` / `type="text"`
+
+### P2 待验证场景
+- [x] Vue demo 新增第 5 标签页「模式示例」
+- [ ] `type="number" unit="%"` — 百分比标尺（demo 已添加代码）
+- [ ] `type="number" unit="px"` — 像素值标尺（demo 已添加代码）
+- [ ] `type="time" unit="minute"` — 分钟归一化（demo 已添加代码）
+- [ ] `type="time" unit="second"` — 秒级精度（demo 已添加代码）

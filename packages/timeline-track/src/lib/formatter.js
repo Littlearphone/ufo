@@ -215,27 +215,7 @@ export class TimeFormatter extends ValueFormatter {
   }
 
   _doFormat(val, context) {
-    // 转换为小时用于时间字符串生成
-    const hours = this._toHours(val)
-
-    // 精度规则：
-    //   tooltip / editor → 始终含秒
-    //   axis / segment   → HH:MM，除非 range 很小（< 1 小时）才显示秒
-    const showSec = context === 'tooltip' || context === 'editor'
-
-    // 还需要根据 step 判断是否要显示分钟… 但 format 没有 step 参数。
-    // 按 context 约定：axis 默认显示分钟，因为 range/step 信息调用方在 context 里约定。
-    // 实际 axis 格式使用 fmtHours 时不论 step 始终显示 :MM。
-    // 原代码用 fmtTime(t, step < 1) — step<1 时 showMin=true，否则 false。
-    // 这里简化为：axis 始终显示 :MM（符合绝大多数场景），
-    // 除非 unit=hour 且 val 为整数（如 9.0 → "09:00"）。
-    if (context === 'axis' && this._unit === 'hour' && Number.isInteger(val)) {
-      return _fmtHours(hours, showSec)
-    }
-    return _fmtHours(hours, showSec)
-  }
-
-  _doFormatRaw(val, context) {
+    // tooltip / editor 含秒，axis / segment 仅 HH:MM
     return _fmtHours(this._toHours(val), context === 'tooltip' || context === 'editor')
   }
 
@@ -260,8 +240,8 @@ export class TimeFormatter extends ValueFormatter {
   _doInputStep(val) {
     // type="time" 的 step 以秒为单位
     if (this._unit === 'second') return undefined
-    // 0.1h = 360s, 1min = 60s — 给一个合理的默认步长
-    return '60'
+    // 0.1h = 360s（匹配原 step="0.1" 的增量粒度）
+    return '360'
   }
 }
 
@@ -299,14 +279,14 @@ export class NumberFormatter extends ValueFormatter {
   }
 
   _doFormat(val, context) {
-    // 智能小数位：大数少显示小数，小数字显示更多精度
+    // 智能小数：去除尾部多余的零
     const abs = Math.abs(val)
     let decimals = 0
     if (abs < 1) decimals = 3
     else if (abs < 10) decimals = 2
     else if (abs < 100) decimals = 1
 
-    const formatted = val.toFixed(decimals)
+    const formatted = parseFloat(val.toFixed(decimals)).toString()
     return this._unit ? `${formatted} ${this._unit}` : formatted
   }
 

@@ -36,7 +36,7 @@
 
         <!-- 演示效果视图 -->
         <div v-show="demoView === 'demo'" class="demo-view-wrap">
-          <div class="tab-content-wrap">
+          <div class="tab-content-wrap" v-show="activeTab !== 4">
             <!-- Tab 0: 基础操作 -->
             <time-line-container ref="c0" id="demo0" direction="horizontal" :class="{ active: activeTab === 0 }">
               <time-line-track label="摄像头-A（前门）" start="0" end="24" step="0.25">
@@ -81,6 +81,58 @@
             </time-line-container>
           </div>
 
+          <!-- Tab 4: 模式示例（type/unit 多模式） -->
+          <div class="tab-content-stack" :class="{ active: activeTab === 4 }">
+            <div class="mode-example">
+              <div class="mode-example-header"><strong>自然时间输入</strong> <code>type="time" unit="hour"</code></div>
+              <time-line-container class="mode-example-body">
+                <time-line-track label="施工" start="09:00" end="17:00" step="30min">
+                  <time-line-segment start="09:00" end="12:00" label="打桩" color="#e67e22"></time-line-segment>
+                  <time-line-segment start="13:30" end="17:00" label="浇筑" color="#f39c12"></time-line-segment>
+                </time-line-track>
+              </time-line-container>
+            </div>
+            <div class="mode-example">
+              <div class="mode-example-header"><strong>秒级精度</strong> <code>type="time" unit="second"</code></div>
+              <time-line-container class="mode-example-body" type="time" unit="second">
+                <time-line-track label="短时测试" start="00:00" end="00:30" step="5sec">
+                  <time-line-segment start="00:00" end="00:12" label="前半段" color="#16a085"></time-line-segment>
+                  <time-line-segment start="00:15" end="00:30" label="后半段" color="#1abc9c"></time-line-segment>
+                </time-line-track>
+              </time-line-container>
+            </div>
+            <div class="mode-example">
+              <div class="mode-example-header"><strong>分钟模式</strong> <code>type="time" unit="minute"</code></div>
+              <time-line-container class="mode-example-body" type="time" unit="minute">
+                <time-line-track label="日程" start="0min" end="1440min">
+                  <time-line-segment start="480min" end="720min" label="工作" color="#27ae60"></time-line-segment>
+                  <time-line-segment start="720min" end="780min" label="午休" color="#e67e22"></time-line-segment>
+                  <time-line-segment start="780min" end="1140min" label="下午" color="#2980b9"></time-line-segment>
+                </time-line-track>
+              </time-line-container>
+            </div>
+            <div class="mode-example">
+              <div class="mode-example-header"><strong>百分比</strong> <code>type="number" unit="%"</code></div>
+              <time-line-container class="mode-example-body" type="number" unit="%">
+                <time-line-track label="开发进度" start="0%" end="100%" step="10%">
+                  <time-line-segment start="0%"  end="30%"  label="需求" color="#3498db"></time-line-segment>
+                  <time-line-segment start="30%" end="80%"  label="开发" color="#2ecc71"></time-line-segment>
+                  <time-line-segment start="80%" end="100%" label="测试" color="#e74c3c"></time-line-segment>
+                </time-line-track>
+              </time-line-container>
+            </div>
+            <div class="mode-example">
+              <div class="mode-example-header"><strong>像素坐标</strong> <code>type="number" unit="px"</code></div>
+              <time-line-container class="mode-example-body" type="number" unit="px">
+                <time-line-track label="图层位置" start="0px" end="800px">
+                  <time-line-segment start="0px"   end="200px" label="头像" color="#9b59b6"></time-line-segment>
+                  <time-line-segment start="250px" end="600px" label="正文" color="#2ecc71"></time-line-segment>
+                  <time-line-segment start="600px" end="800px" label="侧栏" color="#e91e63"></time-line-segment>
+                </time-line-track>
+              </time-line-container>
+            </div>
+          </div>
+
           <!-- 图例 -->
           <div class="legend" :class="{ active: activeTab === 0 }">
             <span><i style="background:#27ae60"></i> 早班值守</span>
@@ -107,6 +159,11 @@
             <span><i style="background:#16a085"></i> 全天段 0-24</span>
             <span>共用轴 <code>axis-mode="shared"</code> 统一时间范围</span>
             <span>不同范围轨道自动对齐</span>
+          </div>
+          <div class="legend" :class="{ active: activeTab === 4 }">
+            <span>展示 <code>type</code> + <code>unit</code> 组合效果</span>
+            <span>每个示例独立容器，互不影响</span>
+            <span>右键编辑自动适配 time / number 输入框</span>
           </div>
         </div>
 
@@ -155,7 +212,8 @@ const c0 = ref(null)
 const c1 = ref(null)
 const c2 = ref(null)
 const c3 = ref(null)
-const containers = computed(() => [c0.value, c1.value, c2.value, c3.value])
+const c4 = ref(null)
+const containers = computed(() => [c0.value, c1.value, c2.value, c3.value, c4.value])
 
 // ── 各标签页内部轨道/段 HTML（不含容器外层） ──
 const TAB_INNER_HTML = [
@@ -194,6 +252,60 @@ const TAB_INNER_HTML = [
     <time-line-segment start="12" end="14" label="午休" color="#1abc9c"></time-line-segment>
     <time-line-segment start="19" end="23" label="晚间" color="#27ae60"></time-line-segment>
   </time-line-track>`,
+  // Tab 4 — 模式示例（多个独立容器）
+  `<!-- 自然时间输入 -->
+  <div class="mode-example">
+    <div class="mode-example-header"><strong>自然时间输入</strong> <code>type="time" unit="hour"</code></div>
+    <time-line-container class="mode-example-body">
+      <time-line-track label="施工" start="09:00" end="17:00" step="30min">
+        <time-line-segment start="09:00" end="12:00" label="打桩" color="#e67e22"></time-line-segment>
+        <time-line-segment start="13:30" end="17:00" label="浇筑" color="#f39c12"></time-line-segment>
+      </time-line-track>
+    </time-line-container>
+  </div>
+  <!-- 秒级精度 -->
+  <div class="mode-example">
+    <div class="mode-example-header"><strong>秒级精度</strong> <code>type="time" unit="second"</code></div>
+    <time-line-container class="mode-example-body" type="time" unit="second">
+      <time-line-track label="短时测试" start="00:00" end="00:30" step="5sec">
+        <time-line-segment start="00:00" end="00:12" label="前半段" color="#16a085"></time-line-segment>
+        <time-line-segment start="00:15" end="00:30" label="后半段" color="#1abc9c"></time-line-segment>
+      </time-line-track>
+    </time-line-container>
+  </div>
+  <!-- 分钟模式 -->
+  <div class="mode-example">
+    <div class="mode-example-header"><strong>分钟模式</strong> <code>type="time" unit="minute"</code></div>
+    <time-line-container class="mode-example-body" type="time" unit="minute">
+      <time-line-track label="日程" start="0min" end="1440min">
+        <time-line-segment start="480min" end="720min" label="工作" color="#27ae60"></time-line-segment>
+        <time-line-segment start="720min" end="780min" label="午休" color="#e67e22"></time-line-segment>
+        <time-line-segment start="780min" end="1140min" label="下午" color="#2980b9"></time-line-segment>
+      </time-line-track>
+    </time-line-container>
+  </div>
+  <!-- 百分比 -->
+  <div class="mode-example">
+    <div class="mode-example-header"><strong>百分比</strong> <code>type="number" unit="%"</code></div>
+    <time-line-container class="mode-example-body" type="number" unit="%">
+      <time-line-track label="开发进度" start="0%" end="100%" step="10%">
+        <time-line-segment start="0%"  end="30%"  label="需求" color="#3498db"></time-line-segment>
+        <time-line-segment start="30%" end="80%"  label="开发" color="#2ecc71"></time-line-segment>
+        <time-line-segment start="80%" end="100%" label="测试" color="#e74c3c"></time-line-segment>
+      </time-line-track>
+    </time-line-container>
+  </div>
+  <!-- 像素坐标 -->
+  <div class="mode-example">
+    <div class="mode-example-header"><strong>像素坐标</strong> <code>type="number" unit="px"</code></div>
+    <time-line-container class="mode-example-body" type="number" unit="px">
+      <time-line-track label="图层位置" start="0px" end="800px">
+        <time-line-segment start="0px"   end="200px" label="头像" color="#9b59b6"></time-line-segment>
+        <time-line-segment start="250px" end="600px" label="正文" color="#2ecc71"></time-line-segment>
+        <time-line-segment start="600px" end="800px" label="侧栏" color="#e91e63"></time-line-segment>
+      </time-line-track>
+    </time-line-container>
+  </div>`,
 ]
 
 // ── JavaScript 生成代码（按标签页，无则为 null） ──
@@ -230,6 +342,7 @@ for (let t = 0; t < trackN; t++) {
 }`,  // Tab 1 — 密集数据
   null,  // Tab 2
   null,  // Tab 3
+  null,  // Tab 4 — 纯模板渲染，无需 JS 生成
 ]
 
 // 从当前 DOM 读取容器标签的动态属性
@@ -245,6 +358,10 @@ function buildContainerAttrs(idx) {
 
 /** 获取当前标签页的 HTML 源码（容器 + 内部轨道/段） */
 function getHtmlSource(idx) {
+  // Tab 4 的 inner HTML 已包含完整的 time-line-container 元素
+  if (idx === 4) {
+    return TAB_INNER_HTML[4]
+  }
   if (idx === 1) {
     return buildContainerAttrs(idx) + '\n  <!-- 内部轨道和段由 JavaScript 动态生成 -->\n</time-line-container>'
   }
@@ -293,6 +410,19 @@ function switchTab(idx) {
 
   // 容器切换后刷新网格和段定位
   nextTick(() => {
+    // Tab 4 使用多个独立容器（stack 布局），需特殊处理
+    if (idx === 4) {
+      const containers4 = document.querySelectorAll('.tab-content-stack.active time-line-container')
+      requestAnimationFrame(() => {
+        containers4.forEach(c => {
+          if (c.allTracks) c.allTracks().forEach(t => {
+            if (t._drawGrid) t._drawGrid()
+            if (t._refreshPositions) t._refreshPositions()
+          })
+        })
+      })
+      return
+    }
     const c = containers.value[idx]
     if (!c) return
     requestAnimationFrame(() => {

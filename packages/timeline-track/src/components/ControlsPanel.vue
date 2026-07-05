@@ -23,6 +23,11 @@
         <Tab3Controls :container="containers[3]" />
       </div>
 
+      <!-- ════ Tab 4: 模式示例 ════ -->
+      <div class="controls-content" :class="{ active: activeTab === 4 }">
+        <Tab4Controls />
+      </div>
+
     </div>
   </div>
 </template>
@@ -32,6 +37,7 @@ import Tab0Controls from './controls/Tab0Controls.vue'
 import Tab1Controls from './controls/Tab1Controls.vue'
 import Tab2Controls from './controls/Tab2Controls.vue'
 import Tab3Controls from './controls/Tab3Controls.vue'
+import Tab4Controls from './controls/Tab4Controls.vue'
 
 defineProps({
   activeTab: { type: Number, required: true },

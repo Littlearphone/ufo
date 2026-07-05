@@ -11,6 +11,7 @@ export const snap = (v, step) => step ? Math.round(v / step) * step : v
 
 /**
  * 将小时数格式化为 HH:MM 时间字符串
+ * @deprecated 已废弃，请使用 TimeFormatter.format() 或 formatter.formatRange() 替代
  * @param {number} th - 小时数（如 14.5 → "14:30"）
  * @param {boolean} [showMin] - 是否显示分钟，默认 true
  * @param {string} [invalidStr] - 无效值的回退文字，默认 '--:--'

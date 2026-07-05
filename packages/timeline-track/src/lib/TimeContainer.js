@@ -21,7 +21,7 @@ export class TimeContainer extends HTMLElement {
     ensureCSS()
     if (this._init) return
     this._init = true
-    this._formatter = createFormatter(this.type, this.unitValue)
+    this._formatter = createFormatter(this.type, this.unit)
     this._applyDir()
     this._syncAxisRuler() // 处理初始共享模式
   }
