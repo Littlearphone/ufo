@@ -9,6 +9,7 @@
         <span class="ts">{{ l.ts }}</span>
         <span class="kind" :class="l.kind">{{ l.kind }}</span>
         {{ l.msg }}
+        <span v-if="l.result" class="api-result">{{ l.result }}</span>
       </div>
     </div>
   </div>

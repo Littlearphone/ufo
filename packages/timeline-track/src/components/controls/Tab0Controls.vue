@@ -32,7 +32,6 @@
           </select>
           <button class="primary" @click="addTrack">＋ 轨道</button>
           <span class="ctrl-sep"></span>
-          <button class="danger" @click="clearSegs">清空段</button>
           <button @click="resetDemo">重置</button>
         </div>
       </div>
@@ -184,13 +183,6 @@ function addTrack() {
   selectedTrackIdx.value = c().allTracks().length - 1
   bumpAttr() // 通知 trackList computed 重新求值
   addLog('track-add', t.label)
-}
-
-function clearSegs() {
-  if (!c()) return
-  const all = c().querySelectorAll('time-line-segment')
-  if (!all.length) return
-  all.forEach(s => s.remove())
 }
 
 function resetDemo() {

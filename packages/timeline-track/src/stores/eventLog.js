@@ -13,8 +13,9 @@ const MAX_LOG = 80
  * 添加一条日志
  * @param {'create'|'change'|'changed'|'deleted'|'track-add'|'track-del'|'dir'|'axis-mode'|'api'|'gen'|'limit'} kind
  * @param {string|object} detail
+ * @param {string} [result] - 可选的操作结果/返回值（仅 API 类使用）
  */
-export function addLog(kind, detail) {
+export function addLog(kind, detail, result) {
   const now = new Date()
   const ts = now.toTimeString().slice(0, 8)
   let msg = ''
@@ -53,7 +54,7 @@ export function addLog(kind, detail) {
       msg = `⚠ 达上限: ${typeof detail === 'string' ? detail : '轨道已达 ' + detail.current + '/' + detail.max + ' 段'}`
       break
   }
-  logLines.push({ ts, kind, msg })
+  logLines.push({ ts, kind, msg, result })
   if (logLines.length > MAX_LOG) logLines.shift()
 }
 

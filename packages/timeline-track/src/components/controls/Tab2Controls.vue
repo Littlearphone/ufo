@@ -84,15 +84,6 @@
         </div>
       </div>
     </div>
-
-    <!-- API 调用记录 -->
-    <div class="ctrl-group">
-      <div class="ctrl-header">💻 API 调用记录</div>
-      <div class="ctrl-body">
-        <div class="ctrl-code">{{ apiCall || '&nbsp;' }}</div>
-        <div class="ctrl-result" :class="{ err: apiResult && apiResult.includes('err') }">{{ apiResult || '&nbsp;' }}</div>
-      </div>
-    </div>
   </div>
 </template>
 
@@ -139,15 +130,6 @@ const delTrackIdx = ref(0)
 const limitTrackIdx = ref(0)
 const limitVal = ref(0)
 
-// API call display
-const apiCall = ref('')
-const apiResult = ref('')
-
-function showApi(cmd, result) {
-  apiCall.value = '> ' + cmd
-  apiResult.value = result || '✓ ok'
-}
-
 function doAddTrack() {
   if (!c()) return
   const label = apiLabel.value || '新轨道'
@@ -162,15 +144,14 @@ function doAddTrack() {
   let extras = ''
   if (maxSegN > 0) extras = `, maxSegments: ${maxSegN}`
   const cmd = `addTrack("${label}", ${start}, ${end}, { step: ${step}${extras} })`
-  showApi(cmd, '→ 轨道 "' + label + '" 已添加')
-  addLog('api', cmd)
+  addLog('api', cmd, '→ 轨道 "' + label + '" 已添加')
 }
 
 function doAddSeg() {
   if (!c()) return
   const tracks = c().allTracks()
   const track = tracks[addSegTrackIdx.value]
-  if (!track) { showApi('addSegment(...)', '请选择轨道'); return }
+  if (!track) { return }
   const start = parseFloat(segStart.value) || 8
   const end = parseFloat(segEnd.value) || 12
   const label = segLabel.value || '新段'
@@ -178,60 +159,54 @@ function doAddSeg() {
   // 检查段数上限
   const max = track.maxSegments
   if (max > 0 && track.sortedSegs().length >= max) {
-    showApi('addSegment(...)', '⚠ 已达上限 ' + max + ' 段，阻止创建')
-    addLog('api', 'addSegment 被拒：已达 max-segments=' + max)
+    addLog('api', 'addSegment 被拒', '⚠ 已达上限 ' + max + ' 段')
     return
   }
   track.addSegment(start, end, { label, color })
-  const cmd = `addSegment(${start}, ${end}, { label: "${label}", color: "${color}" }) — 轨道: "${track.label}"`
-  showApi(cmd, '→ 段已添加')
-  addLog('api', cmd)
+  const cmd = `addSegment(${start}, ${end}, { label: "${label}", color: "${color}" })`
+  addLog('api', cmd, '→ 段已添加 于「' + track.label + '」')
 }
 
 function doSetLimit() {
   if (!c()) return
   const tracks = c().allTracks()
   const track = tracks[limitTrackIdx.value]
-  if (!track) { showApi('setLimit(...)', '请选中轨道'); return }
+  if (!track) { return }
   const n = limitVal.value
   track.setAttribute('max-segments', n > 0 ? String(n) : '')
   const label = track.label
   const cmd = n > 0
-    ? `setAttribute("max-segments", "${n}") — 轨道: "${label}"`
-    : `removeAttribute("max-segments") — 轨道: "${label}"`
-  showApi(cmd, n > 0 ? '→ 每轨道上限 = ' + n : '→ 已移除限制')
-  addLog('api', cmd)
+    ? `max-segments="${n}" — 轨道: "${label}"`
+    : `移除 max-segments — 轨道: "${label}"`
+  addLog('api', cmd, n > 0 ? '→ 每轨道上限 = ' + n : '→ 已移除限制')
 }
 
 function doTestLimit() {
   if (!c()) return
   const tracks = c().allTracks()
   const track = tracks[limitTrackIdx.value]
-  if (!track) { showApi('testLimit(...)', '请选中轨道'); return }
+  if (!track) { return }
   const before = track.sortedSegs().length
   const max = track.maxSegments
   const seg = track.addSegment(0, 1, { label: '测试', color: '#e74c3c' })
   if (seg) {
-    showApi('addSegment(0,1) — ' + track.label, '→ 已添加（原 ' + before + ' → ' + track.sortedSegs().length + ' 段）')
-    addLog('api', 'testLimit: addSegment 成功')
+    addLog('api', 'addSegment(0,1) 测试上限', '→ 已添加（原 ' + before + ' → ' + track.sortedSegs().length + ' 段）')
   } else {
-    showApi('addSegment(0,1) — ' + track.label, '⚠ 被拒绝（已达上限 ' + max + '）')
-    addLog('api', 'testLimit: addSegment 被拒（上限 ' + max + '）')
+    addLog('api', 'addSegment(0,1) 测试上限', '⚠ 被拒绝（已达上限 ' + max + '）')
   }
 }
 
 function doDelTrack() {
   if (!c()) return
   const tracks = c().allTracks()
-  if (tracks.length <= 1) { showApi('removeTrack(...)', '至少保留一条轨道'); return }
+  if (tracks.length <= 1) { return }
   const track = tracks[delTrackIdx.value]
-  if (!track) { showApi('removeTrack(...)', '请选中轨道'); return }
+  if (!track) { return }
   const label = track.label
   c().removeTrack(track)
   bumpAttr() // 通知 trackList 重新求值
   const cmd = 'removeTrack("' + label + '")'
-  showApi(cmd, '→ 轨道 "' + label + '" 已删除')
-  addLog('api', cmd)
+  addLog('api', cmd, '→ 轨道 "' + label + '" 已删除')
   if (delTrackIdx.value >= c().allTracks().length) {
     delTrackIdx.value = c().allTracks().length - 1
   }
@@ -240,18 +215,16 @@ function doDelTrack() {
 function doClearSegs() {
   if (!c()) return
   const all = c().querySelectorAll('time-line-segment')
-  if (!all.length) { showApi('clearSegments()', '没有段可清'); return }
+  if (!all.length) { return }
   all.forEach(s => s.remove())
-  showApi('clearAllSegments()', '→ 已清空 ' + all.length + ' 个段')
-  addLog('api', 'clearAllSegments()')
+  addLog('api', 'clearAllSegments()', '→ 已清空 ' + all.length + ' 个段')
 }
 
 function doSetRadius() {
   if (!c()) return
   c().setGlobalRadius(radiusVal.value)
   const cmd = 'setGlobalRadius("' + radiusVal.value + '")'
-  showApi(cmd, '→ 全局圆角 = ' + radiusVal.value)
-  addLog('api', cmd)
+  addLog('api', cmd, '→ 全局圆角 = ' + radiusVal.value)
 }
 
 function doReset() {
@@ -259,7 +232,6 @@ function doReset() {
   c().innerHTML = ''
   c().addTrack('空轨道-A', 0, 24)
   c().addTrack('空轨道-B', 0, 24)
-  showApi('reset()', '→ 已重置为 2 条空轨道')
-  addLog('api', 'reset → 2 条空轨道')
+  addLog('api', 'reset()', '→ 已重置为 2 条空轨道')
 }
 </script>
