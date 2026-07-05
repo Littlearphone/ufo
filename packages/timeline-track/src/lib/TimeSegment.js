@@ -196,14 +196,40 @@ export class TimeSegment extends HTMLElement {
     })
   }
 
-  /** 检测段内文本是否被截断 */
+  /** 检测段内文本是否被截断（横向/纵向均检测） */
   _isTruncated() {
     const label = this.querySelector(':scope > .tls-bar > .tls-inner > .tls-label')
     const time  = this.querySelector(':scope > .tls-bar > .tls-inner > .tls-time')
+    // 水平方向：文本节点因段宽不足被截断（text-overflow: ellipsis）
     if (label && label.scrollWidth > label.clientWidth + 1) return true
     if (time  && time.scrollWidth  > time.clientWidth  + 1) return true
     const inner = this.querySelector(':scope > .tls-bar > .tls-inner')
-    if (inner && inner.scrollWidth > inner.clientWidth + 1) return true
+    if (!inner) return false
+    if (inner.scrollWidth > inner.clientWidth + 1) return true
+
+    // 动态计算文字内容所需最小高度，适配自定义样式覆盖（字体放大等）
+    // 注：inner.clientHeight 不受父容器 overflow:hidden 约束（可能等于内容自然高度），
+    //     需用 tls-bar.clientHeight（即段实际可见高度）作为参考
+    const children = inner.children
+    if (children.length) {
+      let contentH = 0
+      for (const child of children) {
+        const cs = getComputedStyle(child)
+        const fs = parseFloat(cs.fontSize) || 11
+        // lineHeight 可能为 'normal'（≈1.2），计算实际像素值
+        const lh = cs.lineHeight === 'normal' ? fs * 1.2 : parseFloat(cs.lineHeight) || fs * 1.2
+        contentH += lh
+      }
+      // flex-column 的 gap 也占用高度空间
+      const gap = getComputedStyle(inner).gap
+      if (gap && children.length > 1) {
+        const gp = parseFloat(gap) || 0
+        contentH += gp * (children.length - 1)
+      }
+      const bar = inner.parentElement
+      if (bar && contentH > bar.clientHeight + 1) return true
+    }
+
     return false
   }
 
