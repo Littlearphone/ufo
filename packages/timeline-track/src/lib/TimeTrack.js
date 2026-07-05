@@ -101,10 +101,29 @@ export class TimeTrack extends HTMLElement {
     // 检查段数上限
     if (!this._checkSegmentLimit()) return null
 
-    const seg = document.createElement('time-line-segment')
     const { start: ts, end: te } = this._effRange()
-    seg.start = clamp(start, ts, te)
-    seg.end   = clamp(end,   ts, te)
+    start = clamp(start, ts, te)
+    end   = clamp(end,   ts, te)
+
+    // 检查与已有段的时间重叠
+    const existing = this.sortedSegs()
+    for (const seg of existing) {
+      if (start < seg.end && end > seg.start) {
+        const fmt = this._formatter
+        const loc = resolveLocale(this)
+        const msg = loc.segmentOverlapError
+          .replace('{start}', fmt.format(start))
+          .replace('{end}', fmt.format(end))
+          .replace('{label}', seg.label || loc.unnamed)
+          .replace('{segStart}', fmt.format(seg.start))
+          .replace('{segEnd}', fmt.format(seg.end))
+        throw new Error('addSegment ' + msg)
+      }
+    }
+
+    const seg = document.createElement('time-line-segment')
+    seg.start = start
+    seg.end   = end
     if (opts.label)  seg.label  = opts.label
     if (opts.color)  seg.color  = opts.color
     if (opts.radius) seg.radius = opts.radius
@@ -570,8 +589,8 @@ export class TimeTrack extends HTMLElement {
     let rightBound = dim  // 末段或独立段：边界为轨道末端
     if (idx >= 0 && idx < segs.length - 1) {
       const nStart = ((segs[idx + 1].start - ts) / range) * dim
-      // 仅当下一段在视觉右侧时约束（防止已重叠段的错误放大）
-      if (nStart > p1) rightBound = nStart
+      // 仅当下一段完全在右侧（不重叠）时才约束，否则会错误地截断重叠段
+      if (nStart >= p2) rightBound = nStart
     }
 
     const avail = rightBound - p1     // 该段左边界到下一段左边界的像素距离
@@ -627,8 +646,14 @@ export class TimeTrack extends HTMLElement {
       const seg = segs[i]
       const p1 = lefts[i]
       const p2 = ((seg.end - ts) / range) * dim
-      const nextBound = i < segs.length - 1 ? lefts[i + 1] : dim
-      const avail = nextBound - p1
+
+      // 计算右边界：仅当下一段完全在当前段右侧（不重叠）时才用其起点约束
+      let rightBound = dim
+      if (i < segs.length - 1) {
+        const nStart = lefts[i + 1]
+        if (nStart >= p2) rightBound = nStart
+      }
+      const avail = rightBound - p1
       const minW = Math.min(6, avail)
       const segW = Math.min(Math.max(p2 - p1, minW), avail)
 

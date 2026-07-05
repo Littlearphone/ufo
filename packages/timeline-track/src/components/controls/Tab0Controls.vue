@@ -4,8 +4,6 @@
     <div class="ctrl-group">
       <div class="ctrl-header">
         📐 方向与轴
-        <span class="badge badge-info" id="t0_dirBadge">{{ dirLabel }}</span>
-        <span class="badge badge-muted" id="t0_axisBadge">{{ axisLabel }}</span>
       </div>
       <div class="ctrl-body">
         <div class="ctrl-row">
@@ -13,7 +11,7 @@
           <button @click="toggleAxis">{{ btnAxisText }}</button>
           <label v-show="isShared">
             <span class="ctrl-label">共享</span>
-            <span style="display:flex;align-items:center;gap:4px;flex:1">
+            <span style="display:flex;align-items:center;gap:4px;width:100%">
               <input type="text" v-model.number="sharedS" @input="setShared" style="flex:1;min-width:0">
               <span style="flex-shrink:0">~</span>
               <input type="text" v-model.number="sharedE" @input="setShared" style="flex:1;min-width:0">
@@ -128,8 +126,6 @@ const isShared = computed(() => {
   _attrRev.value
   return c() && c().axisMode === 'shared'
 })
-const dirLabel = computed(() => isVertical.value ? '纵向' : '横向')
-const axisLabel = computed(() => isShared.value ? '共享轴' : '独立轴')
 const btnDirText = computed(() => isVertical.value ? '切换为横向' : '切换为纵向')
 const btnAxisText = computed(() => isShared.value ? '切换为独立轴' : '切换为共享轴')
 const sharedS = computed({

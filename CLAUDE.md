@@ -149,6 +149,7 @@ pnpm -r run build:all
 | `confirm` | `loc-confirm` | `确定` | 按钮文字 |
 | `confirmDelete` | `loc-confirm-delete` | `确定删除` | 按钮文字 |
 | `confirmDeleteTitle` | `loc-confirm-delete-title` | `确认删除` | 删除确认弹窗标题 |
+| `segmentOverlapError` | `loc-segment-overlap-error` | `时间段重叠：新段 [{start}–{end}] 与已有段「{label}」[{segStart}–{segEnd}] 冲突` | addSegment 重叠时的异常消息，支持 `{start}`/`{end}`/`{label}`/`{segStart}`/`{segEnd}` 占位符 |
 
 ### 设计要点
 

@@ -39,9 +39,11 @@
       <div class="ctrl-header"><code style="font-size:10px;background:#e3f2fd;padding:0 5px">removeTrack</code> 删除与清理</div>
       <div class="ctrl-body">
         <div class="ctrl-row">
-          <select v-model="delTrackIdx" style="max-width:110px">
-            <option v-for="(t, i) in trackList" :key="i" :value="i">{{ t.label || '轨道 '+(i+1) }}</option>
-          </select>
+          <label><span class="ctrl-label">轨道</span>
+            <select v-model="delTrackIdx">
+              <option v-for="(t, i) in trackList" :key="i" :value="i">{{ t.label || '轨道 '+(i+1) }}</option>
+            </select>
+          </label>
           <button class="danger" @click="doDelTrack">删除</button>
           <button class="danger" @click="doClearSegs">清空所有段</button>
         </div>
@@ -67,7 +69,7 @@
 
     <!-- setGlobalRadius -->
     <div class="ctrl-group">
-      <div class="ctrl-header"><code style="font-size:10px;background:#e3f2fd;padding:0 5px">setGlobalRadius</code> 设置与重置</div>
+      <div class="ctrl-header"><code style="font-size:10px;background:#e3f2fd;padding:0 5px">setGlobalRadius</code> 设置</div>
       <div class="ctrl-body">
         <div class="ctrl-row">
           <label><span class="ctrl-label">圆角</span>
@@ -75,6 +77,15 @@
               <option v-for="r in radiusOpts" :key="r" :value="r">{{ r || '0' }}</option>
             </select>
           </label>
+        </div>
+      </div>
+    </div>
+
+    <!-- reset -->
+    <div class="ctrl-group">
+      <div class="ctrl-header">🔄 重置</div>
+      <div class="ctrl-body">
+        <div class="ctrl-row">
           <button @click="doReset">重置组件</button>
         </div>
       </div>
@@ -157,7 +168,21 @@ function doAddSeg() {
     addLog('api', 'addSegment 被拒', '⚠ 已达上限 ' + max + ' 段')
     return
   }
-  track.addSegment(start, end, { label, color })
+  try {
+    track.addSegment(start, end, { label, color })
+  } catch (e) {
+    addLog('api', 'addSegment 被拒', '⚠ ' + e.message)
+    return
+  }
+  // 自动偏移起始值以便下次追加
+  const dur = end - start
+  const tEnd = track.tEnd
+  let ns = Math.round((start + dur) * 100) / 100
+  let ne = Math.round((end + dur) * 100) / 100
+  if (ne > tEnd) { ns = track.tStart + dur; ne = Math.min(ns + dur, tEnd) }
+  segStart.value = String(ns)
+  segEnd.value = String(ne)
+  bumpAttr()
   const cmd = `addSegment(${start}, ${end}, { label: "${label}", color: "${color}" })`
   addLog('api', cmd, '→ 段已添加 于「' + track.label + '」')
 }
@@ -182,10 +207,17 @@ function doTestLimit() {
   const track = tracks[limitTrackIdx.value]
   if (!track) { return }
   const before = track.sortedSegs().length
-  const max = track.maxSegments
+  let max = track.maxSegments
+  // 未设上限时自动设一个（当前数量+2），让"追加段"能直接工作
+  if (max <= 0) {
+    max = before + 2
+    track.setAttribute('max-segments', String(max))
+    limitVal.value = max
+    addLog('api', 'max-segments 自动设为 ' + max)
+  }
   const seg = track.addSegment(0, 1, { label: '测试', color: '#e74c3c' })
   if (seg) {
-    addLog('api', 'addSegment(0,1) 测试上限', '→ 已添加（原 ' + before + ' → ' + track.sortedSegs().length + ' 段）')
+    addLog('api', 'addSegment(0,1) 测试上限', '→ 已添加（原 ' + before + ' → ' + track.sortedSegs().length + ' 段，上限 ' + max + '）')
   } else {
     addLog('api', 'addSegment(0,1) 测试上限', '⚠ 被拒绝（已达上限 ' + max + '）')
   }

@@ -47,6 +47,13 @@ export const DEFAULT_LOCALE = {
   confirm: '确定',
   confirmDelete: '确定删除',
   confirmDeleteTitle: '确认删除',
+
+  /* ---- 错误消息 ---- */
+  /**
+   * addSegment 时间段重叠错误模板
+   * 占位符：{start}{end}=新段时间，{label}=冲突段名称，{segStart}{segEnd}=冲突段时间
+   */
+  segmentOverlapError: '时间段重叠：新段 [{start}–{end}] 与已有段「{label}」[{segStart}–{segEnd}] 冲突',
 }
 
 /** locale key → 属性名映射 */

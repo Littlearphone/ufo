@@ -32,8 +32,8 @@
             <input type="number" v-model.number="maxSeg" min="0" max="999" title="0=无限制">
           </label>
           <label style="gap:4px">
-            <input type="checkbox" v-model="packed">
             <span>完全铺满（无间隙）</span>
+            <input type="checkbox" v-model="packed">
           </label>
         </div>
       </div>
