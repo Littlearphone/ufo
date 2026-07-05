@@ -106,7 +106,14 @@ const props = defineProps({
 })
 
 const c = () => props.container
-const trackList = computed(() => c() ? c().allTracks() : [])
+const trackList = computed(() => {
+  _attrRev.value // 追踪 DOM 变化
+  return c() ? c().allTracks() : []
+})
+
+// DOM 属性版本计数器：轨道/段增删时 +1，让依赖 DOM 的 computed 重新求值
+const _attrRev = ref(0)
+function bumpAttr() { _attrRev.value++ }
 
 const radiusOpts = ['0', '3px', '5px', '8px', '12px', '20px']
 const radiusVal = ref('0')
@@ -151,6 +158,7 @@ function doAddTrack() {
   const opts = { step }
   if (maxSegN > 0) opts.maxSegments = maxSegN
   c().addTrack(label, start, end, opts)
+  bumpAttr() // 通知 trackList 重新求值
   let extras = ''
   if (maxSegN > 0) extras = `, maxSegments: ${maxSegN}`
   const cmd = `addTrack("${label}", ${start}, ${end}, { step: ${step}${extras} })`
@@ -220,6 +228,7 @@ function doDelTrack() {
   if (!track) { showApi('removeTrack(...)', '请选中轨道'); return }
   const label = track.label
   c().removeTrack(track)
+  bumpAttr() // 通知 trackList 重新求值
   const cmd = 'removeTrack("' + label + '")'
   showApi(cmd, '→ 轨道 "' + label + '" 已删除')
   addLog('api', cmd)

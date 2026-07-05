@@ -124,7 +124,10 @@ function bumpAttr() { _attrRev.value++ }
 
 // ── 计算 ──
 const c = () => props.container
-const trackList = computed(() => c() ? c().allTracks() : [])
+const trackList = computed(() => {
+  _attrRev.value // 追踪 DOM 变化（新增/删除轨道后 bumpAttr 触发重算）
+  return c() ? c().allTracks() : []
+})
 const dir = computed(() => {
   _attrRev.value // 追踪版本变化
   if (!c()) return 'horizontal'
@@ -182,6 +185,7 @@ function addTrack() {
   const idx = c().allTracks().length + 1
   const t = c().addTrack('摄像头-' + String.fromCharCode(64 + idx) + ' (新增)', 0, 24, { step: 0.5 })
   selectedTrackIdx.value = c().allTracks().length - 1
+  bumpAttr() // 通知 trackList computed 重新求值
   addLog('track-add', t.label)
 }
 
@@ -210,6 +214,7 @@ function delTrack() {
   const track = tracks[selectedTrackIdx.value]
   if (!track) return
   c().removeTrack(track)
+  bumpAttr() // 通知 trackList computed 重新求值
   addLog('track-del', track.label)
   if (selectedTrackIdx.value >= c().allTracks().length) {
     selectedTrackIdx.value = c().allTracks().length - 1

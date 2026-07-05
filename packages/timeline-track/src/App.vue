@@ -192,7 +192,7 @@
 </template>
 
 <script setup>
-import { computed, nextTick, onMounted, ref } from 'vue'
+import { computed, nextTick, onMounted, onUnmounted, ref } from 'vue'
 import { TAB_DESCS, TAB_NAMES } from './composables/constants.js'
 import { addLog } from './stores/eventLog.js'
 import TabBar from './components/TabBar.vue'
@@ -214,6 +214,18 @@ const c2 = ref(null)
 const c3 = ref(null)
 const c4 = ref(null)
 const containers = computed(() => [c0.value, c1.value, c2.value, c3.value, c4.value])
+
+/** 版本计数器：每次切到 HTML 源码视图时 +1，迫使 currentHtmlCode 从真实 DOM 重新序列化 */
+const htmlRev = ref(0)
+
+// ── DOM 变化观察器（控制台修改时实时刷新 HTML 源码视图） ──
+let _domObserveRaf = null
+const _domObserver = new MutationObserver(() => {
+  // 只有当前正在看 HTML 源码时才触发刷新
+  if (demoView.value !== 'html') return
+  if (_domObserveRaf) cancelAnimationFrame(_domObserveRaf)
+  _domObserveRaf = requestAnimationFrame(() => { htmlRev.value++ })
+})
 
 // ── 各标签页内部轨道/段 HTML（不含容器外层） ──
 const TAB_INNER_HTML = [
@@ -345,29 +357,70 @@ for (let t = 0; t < trackN; t++) {
   null,  // Tab 4 — 纯模板渲染，无需 JS 生成
 ]
 
-// 从当前 DOM 读取容器标签的动态属性
-function buildContainerAttrs(idx) {
-  const c = containers.value[idx]
-  if (!c) return ''
-  const ATTRS = ['direction', 'axis-mode', 'shared-start', 'shared-end', 'label-h', 'label-v', 'tooltip-pos']
-  const parts = ATTRS
-    .map(a => { const v = c.getAttribute(a); return (v !== null && v !== '') ? `${a}="${v}"` : '' })
-    .filter(Boolean)
-  return `<time-line-container${parts.length ? ' ' + parts.join(' ') : ''}>`
+/**
+ * 将自定义元素序列化为格式化 HTML 字符串
+ * 仅序列化容器/轨道/段三层，跳过组件内部生成的非 custom element DOM
+ */
+const CUSTOM_TAGS = new Set(['time-line-container', 'time-line-track', 'time-line-segment'])
+const ATTR_ALLOW = {
+  'time-line-container': ['direction', 'axis-mode', 'shared-start', 'shared-end', 'label-h', 'label-v', 'tooltip-pos', 'type', 'unit'],
+  'time-line-track': ['label', 'start', 'end', 'step', 'max-segments'],
+  'time-line-segment': ['start', 'end', 'label', 'color', 'tooltip'],
 }
 
-/** 获取当前标签页的 HTML 源码（容器 + 内部轨道/段） */
+function serializeCustomElement(el, indent = 0) {
+  if (!el || el.nodeType !== 1) return ''
+  const tag = el.tagName.toLowerCase()
+  if (!CUSTOM_TAGS.has(tag)) return ''
+  const pad = '  '.repeat(indent)
+  const allowed = ATTR_ALLOW[tag] || []
+
+  // 收集白名单属性 + loc-* / data-* 属性
+  const attrParts = []
+  for (const attr of el.attributes) {
+    const n = attr.name
+    if (n.startsWith('loc-') || n.startsWith('data-') || allowed.includes(n)) {
+      attrParts.push(`${n}="${attr.value}"`)
+    }
+  }
+  const attrStr = attrParts.length ? ' ' + attrParts.join(' ') : ''
+
+  // 收集子自定义元素：
+  // - time-line-track 的子 segment 在 .tlt-seg-area 中（_render 重新组织了 DOM）
+  // - time-line-container 的子 track 是直接子元素
+  const children = []
+  if (tag === 'time-line-track') {
+    // 段被组件移到了 .tlt-seg-area 内，反序列化时恢复为直接子元素
+    const area = el.querySelector(':scope > .tlt-row > .tlt-body > .tlt-seg-area')
+    if (area) {
+      for (const child of area.children) {
+        if (CUSTOM_TAGS.has(child.tagName.toLowerCase())) {
+          children.push(serializeCustomElement(child, indent + 1))
+        }
+      }
+    }
+  } else {
+    for (const child of el.children) {
+      if (CUSTOM_TAGS.has(child.tagName.toLowerCase())) {
+        children.push(serializeCustomElement(child, indent + 1))
+      }
+    }
+  }
+
+  if (children.length) {
+    return `${pad}<${tag}${attrStr}>\n${children.join('\n')}\n${pad}</${tag}>`
+  }
+  return `${pad}<${tag}${attrStr}></${tag}>`
+}
+
+/** 获取当前标签页的 HTML 源码：Tab 0-3 从真实 DOM 序列化，Tab 4 使用模板字符串 */
 function getHtmlSource(idx) {
-  // Tab 4 的 inner HTML 已包含完整的 time-line-container 元素
-  if (idx === 4) {
-    return TAB_INNER_HTML[4]
-  }
-  if (idx === 1) {
-    return buildContainerAttrs(idx) + '\n  <!-- 内部轨道和段由 JavaScript 动态生成 -->\n</time-line-container>'
-  }
-  const inner = TAB_INNER_HTML[idx]
-  if (inner == null) return ''
-  return buildContainerAttrs(idx) + '\n' + inner + '\n</time-line-container>'
+  // Tab 4 的容器不受控制台影响，保持静态模板
+  if (idx === 4) return TAB_INNER_HTML[4]
+
+  const container = containers.value[idx]
+  if (!container) return ''
+  return serializeCustomElement(container)
 }
 
 /** 获取当前标签页的 JavaScript 源码，无则返回 null */
@@ -376,10 +429,11 @@ function getJsSource(idx) { return TAB_JS_SOURCE[idx] }
 /** 当前标签页是否有 JS 源码（控制 JS tab 显隐） */
 const hasJsSource = computed(() => getJsSource(activeTab.value) !== null)
 
-/** Prism 高亮后的 HTML 源码 */
-const currentHtmlCode = computed(() =>
-  Prism.highlight(getHtmlSource(activeTab.value), Prism.languages.html, 'html')
-)
+/** Prism 高亮后的 HTML 源码（追踪 htmlRev，切视图时从真实 DOM 重新序列化） */
+const currentHtmlCode = computed(() => {
+  void htmlRev.value  // 依赖追踪：htmlRev +1 时计算属性失效、从真实 DOM 重算
+  return Prism.highlight(getHtmlSource(activeTab.value), Prism.languages.html, 'html')
+})
 
 /** Prism 高亮后的 JS 源码 */
 const currentJsCode = computed(() => {
@@ -390,6 +444,8 @@ const currentJsCode = computed(() => {
 function switchDemoView(view) {
   demoView.value = view
   codeCopied.value = false
+  // 切到 HTML 视图时强制从真实 DOM 重新序列化，反映控制台修改
+  if (view === 'html') htmlRev.value++
 }
 
 function copyCode() {
@@ -434,11 +490,15 @@ function switchTab(idx) {
   })
 }
 
-// 初始化：设置默认圆角 & 注册全局事件监听
+// 初始化：设置默认圆角 & 注册全局事件监听 & 启动 DOM 观察
 onMounted(() => {
   nextTick(() => {
     containers.value.forEach(c => {
       if (c && c.setGlobalRadius) c.setGlobalRadius('0')
+    })
+    // 监听容器 DOM 变化（控制台修改实时同步到 HTML 源码视图）
+    containers.value.forEach(c => {
+      if (c) _domObserver.observe(c, { attributes: true, childList: true, subtree: true })
     })
   })
 
@@ -450,4 +510,7 @@ onMounted(() => {
   document.addEventListener('segment-limit-reached', e => addLog('limit', e.detail))
   document.addEventListener('track-deleted', e => addLog('track-deleted', e.detail))
 })
+
+// 清理 DOM 观察器
+onUnmounted(() => { _domObserver.disconnect() })
 </script>
