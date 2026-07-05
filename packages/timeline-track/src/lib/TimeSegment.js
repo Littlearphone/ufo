@@ -139,8 +139,9 @@ export class TimeSegment extends HTMLElement {
       const l = resolveLocale(this)
       const name = this.label || l.unnamed
       const segLabel = this.label || l.unnamed
+      const segRange = this._formatter.formatRange(this.start, this.end, 'axis')
       showContextMenu([
-        { type: 'header', label: '🔖 ' + segLabel + '  ' + this._formatter.formatRange(this.start, this.end, 'axis') },
+        { type: 'header', label: l.segmentMenuHeader.replace('{name}', segLabel).replace('{range}', segRange) },
         { label: l.modifyProps, action: () => showSegmentEditDialog(this) },
         { label: l.deleteBtnTitle, danger: true, action: () => {
           showDeleteConfirm(

@@ -127,6 +127,8 @@ pnpm -r run build:all
 | `unnamed` | `loc-unnamed` | `未命名` | 轨道/段无标签时的回退显示名 |
 | `invalidTime` | `loc-invalid-time` | `--:--` | 无效时间回退文字 |
 | `deleteBtnTitle` | `loc-delete-btn-title` | `删除` | 段上删除按钮的 title 提示 |
+| `trackMenuHeader` | `loc-track-menu-header` | `📋 {name}` | 轨道右键菜单标题模板，`{name}`=轨道名 |
+| `segmentMenuHeader` | `loc-segment-menu-header` | `🔖 {name}  {range}` | 段右键菜单标题模板，`{name}`=段名`{range}`=时间 |
 | `modifyProps` | `loc-modify-props` | `修改属性` | 右键菜单项 |
 | `deleteTrack` | `loc-delete-track` | `删除轨道` | 右键菜单项 |
 | `clearSegments` | `loc-clear-segments` | `清空时间段` | 右键菜单项 |

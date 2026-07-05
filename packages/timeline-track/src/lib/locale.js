@@ -19,6 +19,10 @@ export const DEFAULT_LOCALE = {
   deleteTrack: '删除轨道',
   /** 清空时间段菜单项 */
   clearSegments: '清空时间段',
+  /** 轨道菜单标题模板，{name}=轨道名 */
+  trackMenuHeader: '📋 {name}',
+  /** 段菜单标题模板，{name}=段名，{range}=时间范围 */
+  segmentMenuHeader: '🔖 {name}  {range}',
   /** 删除轨道确认模板，{name}=轨道名，{range}=时间范围 */
   confirmDeleteTrack: '确定要删除轨道「{name}」({range}) 吗？',
   /** 删除段确认模板 */

@@ -209,7 +209,7 @@ export class TimeTrack extends HTMLElement {
       const l = resolveLocale(this)
       const trackLabel = this.label || l.unnamed
       showContextMenu([
-        { type: 'header', label: '📋 ' + trackLabel },
+        { type: 'header', label: l.trackMenuHeader.replace('{name}', trackLabel) },
         { label: l.modifyProps, action: () => showTrackEditDialog(this) },
         { label: l.clearSegments, action: () => this.clearAllSegments() },
         { label: l.deleteTrack, danger: true, action: () => {
