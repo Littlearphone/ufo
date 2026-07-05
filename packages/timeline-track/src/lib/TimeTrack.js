@@ -7,6 +7,7 @@
 import { ensureCSS } from './css.js'
 import { clamp, esc, fmtTime, snap } from './utils.js'
 import { showContextMenu, showDeleteConfirm, showTrackEditDialog } from './contextmenu.js'
+import { resolveLocale } from './locale.js'
 
 export class TimeTrack extends HTMLElement {
   constructor() {
@@ -145,7 +146,11 @@ export class TimeTrack extends HTMLElement {
     if (!this._init) return
     if (name === 'label') {
       const el = this.querySelector(':scope > .tlt-row > .tlt-head > .tlt-head-label')
-      if (el) { el.textContent = this.label || '未命名'; el.title = this.label || '未命名' }
+      if (el) {
+        const loc = resolveLocale(this)
+        const txt = this.label || loc.unnamed
+        el.textContent = txt; el.title = txt
+      }
     } else {
       requestAnimationFrame(() => { this._drawGrid(); this._refreshPositions() })
     }
@@ -158,10 +163,12 @@ export class TimeTrack extends HTMLElement {
 
     const v = this.isVertical
     this.classList.toggle('vertical', v)
+    const loc = resolveLocale(this)
+    const labelTxt = this.label || loc.unnamed
     this.innerHTML =
       `<div class="tlt-row">
         <div class="tlt-head">
-          <span class="tlt-head-label" title="${esc(this.label) || '未命名'}">${esc(this.label) || '未命名'}</span>
+          <span class="tlt-head-label" title="${esc(labelTxt)}">${esc(labelTxt)}</span>
           <span class="tlt-head-range">${fmtTime(this.tStart, false)} – ${fmtTime(this.tEnd, false)}</span>
         </div>
         <div class="tlt-body">
@@ -188,14 +195,19 @@ export class TimeTrack extends HTMLElement {
     this.addEventListener('contextmenu', e => {
       if (this._creating) return              // 拖拽创建中不响应
       e.preventDefault()
-      const name = this.label || '未命名'
+      const l = resolveLocale(this)
+      const name = this.label || l.unnamed
       showContextMenu([
-        { label: '修改属性', action: () => showTrackEditDialog(this) },
+        { label: l.modifyProps, action: () => showTrackEditDialog(this) },
         { type: 'divider' },
-        { label: '删除轨道', danger: true, action: () => {
-          showDeleteConfirm(`确定要删除轨道「${name}」(${fmtTime(this.tStart)} – ${fmtTime(this.tEnd)}) 吗？`, () => {
-            this._deleteTrack()
-          })
+        { label: l.deleteTrack, danger: true, action: () => {
+          showDeleteConfirm(
+            l.confirmDeleteTrack
+              .replace('{name}', name)
+              .replace('{range}', fmtTime(this.tStart) + ' – ' + fmtTime(this.tEnd)),
+            () => { this._deleteTrack() },
+            this
+          )
         }}
       ], e.clientX, e.clientY)
     })
@@ -295,6 +307,16 @@ export class TimeTrack extends HTMLElement {
   _onLabelPosChange() {
     this._applyLabelPos()
     requestAnimationFrame(() => { this._drawGrid(); this._refreshPositions() })
+  }
+
+  /** 容器 locale 属性变更时的响应：刷新头部标签文字 */
+  _onLocaleChange() {
+    const el = this.querySelector(':scope > .tlt-row > .tlt-head > .tlt-head-label')
+    if (el) {
+      const loc = resolveLocale(this)
+      const txt = this.label || loc.unnamed
+      el.textContent = txt; el.title = txt
+    }
   }
 
   /* ---- 内部 DOM 快捷方法 ---- */

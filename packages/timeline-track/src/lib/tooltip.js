@@ -5,6 +5,7 @@
  */
 
 import { clamp, esc, fmtTime } from './utils.js'
+import { resolveLocale } from './locale.js'
 
 let _globalTip = null
 
@@ -44,8 +45,9 @@ export function showGlobalTip(seg) {
     }
   }
 
+  const loc = resolveLocale(seg)
   tip.innerHTML =
-    `<div class="tls-global-tip-label">${esc(seg.label) || '未命名'}</div>
+    `<div class="tls-global-tip-label">${esc(seg.label) || loc.unnamed}</div>
      <div class="tls-global-tip-time">${fmtTime(seg.start)} – ${fmtTime(seg.end)}</div>`
 
   // 重置样式和类

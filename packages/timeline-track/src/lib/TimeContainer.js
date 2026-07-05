@@ -6,6 +6,7 @@
 
 import { ensureCSS } from './css.js'
 import { fmtTime } from './utils.js'
+import { LOCALE_ATTRS, resolveLocale } from './locale.js'
 
 export class TimeContainer extends HTMLElement {
   constructor() {
@@ -24,11 +25,22 @@ export class TimeContainer extends HTMLElement {
   }
 
   static get observedAttributes() {
-    return ['direction', '方向', 'label-h', 'label-v', 'axis-mode', 'shared-start', 'shared-end', 'tooltip-pos', 'max-segments']
+    return [
+      'direction', '方向', 'label-h', 'label-v', 'axis-mode',
+      'shared-start', 'shared-end', 'tooltip-pos', 'max-segments',
+      ...LOCALE_ATTRS
+    ]
   }
 
   attributeChangedCallback(name, _ov, nv) {
     if (!this._init) return
+    // 本地化属性变更 → 通知所有子元素刷新文字
+    if (name.startsWith('loc-')) {
+      this.querySelectorAll('time-line-track, time-line-segment').forEach(el => {
+        if (el._onLocaleChange) el._onLocaleChange()
+      })
+      return
+    }
     if (name === 'tooltip-pos') return // 仅在鼠标悬停时读取
     if (name === 'label-h' || name === 'label-v') {
       this.querySelectorAll('time-line-track').forEach(t => {
@@ -65,6 +77,11 @@ export class TimeContainer extends HTMLElement {
   /* ---- 共享轴模式 ---- */
   get axisMode() { return this.getAttribute('axis-mode') || 'per-track' }
   set axisMode(v) { this.setAttribute('axis-mode', v) }
+
+  /** 解析此容器的 locale（子元素可直接调用） */
+  resolveLocale() {
+    return resolveLocale(this)
+  }
 
   get axisRulerActive() {
     return this.axisMode === 'shared'

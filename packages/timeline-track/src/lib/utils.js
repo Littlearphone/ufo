@@ -13,10 +13,11 @@ export const snap = (v, step) => step ? Math.round(v / step) * step : v
  * 将小时数格式化为 HH:MM 时间字符串
  * @param {number} th - 小时数（如 14.5 → "14:30"）
  * @param {boolean} [showMin] - 是否显示分钟，默认 true
+ * @param {string} [invalidStr] - 无效值的回退文字，默认 '--:--'
  * @returns {string}
  */
-export function fmtTime(th, showMin) {
-  if (th == null || isNaN(th)) return '--:--'
+export function fmtTime(th, showMin, invalidStr) {
+  if (th == null || isNaN(th)) return invalidStr || '--:--'
   const neg = th < 0
   if (neg) th = -th
   const h = Math.floor(th)

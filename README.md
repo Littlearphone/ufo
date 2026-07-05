@@ -118,4 +118,5 @@ ufo/
 - 所有用户可见文本支持中英文属性名（如 `direction` / `方向`）
 - CSS 变量以 `--tlc-`（Container）、`--tlt-`（Track）、`--tls-`（Segment）为前缀
 - 事件命名 kebab-case，统一冒泡到 `document`
+- UI 文字集中管理，通过 `loc-*` 属性可覆盖所有中文默认值（见 [CLAUDE.md](./CLAUDE.md#locale-配置系统)）
 - 新增组件时复制现有 `packages/*` 目录结构作为模板

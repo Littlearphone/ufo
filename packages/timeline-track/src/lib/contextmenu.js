@@ -5,6 +5,7 @@
  */
 
 import { esc } from './utils.js'
+import { resolveLocale } from './locale.js'
 
 /* ============================ CSS ============================ */
 
@@ -386,18 +387,19 @@ export function closeModal() {
  */
 export function showSegmentEditDialog(segment) {
   injectCSS()
+  const loc = resolveLocale(segment)
   const modal = _getModal()
   modal.innerHTML = `
-    <div class="tlc-modal-header">修改时间段属性</div>
+    <div class="tlc-modal-header">${esc(loc.segmentEditTitle)}</div>
     <div class="tlc-modal-body">
-      <label><span>标签</span><input name="label" type="text" value="${esc(segment.label)}"></label>
-      <label><span>开始时间</span><input name="start" type="number" step="0.1" value="${segment.start}"></label>
-      <label><span>结束时间</span><input name="end" type="number" step="0.1" value="${segment.end}"></label>
-      <label><span>颜色</span><input name="color" type="color" value="${segment.color}"></label>
+      <label><span>${esc(loc.labelField)}</span><input name="label" type="text" value="${esc(segment.label)}"></label>
+      <label><span>${esc(loc.startTime)}</span><input name="start" type="number" step="0.1" value="${segment.start}"></label>
+      <label><span>${esc(loc.endTime)}</span><input name="end" type="number" step="0.1" value="${segment.end}"></label>
+      <label><span>${esc(loc.color)}</span><input name="color" type="color" value="${segment.color}"></label>
     </div>
     <div class="tlc-modal-footer">
-      <button class="tlc-btn" data-action="cancel">取消</button>
-      <button class="tlc-btn tlc-btn-primary" data-action="confirm">确定</button>
+      <button class="tlc-btn" data-action="cancel">${esc(loc.cancel)}</button>
+      <button class="tlc-btn tlc-btn-primary" data-action="confirm">${esc(loc.confirm)}</button>
     </div>`
 
   _showModal()
@@ -431,19 +433,20 @@ export function showSegmentEditDialog(segment) {
  */
 export function showTrackEditDialog(track) {
   injectCSS()
+  const loc = resolveLocale(track)
   const modal = _getModal()
   modal.innerHTML = `
-    <div class="tlc-modal-header">修改轨道属性</div>
+    <div class="tlc-modal-header">${esc(loc.trackEditTitle)}</div>
     <div class="tlc-modal-body">
-      <label><span>名称</span><input name="label" type="text" value="${esc(track.label)}"></label>
-      <label><span>开始时间</span><input name="start" type="number" step="0.1" value="${track.tStart}"></label>
-      <label><span>结束时间</span><input name="end" type="number" step="0.1" value="${track.tEnd}"></label>
-      <label><span>步长</span><input name="step" type="number" step="0.01" min="0" value="${track.step}"></label>
-      <label><span>最大段数</span><input name="maxSegments" type="number" step="1" min="0" placeholder="0=无限制" value="${track.maxSegments || ''}"></label>
+      <label><span>${esc(loc.name)}</span><input name="label" type="text" value="${esc(track.label)}"></label>
+      <label><span>${esc(loc.startTime)}</span><input name="start" type="number" step="0.1" value="${track.tStart}"></label>
+      <label><span>${esc(loc.endTime)}</span><input name="end" type="number" step="0.1" value="${track.tEnd}"></label>
+      <label><span>${esc(loc.step)}</span><input name="step" type="number" step="0.01" min="0" value="${track.step}"></label>
+      <label><span>${esc(loc.maxSegmentsField)}</span><input name="maxSegments" type="number" step="1" min="0" placeholder="${esc(loc.zeroUnlimited)}" value="${track.maxSegments || ''}"></label>
     </div>
     <div class="tlc-modal-footer">
-      <button class="tlc-btn" data-action="cancel">取消</button>
-      <button class="tlc-btn tlc-btn-primary" data-action="confirm">确定</button>
+      <button class="tlc-btn" data-action="cancel">${esc(loc.cancel)}</button>
+      <button class="tlc-btn tlc-btn-primary" data-action="confirm">${esc(loc.confirm)}</button>
     </div>`
 
   _showModal()
@@ -484,18 +487,20 @@ export function showTrackEditDialog(track) {
  * 显示删除确认框
  * @param {string} message - 确认提示文字
  * @param {Function} [onConfirm] - 确认后的回调
+ * @param {Element} [refEl] - 参考元素（用于解析 locale，可选）
  */
-export function showDeleteConfirm(message, onConfirm) {
+export function showDeleteConfirm(message, onConfirm, refEl) {
   injectCSS()
+  const loc = resolveLocale(refEl)
   const modal = _getModal()
   modal.innerHTML = `
-    <div class="tlc-modal-header">确认删除</div>
+    <div class="tlc-modal-header">${esc(loc.confirmDeleteTitle)}</div>
     <div class="tlc-modal-body">
       <p>${esc(message)}</p>
     </div>
     <div class="tlc-modal-footer">
-      <button class="tlc-btn" data-action="cancel">取消</button>
-      <button class="tlc-btn tlc-btn-danger" data-action="confirm">确定删除</button>
+      <button class="tlc-btn" data-action="cancel">${esc(loc.cancel)}</button>
+      <button class="tlc-btn tlc-btn-danger" data-action="confirm">${esc(loc.confirmDelete)}</button>
     </div>`
 
   _showModal()

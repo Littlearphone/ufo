@@ -7,6 +7,7 @@
 import { clamp, esc, fmtTime, snap } from './utils.js'
 import { hideGlobalTip, showGlobalTip } from './tooltip.js'
 import { showContextMenu, showDeleteConfirm, showSegmentEditDialog } from './contextmenu.js'
+import { resolveLocale } from './locale.js'
 
 export class TimeSegment extends HTMLElement {
   constructor() {
@@ -77,6 +78,7 @@ export class TimeSegment extends HTMLElement {
     const darker = this._darken(col, 0.18)
     const c = this.closest('time-line-container')
     const r = (c && c._globalRadius != null) ? c._globalRadius : '0'
+    const loc = resolveLocale(this)
     this.innerHTML =
       `<div class="tls-hdl tls-hdl-left" data-role="hdl-left">
         <div class="tls-hdl-bar"></div>
@@ -90,7 +92,7 @@ export class TimeSegment extends HTMLElement {
           <span class="tls-time">${fmtTime(this.start)} – ${fmtTime(this.end)}</span>
         </div>
       </div>
-      <button class="tls-del" data-role="del" title="删除">&times;</button>`
+      <button class="tls-del" data-role="del" title="${esc(loc.deleteBtnTitle)}">&times;</button>`
   }
 
   _bind() {
@@ -127,14 +129,18 @@ export class TimeSegment extends HTMLElement {
       if (e.target.closest('[data-role="del"]')) return // 删除按钮上不响应
       e.preventDefault()
       e.stopPropagation()                       // 阻止冒泡到轨道
-      const name = this.label || '未命名'
+      const l = resolveLocale(this)
+      const name = this.label || l.unnamed
       showContextMenu([
-        { label: '修改属性', action: () => showSegmentEditDialog(this) },
+        { label: l.modifyProps, action: () => showSegmentEditDialog(this) },
         { type: 'divider' },
-        { label: '删除', danger: true, action: () => {
+        { label: l.deleteBtnTitle, danger: true, action: () => {
           showDeleteConfirm(
-            `确定要删除时间段「${name}」(${fmtTime(this.start)} – ${fmtTime(this.end)}) 吗？`,
-            () => this._deleteSegment()
+            l.confirmDeleteSegment
+              .replace('{name}', name)
+              .replace('{range}', fmtTime(this.start) + ' – ' + fmtTime(this.end)),
+            () => this._deleteSegment(),
+            this
           )
         }}
       ], e.clientX, e.clientY)
@@ -152,6 +158,11 @@ export class TimeSegment extends HTMLElement {
 
   _hideTooltip() {
     hideGlobalTip()
+  }
+
+  /** 容器 locale 属性变更时刷新文字相关 DOM */
+  _onLocaleChange() {
+    this._buildDOM()
   }
 
   /** 检测段内文本是否被截断 */
