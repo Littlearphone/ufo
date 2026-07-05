@@ -152,3 +152,11 @@ pnpm -r run build:all
 - 模板字符串（`confirmDeleteTrack`/`confirmDeleteSegment`）使用 `{name}` 和 `{range}` 占位符
 - 属性设置在 `time-line-container` 上，通过 `resolveLocale(el)` 函数向上查找容器并合并覆盖
 - 运行时变更 `loc-*` 属性会触发子元素自动刷新文字（`_onLocaleChange()`）
+
+## 设计文档
+
+重要架构变更方案在组件包根目录的 `DESIGN.md` 中记录。当前活跃方案：
+
+| 组件 | 文档 | 说明 |
+|---|---|---|
+| `timeline-track` | [`DESIGN.md`](packages/timeline-track/DESIGN.md) | 通用范围标尺抽象方案 —— 从时间写死架构抽象为可插拔的 ValueFormatter 系统，支持 `type="time"` / `type="number"` 和多种 unit |
