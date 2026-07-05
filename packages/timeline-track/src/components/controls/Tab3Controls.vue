@@ -125,8 +125,8 @@ const tipAlign = ref('center')
 const dir = computed(() => {
   _attrRev.value
   if (!c()) return 'horizontal'
-  const d = c().getAttribute('direction') || c().getAttribute('方向') || ''
-  return (d === 'vertical' || d === '纵向') ? 'vertical' : 'horizontal'
+  const d = c().getAttribute('direction') || ''
+  return d === 'vertical' ? 'vertical' : 'horizontal'
 })
 const isVertical = computed(() => dir.value === 'vertical')
 const isShared = computed(() => {

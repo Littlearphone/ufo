@@ -22,11 +22,10 @@ export const CSS = /* css */ `
     font-size: 13px;
     color: #333;
   }
-  time-line-container[方向="vertical"],
   time-line-container[direction="vertical"] {
     flex-direction: row;
   }
-  time-line-container:not([direction="vertical"]):not([方向="vertical"]) {
+  time-line-container:not([direction="vertical"]) {
     flex-direction: column;
   }
 
@@ -225,6 +224,7 @@ export const CSS = /* css */ `
   time-line-segment:hover .tls-del { opacity: 1; }
   time-line-segment.dragging .tls-del,
   time-line-segment.resizing .tls-del { opacity: 0; }
+  time-line-segment.tls-del-hidden .tls-del { display: none; }
 
   .tls-global-tip {
     position: fixed;
@@ -358,7 +358,6 @@ export const CSS = /* css */ `
     width: 100%;
     height: 100%;
   }
-  time-line-container[方向="vertical"] .tlc-axis-ruler,
   time-line-container[direction="vertical"] .tlc-axis-ruler {
     top: auto;
     left: 0;
@@ -366,7 +365,6 @@ export const CSS = /* css */ `
     width: 44px;
     min-width: 44px;
   }
-  time-line-container[方向="vertical"] .tlc-axis-ruler .tlc-axis-spacer,
   time-line-container[direction="vertical"] .tlc-axis-ruler .tlc-axis-spacer {
     width: auto;
     min-width: auto;
@@ -375,17 +373,14 @@ export const CSS = /* css */ `
     padding: 0 4px;
     border-bottom: 1px solid #e0e3e8;
   }
-  time-line-container[方向="vertical"] .tlc-axis-ruler .tlc-axis-range,
   time-line-container[direction="vertical"] .tlc-axis-ruler .tlc-axis-range {
     display: none;
   }
-  time-line-container[方向="vertical"] .tlc-axis-ruler .tlc-axis-body,
   time-line-container[direction="vertical"] .tlc-axis-ruler .tlc-axis-body {
     height: auto;
     min-height: 0;
     flex: 1;
   }
-  time-line-container[方向="vertical"] .tlc-axis-ruler .tlc-axis-canvas,
   time-line-container[direction="vertical"] .tlc-axis-ruler .tlc-axis-canvas {
     width: 100%;
     height: 100%;

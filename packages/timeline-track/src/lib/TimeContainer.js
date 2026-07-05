@@ -28,7 +28,7 @@ export class TimeContainer extends HTMLElement {
 
   static get observedAttributes() {
     return [
-      'direction', '方向', 'label-h', 'label-v', 'axis-mode',
+      'direction', 'label-h', 'label-v', 'axis-mode',
       'shared-start', 'shared-end', 'tooltip-pos', 'max-segments',
       'type', 'unit',
       ...LOCALE_ATTRS
@@ -66,8 +66,8 @@ export class TimeContainer extends HTMLElement {
     }
   }
 
-  get direction() { return this.getAttribute('direction') || this.getAttribute('方向') || 'horizontal' }
-  set direction(v) { this.setAttribute('direction', v); this.setAttribute('方向', v) }
+  get direction() { return this.getAttribute('direction') || 'horizontal' }
+  set direction(v) { this.setAttribute('direction', v) }
 
   /** 值模式：'time' | 'number' */
   get type() { return this.getAttribute('type') || 'time' }
@@ -198,7 +198,7 @@ export class TimeContainer extends HTMLElement {
   _syncAxisRuler() {
     if (this.axisRulerActive) {
       // 轴尺不存在、被 innerHTML 等操作移出 DOM、或方向变更时重新创建
-      const isVertical = this.direction === 'vertical' || this.direction === '纵向'
+      const isVertical = this.direction === 'vertical'
       const staleDir = this._axisRuler && this._axisRuler.classList.contains('vertical') !== isVertical
       if (!this._axisRuler || !this._axisRuler.isConnected || staleDir) {
         this._cleanupRuler()
@@ -219,7 +219,7 @@ export class TimeContainer extends HTMLElement {
   _createAxisRuler() {
     this._axisRuler = document.createElement('div')
     this._axisRuler.className = 'tlc-axis-ruler'
-    const isHorizontal = this.direction !== 'vertical' && this.direction !== '纵向'
+    const isHorizontal = this.direction !== 'vertical'
     if (!isHorizontal) this._axisRuler.classList.add('vertical')
     this._axisRuler.innerHTML =
       '<div class="tlc-axis-spacer"><span class="tlc-axis-range"></span></div>' +
@@ -238,7 +238,7 @@ export class TimeContainer extends HTMLElement {
     if (!ruler) return
 
     const fmt = this.getFormatter()
-    const isHorizontal = this.direction !== 'vertical' && this.direction !== '纵向'
+    const isHorizontal = this.direction !== 'vertical'
     const rangeEl = ruler.querySelector('.tlc-axis-range')
     if (rangeEl) rangeEl.textContent = fmt.formatRange(this.sharedStart, this.sharedEnd, 'axis')
 
@@ -333,7 +333,7 @@ export class TimeContainer extends HTMLElement {
 
   /* ---- 内部 ---- */
   _applyDir() {
-    const v = this.direction === 'vertical' || this.direction === '纵向'
+    const v = this.direction === 'vertical'
     this.style.flexDirection = v ? 'row' : 'column'
     this.style.overflow = 'auto'
   }

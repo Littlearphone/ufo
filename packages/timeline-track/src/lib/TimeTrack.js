@@ -53,8 +53,8 @@ export class TimeTrack extends HTMLElement {
   get isVertical() {
     const c = this.closest('time-line-container')
     if (!c) return false
-    const d = c.getAttribute('direction') || c.getAttribute('方向') || ''
-    return d === 'vertical' || d === '纵向'
+    const d = c.getAttribute('direction') || ''
+    return d === 'vertical'
   }
 
   /** 从容器获取 Formatter（找不到时用默认 TimeFormatter） */
@@ -594,6 +594,9 @@ export class TimeTrack extends HTMLElement {
       seg.style.height = ''
       seg.style.right  = ''
     }
+
+    // 太窄的段自动隐藏 × 删除按钮（右键菜单仍可用）
+    seg.classList.toggle('tls-del-hidden', segW < 28)
   }
 
   /**
@@ -638,6 +641,9 @@ export class TimeTrack extends HTMLElement {
         seg.style.height = ''
         seg.style.right  = ''
       }
+
+      // 太窄的段自动隐藏 × 删除按钮（右键菜单仍可用）
+      seg.classList.toggle('tls-del-hidden', segW < 28)
     }
   }
 
