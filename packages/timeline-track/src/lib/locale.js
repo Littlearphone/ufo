@@ -48,12 +48,39 @@ export const DEFAULT_LOCALE = {
   confirmDelete: '确定删除',
   confirmDeleteTitle: '确认删除',
 
+  /* ---- 时间单位 --- */
+  hourUnit: '时',
+  minuteUnit: '分',
+  secondUnit: '秒',
+
+  /* ---- 步进提示 ---- */
+  stepHint: '步进 {step}（点击增减）',
+
+  /* ---- 校验消息 ---- */
+  invalidValue: '无效的值',
+  startMustBeBeforeEnd: '开始必须早于结束',
+  /**
+   * 重叠提示（显示在字段下方）
+   * 占位符：{label}=冲突段名称
+   */
+  overlapHint: '与「{label}」重叠',
+
   /* ---- 错误消息 ---- */
   /**
    * addSegment 时间段重叠错误模板
    * 占位符：{start}{end}=新段时间，{label}=冲突段名称，{segStart}{segEnd}=冲突段时间
    */
   segmentOverlapError: '时间段重叠：新段 [{start}–{end}] 与已有段「{label}」[{segStart}–{segEnd}] 冲突',
+}
+
+/**
+ * 格式化 locale 模板字符串，替换 {key} 占位符
+ * @param {string} tpl
+ * @param {object} params
+ * @returns {string}
+ */
+export function formatLocale(tpl, params) {
+  return tpl.replace(/\{(\w+)\}/g, (_, k) => params[k] != null ? params[k] : `{${k}}`)
 }
 
 /** locale key → 属性名映射 */

@@ -215,8 +215,9 @@ export class TimeFormatter extends ValueFormatter {
   }
 
   _doFormat(val, context) {
-    // tooltip / editor 含秒，axis / segment 仅 HH:MM
-    return _fmtHours(this._toHours(val), context === 'tooltip' || context === 'editor')
+    // 秒级精度模式下 tooltip/editor 才含秒，axis/segment 和 hour/minute 均仅 HH:MM
+    const showSec = this._unit === 'second' && (context === 'tooltip' || context === 'editor')
+    return _fmtHours(this._toHours(val), showSec)
   }
 
   _doNiceStep(raw) {
@@ -279,6 +280,11 @@ export class NumberFormatter extends ValueFormatter {
   }
 
   _doFormat(val, context) {
+    // 编辑器模式：返回纯数值（不含单位），单位由 suffix 显示
+    if (context === 'editor') {
+      const formatted = parseFloat(val.toFixed(4)).toString()
+      return formatted
+    }
     // 智能小数：去除尾部多余的零
     const abs = Math.abs(val)
     let decimals = 0
