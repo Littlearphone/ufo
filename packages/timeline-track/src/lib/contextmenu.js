@@ -4,7 +4,7 @@
  * @module contextmenu
  */
 
-import { esc } from './utils.js'
+import { h } from './utils.js'
 import { formatLocale, resolveLocale } from './locale.js'
 
 /* ============================ CSS（Vite 库模式自动内联）============================ */
@@ -45,18 +45,20 @@ export function showContextMenu(items, x, y) {
   }
 
   // 渲染菜单项
-  let headerHtml = ''
-  _menuEl.innerHTML = items.map((item, i) => {
-    if (item.type === 'divider') return '<div class="tlc-context-divider"></div>'
-    if (item.type === 'header') {
-      headerHtml = `<div class="tlc-context-header">${esc(item.label)}</div>`
-      return null
+  _menuEl.innerHTML = ''
+  const menuChildren = []
+  items.forEach((item, i) => {
+    if (item.type === 'divider') {
+      menuChildren.push(h('div', { class: 'tlc-context-divider' }))
+    } else if (item.type === 'header') {
+      menuChildren.push(h('div', { class: 'tlc-context-header' }, item.label))
+    } else {
+      const cls = ['tlc-context-item']
+      if (item.danger) cls.push('tlc-context-item-danger')
+      menuChildren.push(h('div', { class: cls, 'data-idx': String(i) }, item.label))
     }
-    const cls = ['tlc-context-item']
-    if (item.danger) cls.push('tlc-context-item-danger')
-    return `<div class="${cls.join(' ')}" data-idx="${i}">${esc(item.label)}</div>`
-  }).filter(Boolean).join('')
-  if (headerHtml) _menuEl.innerHTML = headerHtml + _menuEl.innerHTML
+  })
+  _menuEl.append(...menuChildren)
 
   // 菜单项点击处理
   _menuEl.addEventListener('click', (e) => {
@@ -188,18 +190,18 @@ const PRESET_COLORS = [
 
 /**
  * 渲染独占一行的表单字段
- * @param {string} labelText - 已转义
- * @param {string} controlHtml
- * @param {string} [hint] - 已转义
- * @returns {string}
+ * @param {string} labelText
+ * @param {Node} control - DOM 元素
+ * @param {string} [hint] - 提示文字
+ * @returns {HTMLElement}
  */
-function _renderField(labelText, controlHtml, hint) {
-  return `
-    <div class="tlc-field">
-      <label class="tlc-field-label">${labelText}</label>
-      ${controlHtml}
-      ${hint ? `<span class="tlc-field-hint">${hint}</span>` : ''}
-    </div>`
+function _renderField(labelText, control, hint) {
+  const children = [
+    h('label', { class: 'tlc-field-label' }, labelText),
+    control,
+  ]
+  if (hint) children.push(h('span', { class: 'tlc-field-hint' }, hint))
+  return h('div', { class: 'tlc-field' }, children)
 }
 
 /**
@@ -215,18 +217,17 @@ function _isTimeFormatter(fmt) {
  * 渲染颜色选择器 + 预设色板
  * @param {string} name
  * @param {string} currentColor
- * @returns {string}
+ * @returns {HTMLElement}
  */
 function _renderColorPicker(name, currentColor) {
-  return `
-    <div class="tlc-color-control">
-      <div class="tlc-color-presets">
-        ${PRESET_COLORS.map(c =>
-          `<button type="button" class="tlc-color-swatch" data-color="${c}" style="background:${c}" tabindex="-1"></button>`
-        ).join('')}
-      </div>
-      <input name="${name}" type="color" value="${currentColor}">
-    </div>`
+  return h('div', { class: 'tlc-color-control' }, [
+    h('div', { class: 'tlc-color-presets' },
+      PRESET_COLORS.map(c =>
+        h('button', { type: 'button', class: 'tlc-color-swatch', 'data-color': c, style: `background:${c}`, tabindex: '-1' })
+      )
+    ),
+    h('input', { name, type: 'color', value: currentColor }),
+  ])
 }
 
 /**
@@ -235,7 +236,7 @@ function _renderColorPicker(name, currentColor) {
  * @param {number} value
  * @param {string} name
  * @param {object} loc - locale 对象
- * @returns {string}
+ * @returns {HTMLElement}
  */
 function _renderTimeControl(fmt, value, name, loc) {
   const formatted = fmt.format(value, 'editor')
@@ -243,28 +244,30 @@ function _renderTimeControl(fmt, value, name, loc) {
   const labels = { h: loc.hourUnit, m: loc.minuteUnit, s: loc.secondUnit }
 
   /** 渲染单列：带 suffix 的输入框 + 独立步进按钮 */
-  const _col = (partVal, partKey) => `
-    <div class="tlc-tf-col" data-part="${partKey}">
-      <input type="text" inputmode="numeric" class="tlc-tf-input" name="${name}_${partKey}" value="${partVal}" data-part="${partKey}" maxlength="${partKey === 'h' ? 4 : 2}" autocomplete="off">
-      <span class="tlc-tf-suffix">${esc(labels[partKey])}</span>
-      <div class="tlc-tf-steps">
-        <button type="button" class="tlc-tf-step up" tabindex="-1">▲</button>
-        <button type="button" class="tlc-tf-step down" tabindex="-1">▼</button>
-      </div>
-    </div>`
+  const _col = (partVal, partKey) =>
+    h('div', { class: 'tlc-tf-col', 'data-part': partKey }, [
+      h('input', { type: 'text', inputmode: 'numeric', class: 'tlc-tf-input', name: `${name}_${partKey}`, value: partVal, 'data-part': partKey, maxlength: partKey === 'h' ? '4' : '2', autocomplete: 'off' }),
+      h('span', { class: 'tlc-tf-suffix' }, labels[partKey]),
+      h('div', { class: 'tlc-tf-steps' }, [
+        h('button', { type: 'button', class: 'tlc-tf-step up', tabindex: '-1' }, '▲'),
+        h('button', { type: 'button', class: 'tlc-tf-step down', tabindex: '-1' }, '▼'),
+      ]),
+    ])
 
-  return `
-    <div class="tlc-time-control" data-name="${name}">
-      <div class="tlc-tf-row">
-        ${_col(parts[0], 'h')}
-        <span class="tlc-tf-colon">:</span>
-        ${_col(parts[1], 'm')}
-        ${parts.length === 3 ? `
-        <span class="tlc-tf-colon">:</span>
-        ${_col(parts[2], 's')}` : ''}
-      </div>
-      <div class="tlc-field-error" id="${name}_error"></div>
-    </div>`
+  const rowChildren = [
+    _col(parts[0], 'h'),
+    h('span', { class: 'tlc-tf-colon' }, ':'),
+    _col(parts[1], 'm'),
+  ]
+  if (parts.length === 3) {
+    rowChildren.push(h('span', { class: 'tlc-tf-colon' }, ':'))
+    rowChildren.push(_col(parts[2], 's'))
+  }
+
+  return h('div', { class: 'tlc-time-control', 'data-name': name }, [
+    h('div', { class: 'tlc-tf-row' }, rowChildren),
+    h('div', { class: 'tlc-field-error', id: `${name}_error` }),
+  ])
 }
 
 /**
@@ -272,25 +275,24 @@ function _renderTimeControl(fmt, value, name, loc) {
  * @param {import('./formatter.js').ValueFormatter} fmt
  * @param {number} value
  * @param {string} name
- * @returns {string}
+ * @returns {HTMLElement}
  */
 function _renderNumberControl(fmt, value, name) {
   const formatted = fmt.format(value, 'editor')
   const unit = fmt.unit
-  return `
-    <div class="tlc-number-control" data-name="${name}">
-      <div class="tlc-tf-row">
-        <div class="tlc-tf-col">
-          <input type="text" inputmode="decimal" class="tlc-field-input" name="${name}" value="${esc(formatted)}" autocomplete="off">
-          ${unit ? `<span class="tlc-tf-suffix">${esc(unit)}</span>` : ''}
-        </div>
-        <div class="tlc-tf-steps">
-          <button type="button" class="tlc-tf-step up" tabindex="-1">▲</button>
-          <button type="button" class="tlc-tf-step down" tabindex="-1">▼</button>
-        </div>
-      </div>
-      <div class="tlc-field-error" id="${name}_error"></div>
-    </div>`
+  return h('div', { class: 'tlc-number-control', 'data-name': name }, [
+    h('div', { class: 'tlc-tf-row' }, [
+      h('div', { class: 'tlc-tf-col' }, [
+        h('input', { type: 'text', inputmode: 'decimal', class: 'tlc-field-input', name, value: formatted, autocomplete: 'off' }),
+        unit ? h('span', { class: 'tlc-tf-suffix' }, unit) : null,
+      ]),
+      h('div', { class: 'tlc-tf-steps' }, [
+        h('button', { type: 'button', class: 'tlc-tf-step up', tabindex: '-1' }, '▲'),
+        h('button', { type: 'button', class: 'tlc-tf-step down', tabindex: '-1' }, '▼'),
+      ]),
+    ]),
+    h('div', { class: 'tlc-field-error', id: `${name}_error` }),
+  ])
 }
 
 /**
@@ -368,8 +370,8 @@ function _formatStepHint(fmt, step, loc) {
   // 时间模式每列步进 1，无需额外提示
   if (_isTimeFormatter(fmt)) return ''
   // 数值模式：使用 locale 模板（限制小数位，避免浮点位长）
-  const stepStr = esc(parseFloat(step.toFixed(4)).toString())
-  return esc(formatLocale(loc.stepHint, { step: stepStr }))
+  const stepStr = parseFloat(step.toFixed(4)).toString()
+  return formatLocale(loc.stepHint, { step: stepStr })
 }
 
 function _setupLongPress(el, onStep) {
@@ -623,6 +625,125 @@ function _initFormControls(modal, fmt) {
   })
 }
 
+/* ============================ SHARED DIALOG HELPERS ============================ */
+
+/**
+ * 解析步进值
+ * @param {import('./TimeTrack.js').TimeTrack|null} track
+ * @param {boolean} isTime
+ * @returns {number}
+ */
+function _resolveStep(track, isTime) {
+  let step = 0
+  if (track) {
+    const s = track.step
+    if (s && s > 0) step = s
+  }
+  if (!step) {
+    step = isTime
+      ? Math.max((track ? track.tEnd - track.tStart : 24) / 24, 0.5)
+      : 1
+  }
+  return step
+}
+
+/**
+ * 将范围/步进值写入控件的 dataset
+ * @param {HTMLElement} modal
+ * @param {number} tStart
+ * @param {number} tEnd
+ * @param {number} step
+ */
+function _setupRangeDataset(modal, tStart, tEnd, step) {
+  const startCtls = modal.querySelectorAll('.tlc-time-control[data-name="start"], .tlc-number-control[data-name="start"]')
+  const endCtls = modal.querySelectorAll('.tlc-time-control[data-name="end"], .tlc-number-control[data-name="end"]')
+  ;[startCtls, endCtls].forEach(ctls => {
+    ctls.forEach(el => {
+      el.dataset.min = String(tStart)
+      el.dataset.max = String(tEnd)
+      if (el.classList.contains('tlc-number-control')) el.dataset.step = String(step)
+    })
+  })
+}
+
+/**
+ * 从 modal 中读取 start/end 值
+ * @param {HTMLElement} modal
+ * @param {import('./formatter.js').ValueFormatter} fmt
+ * @param {boolean} isTime
+ * @returns {{start:number, end:number}}
+ */
+function _readTimeValues(modal, fmt, isTime) {
+  let start, end
+  if (isTime) {
+    start = fmt.parse(_readTimeFields(modal.querySelector('[data-name="start"]')))
+    end   = fmt.parse(_readTimeFields(modal.querySelector('[data-name="end"]')))
+  } else {
+    const sv = modal.querySelector('input[name="start"]')
+    const ev = modal.querySelector('input[name="end"]')
+    start = sv ? fmt.parse(sv.value) : NaN
+    end   = ev ? fmt.parse(ev.value) : NaN
+  }
+  return { start, end }
+}
+
+/**
+ * 校验时间范围（start < end），显示错误
+ * @param {number} start
+ * @param {number} end
+ * @param {object} loc
+ * @returns {boolean} true=有效
+ */
+function _validateTimeRange(start, end, loc) {
+  let valid = true
+  if (isNaN(start) || isNaN(end)) {
+    _showError('start', loc.invalidValue)
+    _showError('end', loc.invalidValue)
+    valid = false
+  } else if (start >= end) {
+    _showError('start', loc.startMustBeBeforeEnd)
+    _showError('end', loc.startMustBeBeforeEnd)
+    valid = false
+  }
+  return valid
+}
+
+/**
+ * 滚动到第一个错误字段
+ * @param {HTMLElement} modal
+ */
+function _scrollToFirstError(modal) {
+  const firstErr = modal.querySelector('.tlc-input-error')
+  if (firstErr) firstErr.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
+}
+
+/**
+ * 渲染编辑弹窗骨架、显示模态框、初始化控件、绑定取消按钮
+ * (消除两个对话框的重复模板)
+ * @param {HTMLElement} modal
+ * @param {object} loc
+ * @param {string} title
+ * @param {(Node|Array<Node>)} bodyChildren
+ * @param {number} tStart
+ * @param {number} tEnd
+ * @param {number} step
+ * @param {import('./formatter.js').ValueFormatter} fmt
+ */
+function _showEditDialog(modal, loc, title, bodyChildren, tStart, tEnd, step, fmt) {
+  modal.innerHTML = ''
+  modal.append(
+    h('div', { class: 'tlc-modal-header' }, title),
+    h('div', { class: 'tlc-modal-body' }, bodyChildren),
+    h('div', { class: 'tlc-modal-footer' }, [
+      h('button', { class: 'tlc-btn', 'data-action': 'cancel', onClick: closeModal }, loc.cancel),
+      h('button', { class: 'tlc-btn tlc-btn-primary', 'data-action': 'confirm' }, loc.confirm),
+    ])
+  )
+  _showModal()
+  _setupRangeDataset(modal, tStart, tEnd, step)
+  _initFormControls(modal, fmt)
+}
+
 /* ============================ SEGMENT EDIT DIALOG ============================ */
 
 /**
@@ -635,85 +756,28 @@ export function showSegmentEditDialog(segment) {
   const track = segment.closest('time-line-track')
   const isTime = _isTimeFormatter(fmt)
   const modal = _getModal()
+  const step = _resolveStep(track, isTime)
 
-  // 步进值（仅数值模式使用）
-  let step = 0
-  if (track) {
-    const s = track.step
-    if (s && s > 0) step = s
-  }
-  if (!step) {
-    step = isTime
-      ? Math.max((track ? track.tEnd - track.tStart : 24) / 24, 0.5)
-      : 1
-  }
-
-  modal.innerHTML = `
-    <div class="tlc-modal-header">${esc(loc.segmentEditTitle)}</div>
-    <div class="tlc-modal-body">
-      ${_renderField(esc(loc.labelField), `<input class="tlc-field-input" name="label" type="text" value="${esc(segment.label)}">`)}
-      ${_renderField(esc(loc.startTime),
-        isTime ? _renderTimeControl(fmt, segment.start, 'start', loc) : _renderNumberControl(fmt, segment.start, 'start'),
-        _formatStepHint(fmt, step, loc))}
-      ${_renderField(esc(loc.endTime),
-        isTime ? _renderTimeControl(fmt, segment.end, 'end', loc) : _renderNumberControl(fmt, segment.end, 'end'),
-        _formatStepHint(fmt, step, loc))}
-      ${_renderField(esc(loc.color), _renderColorPicker('color', segment.color))}
-    </div>
-    <div class="tlc-modal-footer">
-      <button class="tlc-btn" data-action="cancel">${esc(loc.cancel)}</button>
-      <button class="tlc-btn tlc-btn-primary" data-action="confirm">${esc(loc.confirm)}</button>
-    </div>`
-
-  _showModal()
-
-  // 步进+上下限写入控件 dataset（含时间控件的总值 clamp）
-  {
-    const tStart = track ? track.tStart : 0
-    const tEnd = track ? track.tEnd : 24
-    const startCtls = modal.querySelectorAll('.tlc-time-control[data-name="start"], .tlc-number-control[data-name="start"]')
-    const endCtls = modal.querySelectorAll('.tlc-time-control[data-name="end"], .tlc-number-control[data-name="end"]')
-    startCtls.forEach(el => {
-      el.dataset.min = String(tStart)
-      el.dataset.max = String(tEnd)
-      if (el.classList.contains('tlc-number-control')) el.dataset.step = String(step)
-    })
-    endCtls.forEach(el => {
-      el.dataset.min = String(tStart)
-      el.dataset.max = String(tEnd)
-      if (el.classList.contains('tlc-number-control')) el.dataset.step = String(step)
-    })
-  }
-
-  _initFormControls(modal, fmt)
-
-  modal.querySelector('[data-action="cancel"]').addEventListener('click', closeModal)
+  // 仅 body 内容不同，骨架由 _showEditDialog 统一渲染
+  const bodyChildren = [
+    _renderField(loc.labelField, h('input', { class: 'tlc-field-input', name: 'label', type: 'text', value: segment.label }),
+    ),
+    _renderField(loc.startTime,
+      isTime ? _renderTimeControl(fmt, segment.start, 'start', loc) : _renderNumberControl(fmt, segment.start, 'start'),
+      _formatStepHint(fmt, step, loc)),
+    _renderField(loc.endTime,
+      isTime ? _renderTimeControl(fmt, segment.end, 'end', loc) : _renderNumberControl(fmt, segment.end, 'end'),
+      _formatStepHint(fmt, step, loc)),
+    _renderField(loc.color, _renderColorPicker('color', segment.color)),
+  ]
+  _showEditDialog(modal, loc, loc.segmentEditTitle, bodyChildren,
+    track ? track.tStart : 0, track ? track.tEnd : 24, step, fmt)
 
   modal.querySelector('[data-action="confirm"]').addEventListener('click', () => {
     _clearErrors(modal)
 
-    let start, end
-    if (isTime) {
-      start = fmt.parse(_readTimeFields(modal.querySelector('[data-name="start"]')))
-      end   = fmt.parse(_readTimeFields(modal.querySelector('[data-name="end"]')))
-    } else {
-      const sv = modal.querySelector('input[name="start"]')
-      const ev = modal.querySelector('input[name="end"]')
-      start = sv ? fmt.parse(sv.value) : NaN
-      end   = ev ? fmt.parse(ev.value) : NaN
-    }
-
-    // 校验（使用 locale 字符串）
-    let valid = true
-    if (isNaN(start) || isNaN(end)) {
-      _showError('start', loc.invalidValue)
-      _showError('end', loc.invalidValue)
-      valid = false
-    } else if (start >= end) {
-      _showError('start', loc.startMustBeBeforeEnd)
-      _showError('end', loc.startMustBeBeforeEnd)
-      valid = false
-    }
+    const { start, end } = _readTimeValues(modal, fmt, isTime)
+    let valid = _validateTimeRange(start, end, loc)
 
     // 重叠校验
     if (valid) {
@@ -727,8 +791,7 @@ export function showSegmentEditDialog(segment) {
     }
 
     if (!valid) {
-      const firstErr = modal.querySelector('.tlc-input-error')
-      if (firstErr) firstErr.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
+      _scrollToFirstError(modal)
       return
     }
 
@@ -755,88 +818,38 @@ export function showTrackEditDialog(track) {
   const fmt = track._formatter
   const isTime = _isTimeFormatter(fmt)
   const modal = _getModal()
+  const step = _resolveStep(track, isTime)
 
-  let step = 0
-  const s = track.step
-  if (s && s > 0) step = s
-  if (!step) {
-    step = isTime
-      ? Math.max((track.tEnd - track.tStart) / 24, 0.5)
-      : 1
-  }
-
-  modal.innerHTML = `
-    <div class="tlc-modal-header">${esc(loc.trackEditTitle)}</div>
-    <div class="tlc-modal-body">
-      ${_renderField(esc(loc.name), `<input class="tlc-field-input" name="label" type="text" value="${esc(track.label)}">`)}
-      ${_renderField(esc(loc.startTime),
-        isTime ? _renderTimeControl(fmt, track.tStart, 'start', loc) : _renderNumberControl(fmt, track.tStart, 'start'),
-        _formatStepHint(fmt, step, loc))}
-      ${_renderField(esc(loc.endTime),
-        isTime ? _renderTimeControl(fmt, track.tEnd, 'end', loc) : _renderNumberControl(fmt, track.tEnd, 'end'),
-        _formatStepHint(fmt, step, loc))}
-      ${_renderField(esc(loc.step), `<input class="tlc-field-input" name="step" type="text" value="${track.step}" style="width:100px;">`)}
-      ${_renderField(esc(loc.maxSegmentsField), `<input class="tlc-field-input" name="maxSegments" type="number" step="1" min="0" placeholder="${esc(loc.zeroUnlimited)}" value="${track.maxSegments || ''}" style="width:100px;">`)}
-    </div>
-    <div class="tlc-modal-footer">
-      <button class="tlc-btn" data-action="cancel">${esc(loc.cancel)}</button>
-      <button class="tlc-btn tlc-btn-primary" data-action="confirm">${esc(loc.confirm)}</button>
-    </div>`
-
-  _showModal()
-
-  {
-    const startCtls = modal.querySelectorAll('.tlc-time-control[data-name="start"], .tlc-number-control[data-name="start"]')
-    const endCtls = modal.querySelectorAll('.tlc-time-control[data-name="end"], .tlc-number-control[data-name="end"]')
-    startCtls.forEach(el => {
-      el.dataset.min = String(track.tStart)
-      el.dataset.max = String(track.tEnd)
-      if (el.classList.contains('tlc-number-control')) el.dataset.step = String(step)
-    })
-    endCtls.forEach(el => {
-      el.dataset.min = String(track.tStart)
-      el.dataset.max = String(track.tEnd)
-      if (el.classList.contains('tlc-number-control')) el.dataset.step = String(step)
-    })
-  }
-
-  _initFormControls(modal, fmt)
-
-  modal.querySelector('[data-action="cancel"]').addEventListener('click', closeModal)
+  const bodyChildren = [
+    _renderField(loc.name, h('input', { class: 'tlc-field-input', name: 'label', type: 'text', value: track.label }),
+    ),
+    _renderField(loc.startTime,
+      isTime ? _renderTimeControl(fmt, track.tStart, 'start', loc) : _renderNumberControl(fmt, track.tStart, 'start'),
+      _formatStepHint(fmt, step, loc)),
+    _renderField(loc.endTime,
+      isTime ? _renderTimeControl(fmt, track.tEnd, 'end', loc) : _renderNumberControl(fmt, track.tEnd, 'end'),
+      _formatStepHint(fmt, step, loc)),
+    _renderField(loc.step, h('input', { class: 'tlc-field-input', name: 'step', type: 'text', value: track.step, style: 'width:100px' })),
+    _renderField(loc.maxSegmentsField,
+      h('input', { class: 'tlc-field-input', name: 'maxSegments', type: 'number', step: '1', min: '0', placeholder: loc.zeroUnlimited, value: track.maxSegments || '' }),
+    ),
+  ]
+  _showEditDialog(modal, loc, loc.trackEditTitle, bodyChildren, track.tStart, track.tEnd, step, fmt)
 
   modal.querySelector('[data-action="confirm"]').addEventListener('click', () => {
     _clearErrors(modal)
 
-    let start, end
-    if (isTime) {
-      start = fmt.parse(_readTimeFields(modal.querySelector('[data-name="start"]')))
-      end   = fmt.parse(_readTimeFields(modal.querySelector('[data-name="end"]')))
-    } else {
-      const sv = modal.querySelector('input[name="start"]')
-      const ev = modal.querySelector('input[name="end"]')
-      start = sv ? fmt.parse(sv.value) : NaN
-      end   = ev ? fmt.parse(ev.value) : NaN
-    }
+    const { start, end } = _readTimeValues(modal, fmt, isTime)
 
     const stepInput = modal.querySelector('input[name="step"]')
     const maxSegInput = modal.querySelector('input[name="maxSegments"]')
     const parsedStep = stepInput ? fmt.parse(stepInput.value) : NaN
     const maxSeg = maxSegInput ? parseInt(maxSegInput.value, 10) : NaN
 
-    let valid = true
-    if (isNaN(start) || isNaN(end)) {
-      _showError('start', loc.invalidValue)
-      _showError('end', loc.invalidValue)
-      valid = false
-    } else if (start >= end) {
-      _showError('start', loc.startMustBeBeforeEnd)
-      _showError('end', loc.startMustBeBeforeEnd)
-      valid = false
-    }
+    let valid = _validateTimeRange(start, end, loc)
 
     if (!valid) {
-      const firstErr = modal.querySelector('.tlc-input-error')
-      if (firstErr) firstErr.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
+      _scrollToFirstError(modal)
       return
     }
 
@@ -868,21 +881,14 @@ export function showTrackEditDialog(track) {
 export function showDeleteConfirm(message, onConfirm, refEl) {
   const loc = resolveLocale(refEl)
   const modal = _getModal()
-  modal.innerHTML = `
-    <div class="tlc-modal-header">${esc(loc.confirmDeleteTitle)}</div>
-    <div class="tlc-modal-body">
-      <p>${esc(message)}</p>
-    </div>
-    <div class="tlc-modal-footer">
-      <button class="tlc-btn" data-action="cancel">${esc(loc.cancel)}</button>
-      <button class="tlc-btn tlc-btn-danger" data-action="confirm">${esc(loc.confirmDelete)}</button>
-    </div>`
-
+  modal.innerHTML = ''
+  modal.append(
+    h('div', { class: 'tlc-modal-header' }, loc.confirmDeleteTitle),
+    h('div', { class: 'tlc-modal-body' }, h('p', message)),
+    h('div', { class: 'tlc-modal-footer' }, [
+      h('button', { class: 'tlc-btn', 'data-action': 'cancel', onClick: closeModal }, loc.cancel),
+      h('button', { class: 'tlc-btn tlc-btn-danger', 'data-action': 'confirm', onClick: () => { closeModal(); if (onConfirm) onConfirm() } }, loc.confirmDelete),
+    ])
+  )
   _showModal()
-
-  modal.querySelector('[data-action="cancel"]').addEventListener('click', closeModal)
-  modal.querySelector('[data-action="confirm"]').addEventListener('click', () => {
-    closeModal()
-    if (onConfirm) onConfirm()
-  })
 }

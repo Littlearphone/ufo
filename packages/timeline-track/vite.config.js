@@ -18,7 +18,7 @@ export default defineConfig(({ mode }) => {
         outDir: 'dist',
         emptyOutDir: false, // 保留上次 demo build 产出的 index.html
       },
-      esbuild: { charset: 'utf8' }
+      esbuild: { target: 'es2020', charset: 'utf8' }
     }
   }
 

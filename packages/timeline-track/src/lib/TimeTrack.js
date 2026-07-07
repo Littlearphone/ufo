@@ -5,7 +5,7 @@
  */
 
 import { ensureCSS } from './css.js'
-import { clamp, esc, snap } from './utils.js'
+import { clamp, h, snap } from './utils.js'
 import { showContextMenu, showDeleteConfirm, showTrackEditDialog } from './contextmenu.js'
 import { resolveLocale } from './locale.js'
 
@@ -195,17 +195,19 @@ export class TimeTrack extends HTMLElement {
     this.classList.toggle('vertical', v)
     const loc = resolveLocale(this)
     const labelTxt = this.label || loc.unnamed
-    this.innerHTML =
-      `<div class="tlt-row">
-        <div class="tlt-head">
-          <span class="tlt-head-label" title="${esc(labelTxt)}">${esc(labelTxt)}</span>
-          <span class="tlt-head-range">${this._formatter.formatRange(this.tStart, this.tEnd, 'axis')}</span>
-        </div>
-        <div class="tlt-body">
-          <canvas class="tlt-grid-canvas"></canvas>
-          <div class="tlt-seg-area"></div>
-        </div>
-      </div>`
+    this.innerHTML = ''
+    this.append(
+      h('div', { class: 'tlt-row' }, [
+        h('div', { class: 'tlt-head' }, [
+          h('span', { class: 'tlt-head-label', title: labelTxt }, labelTxt),
+          h('span', { class: 'tlt-head-range' }, this._formatter.formatRange(this.tStart, this.tEnd, 'axis')),
+        ]),
+        h('div', { class: 'tlt-body' }, [
+          h('canvas', { class: 'tlt-grid-canvas' }),
+          h('div', { class: 'tlt-seg-area' }),
+        ]),
+      ])
+    )
 
     // 共享轴模式：隐藏轨道头部时间范围（由轴尺统一显示）
     if (this._isSharedMode()) {

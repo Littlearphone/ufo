@@ -33,3 +33,67 @@ export function esc(s) {
   d.textContent = s != null ? String(s) : ''
   return d.innerHTML
 }
+
+/**
+ * 极简 hyperscript —— 创建 DOM 元素
+ *
+ * 用法：
+ *   h('div', 'hello')
+ *   h('div', { class: 'x', id: 'y' }, 'hello')
+ *   h('button', { onClick: fn }, 'click')
+ *   h('div', null, child1, child2)
+ *   h('div', null, [child1, child2])
+ *
+ * @param {string} tag - HTML 标签名
+ * @param {object|null} [props] - 属性/事件对象，可省略
+ * @param {...(Node|string|number|false|null|Array)} children - 子节点
+ * @returns {HTMLElement}
+ */
+export function h(tag, ...args) {
+  const el = document.createElement(tag)
+  let props = null
+  let children = args
+
+  // 第一个非空对象为 props，其余为 children
+  if (args.length && args[0] != null && typeof args[0] === 'object' && !Array.isArray(args[0]) && !(args[0] instanceof Node)) {
+    props = args[0]
+    children = args.slice(1)
+  }
+
+  if (props) {
+    const { class: cls, style, ...attrs } = props
+    if (cls) el.className = Array.isArray(cls) ? cls.filter(Boolean).join(' ') : cls
+    if (style) {
+      if (typeof style === 'string') el.style.cssText = style
+      else Object.assign(el.style, style)
+    }
+    for (const key of Object.keys(attrs)) {
+      const val = attrs[key]
+      if (!val) continue
+      if (key.startsWith('on') && typeof val === 'function') {
+        el.addEventListener(key.slice(2).toLowerCase(), val)
+      } else {
+        el.setAttribute(key, String(val))
+      }
+    }
+  }
+
+  if (children.length) {
+    _append(el, children.length === 1 && Array.isArray(children[0]) ? children[0] : children)
+  }
+  return el
+}
+
+/** 递归追加子节点（数组展开、空值跳过） */
+function _append(el, list) {
+  for (const c of list) {
+    if (c == null || c === false || c === true) continue
+    if (typeof c === 'string' || typeof c === 'number') {
+      el.appendChild(document.createTextNode(String(c)))
+    } else if (c instanceof Node) {
+      el.appendChild(c)
+    } else if (Array.isArray(c)) {
+      _append(el, c)
+    }
+  }
+}

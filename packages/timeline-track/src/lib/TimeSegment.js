@@ -4,7 +4,7 @@
  * @module TimeSegment
  */
 
-import { clamp, esc, snap } from './utils.js'
+import { clamp, snap, h } from './utils.js'
 import { createFormatter } from './formatter.js'
 import { hideGlobalTip, showGlobalTip } from './tooltip.js'
 import { hideContextMenu, showContextMenu, showDeleteConfirm, showSegmentEditDialog } from './contextmenu.js'
@@ -87,20 +87,18 @@ export class TimeSegment extends HTMLElement {
     const c = this.closest('time-line-container')
     const r = (c && c._globalRadius != null) ? c._globalRadius : '0'
     const loc = resolveLocale(this)
-    this.innerHTML =
-      `<div class="tls-hdl tls-hdl-left" data-role="hdl-left">
-        <div class="tls-hdl-bar"></div>
-      </div>
-      <div class="tls-hdl tls-hdl-right" data-role="hdl-right">
-        <div class="tls-hdl-bar"></div>
-      </div>
-      <div class="tls-bar" style="background:${col};border:1px solid ${darker};border-radius:${r};">
-        <div class="tls-inner">
-          ${this.label ? `<span class="tls-label">${esc(this.label)}</span>` : ''}
-          <span class="tls-time">${this._formatter.formatRange(this.start, this.end, 'segment')}</span>
-        </div>
-      </div>
-      <button class="tls-del" data-role="del" title="${esc(loc.deleteBtnTitle)}">&times;</button>`
+    this.innerHTML = ''
+    this.append(
+      h('div', { class: 'tls-hdl tls-hdl-left', 'data-role': 'hdl-left' }, h('div', { class: 'tls-hdl-bar' })),
+      h('div', { class: 'tls-hdl tls-hdl-right', 'data-role': 'hdl-right' }, h('div', { class: 'tls-hdl-bar' })),
+      h('div', { class: 'tls-bar', style: { background: col, border: `1px solid ${darker}`, borderRadius: r } }, [
+        h('div', { class: 'tls-inner' }, [
+          this.label ? h('span', { class: 'tls-label' }, this.label) : null,
+          h('span', { class: 'tls-time' }, this._formatter.formatRange(this.start, this.end, 'segment')),
+        ]),
+      ]),
+      h('button', { class: 'tls-del', 'data-role': 'del', title: loc.deleteBtnTitle, onClick: null }, '×'),
+    )
   }
 
   _bind() {

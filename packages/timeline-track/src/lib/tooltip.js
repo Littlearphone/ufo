@@ -4,7 +4,7 @@
  * @module tooltip
  */
 
-import { clamp, esc } from './utils.js'
+import { clamp, h } from './utils.js'
 
 let _globalTip = null
 
@@ -45,9 +45,11 @@ export function showGlobalTip(seg) {
   }
 
   const fmt = seg._formatter
-  tip.innerHTML =
-    (seg.label ? `<div class="tls-global-tip-label">${esc(seg.label)}</div>` : '') +
-    `<div class="tls-global-tip-time">${fmt.formatRange(seg.start, seg.end, 'tooltip')}</div>`
+  tip.innerHTML = ''
+  tip.append(
+    seg.label ? h('div', { class: 'tls-global-tip-label' }, seg.label) : null,
+    h('div', { class: 'tls-global-tip-time' }, fmt.formatRange(seg.start, seg.end, 'tooltip')),
+  )
 
   // 重置样式和类
   tip.className = 'tls-global-tip'

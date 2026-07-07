@@ -5,6 +5,7 @@
  */
 
 import { ensureCSS } from './css.js'
+import { h } from './utils.js'
 import { LOCALE_ATTRS, resolveLocale } from './locale.js'
 import { createFormatter } from './formatter.js'
 
@@ -221,9 +222,11 @@ export class TimeContainer extends HTMLElement {
     this._axisRuler.className = 'tlc-axis-ruler'
     const isHorizontal = this.direction !== 'vertical'
     if (!isHorizontal) this._axisRuler.classList.add('vertical')
-    this._axisRuler.innerHTML =
-      '<div class="tlc-axis-spacer"><span class="tlc-axis-range"></span></div>' +
-      '<div class="tlc-axis-body"><canvas class="tlc-axis-canvas"></canvas></div>'
+    this._axisRuler.innerHTML = ''
+    this._axisRuler.append(
+      h('div', { class: 'tlc-axis-spacer' }, h('span', { class: 'tlc-axis-range' })),
+      h('div', { class: 'tlc-axis-body' }, h('canvas', { class: 'tlc-axis-canvas' })),
+    )
     this.insertBefore(this._axisRuler, this.firstChild)
 
     const body = this._axisRuler.querySelector('.tlc-axis-body')
