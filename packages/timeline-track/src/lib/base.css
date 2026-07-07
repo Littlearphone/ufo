@@ -1,24 +1,65 @@
 /* ═══════════════════════════════════════════
-   TimeLine 组件基本样式
-   由 Vite 自动注入（库模式 UMD 内联）
+   TimeLine 组件基本样式 + CSS 变量系统
+   变量定义在 :root，用户可在 time-line-container 上覆盖
    ═══════════════════════════════════════════ */
 
-/* ---- Container ---- */
-time-line-container {
-  display: flex;
-  gap: var(--tlc-gap, 10px);
-  background: var(--tlc-bg, #f8f9fb);
-  border: 1px solid var(--tlc-border, #dfe3e8);
-  border-radius: var(--tlc-radius, 0);
-  padding: var(--tlc-padding, 14px 16px);
+/* ═══ CSS Variable Defaults ═══ */
+:root {
+  /* System (move from container) */
   --tlc-bg: #f8f9fb;
   --tlc-border: #dfe3e8;
   --tlc-radius: 0;
   --tlc-padding: 14px 16px;
   --tlc-gap: 10px;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+
+  /* Brand */
+  --tlc-primary: #4285f4;
+  --tlc-primary-hover: #3b78e7;
+  --tlc-primary-active: #3367d6;
+  --tlc-danger: #e53935;
+  --tlc-danger-hover: #d32f2f;
+  --tlc-danger-active: #c62828;
+
+  /* Surfaces */
+  --tlc-bg-card: #fff;
+  --tlc-bg-hover: #f0f2f5;
+  --tlc-bg-active: #e8eaed;
+  --tlc-bg-tooltip: rgba(30,35,42,.92);
+
+  /* Text */
+  --tlc-text: #333;
+  --tlc-text-secondary: #555;
+  --tlc-text-muted: #999;
+
+  /* Borders */
+  --tlc-border-input: #d0d4da;
+  --tlc-border-light: #e5e8ec;
+
+  /* Shadows */
+  --tlc-shadow-sm: 0 1px 4px rgba(0,0,0,.2);
+  --tlc-shadow-panel: 0 4px 20px rgba(0,0,0,.14);
+  --tlc-shadow-modal: 0 12px 40px rgba(0,0,0,.18);
+
+  /* Radii */
+  --tlc-radius-sm: 3px;
+  --tlc-radius-md: 4px;
+  --tlc-radius-lg: 6px;
+
+  /* Font */
+  --tlc-font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+/* ---- Container ---- */
+time-line-container {
+  display: flex;
+  gap: var(--tlc-gap);
+  background: var(--tlc-bg);
+  border: 1px solid var(--tlc-border);
+  border-radius: var(--tlc-radius);
+  padding: var(--tlc-padding);
+  font-family: var(--tlc-font);
   font-size: 13px;
-  color: #333;
+  color: var(--tlc-text);
 }
 time-line-container[direction="vertical"] {
   flex-direction: row;
@@ -38,9 +79,9 @@ time-line-track {
 time-line-track .tlt-row {
   display: flex;
   align-items: stretch;
-  background: #fff;
-  border: 1px solid #e5e8ec;
-  border-radius: 0;
+  background: var(--tlc-bg-card);
+  border: 1px solid var(--tlc-border-light);
+  border-radius: var(--tlc-radius);
   overflow: visible;
   min-height: var(--tlt-row-h);
 }
@@ -63,7 +104,7 @@ time-line-track .tlt-head {
   min-width: var(--tlt-header-w);
   padding: 6px 10px;
   background: #fafbfc;
-  border-right: 1px solid #e5e8ec;
+  border-right: 1px solid var(--tlc-border-light);
   gap: 2px;
   user-select: none;
 }
@@ -71,7 +112,7 @@ time-line-track.vertical .tlt-head {
   width: auto;
   min-width: auto;
   border-right: none;
-  border-bottom: 1px solid #e5e8ec;
+  border-bottom: 1px solid var(--tlc-border-light);
   padding: 5px 8px;
 }
 
@@ -139,7 +180,7 @@ time-line-segment .tls-bar {
   position: relative;
   width: 100%;
   height: 100%;
-  border-radius: 0;
+  border-radius: var(--tlc-radius);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -163,7 +204,7 @@ time-line-segment .tls-hdl-bar {
   bottom: 20%;
   width: 4px;
   background: linear-gradient(to right, rgba(0,0,0,0.04), rgba(255,255,255,0.10));
-  border-radius: 0;
+  border-radius: var(--tlc-radius);
   opacity: 0;
   transition: opacity .14s;
   pointer-events: none;
@@ -203,7 +244,7 @@ time-line-segment .tls-del {
   width: 18px;
   height: 18px;
   border-radius: 50%;
-  background: #ef5350;
+  background: var(--tlc-danger);
   color: #fff;
   border: 2px solid #fff;
   cursor: pointer;
@@ -216,7 +257,7 @@ time-line-segment .tls-del {
   transition: opacity .14s, transform .14s;
   z-index: 15;
   padding: 0;
-  box-shadow: 0 1px 4px rgba(0,0,0,.2);
+  box-shadow: var(--tlc-shadow-sm);
 }
 time-line-segment .tls-del:hover { transform: scale(1.15); }
 time-line-segment:hover .tls-del { opacity: 1; }
@@ -232,10 +273,10 @@ time-line-segment.tls-selected .tls-bar { box-shadow: inset 0 0 0 2px rgba(255,2
   pointer-events: none;
   opacity: 0;
   transition: opacity .15s;
-  background: rgba(30,35,42,.92);
+  background: var(--tlc-bg-tooltip);
   color: #fff;
   padding: 5px 9px;
-  border-radius: 0;
+  border-radius: var(--tlc-radius);
   font-size: 11px;
   line-height: 1.3;
   white-space: nowrap;
@@ -249,28 +290,28 @@ time-line-segment.tls-selected .tls-bar { box-shadow: inset 0 0 0 2px rgba(255,2
 }
 .tls-global-tip.top::after {
   top: 100%;
-  border-top-color: rgba(30,35,42,.92);
+  border-top-color: var(--tlc-bg-tooltip);
   border-bottom: none;
   left: var(--tlc-arrow-left, 50%);
   transform: translateX(-50%);
 }
 .tls-global-tip.bottom::after {
   bottom: 100%;
-  border-bottom-color: rgba(30,35,42,.92);
+  border-bottom-color: var(--tlc-bg-tooltip);
   border-top: none;
   left: var(--tlc-arrow-left, 50%);
   transform: translateX(-50%);
 }
 .tls-global-tip.left::after {
   left: 100%;
-  border-left-color: rgba(30,35,42,.92);
+  border-left-color: var(--tlc-bg-tooltip);
   border-right: none;
   top: var(--tlc-arrow-top, 50%);
   transform: translateY(-50%);
 }
 .tls-global-tip.right::after {
   right: 100%;
-  border-right-color: rgba(30,35,42,.92);
+  border-right-color: var(--tlc-bg-tooltip);
   border-left: none;
   top: var(--tlc-arrow-top, 50%);
   transform: translateY(-50%);
@@ -285,10 +326,10 @@ time-line-segment .tls-tip {
   bottom: calc(100% + 6px);
   left: 50%;
   transform: translateX(-50%);
-  background: rgba(30,35,42,.92);
+  background: var(--tlc-bg-tooltip);
   color: #fff;
   padding: 5px 9px;
-  border-radius: 0;
+  border-radius: var(--tlc-radius);
   font-size: 11px;
   line-height: 1.3;
   white-space: nowrap;
@@ -305,7 +346,7 @@ time-line-segment .tls-tip::after {
   left: 50%;
   transform: translateX(-50%);
   border: 5px solid transparent;
-  border-top-color: rgba(30,35,42,.92);
+  border-top-color: var(--tlc-bg-tooltip);
 }
 time-line-segment .tls-tip.show { opacity: 1; }
 time-line-segment.dragging .tls-tip,
@@ -316,8 +357,8 @@ time-line-segment .tls-tip-time  { opacity: .75; font-size: 10px; }
 .tlt-ghost {
   position: absolute;
   background: rgba(66,133,244,.18);
-  border: 2px dashed #4285f4;
-  border-radius: 0;
+  border: 2px dashed var(--tlc-primary);
+  border-radius: var(--tlc-radius);
   pointer-events: none;
   z-index: 9;
 }
@@ -327,8 +368,8 @@ time-line-segment .tls-tip-time  { opacity: .75; font-size: 10px; }
   position: sticky;
   top: 0;
   z-index: 10;
-  background: var(--tlc-bg, #f8f9fb);
-  border-radius: 0;
+  background: var(--tlc-bg);
+  border-radius: var(--tlc-radius);
   margin-bottom: 0;
 }
 .tlc-axis-ruler .tlc-axis-spacer {

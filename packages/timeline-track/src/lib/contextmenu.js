@@ -352,7 +352,7 @@ function _checkOverlap(track, start, end, exclude, unnamed) {
     const ss = seg.start
     const se = seg.end
     if (start < se && end > ss) {
-      return { label: seg.label || unnamed || '未命名', start: ss, end: se }
+      return { label: seg.label || unnamed, start: ss, end: se }
     }
   }
   return null

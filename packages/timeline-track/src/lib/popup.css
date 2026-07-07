@@ -1,16 +1,16 @@
 /* ═══════════════════════════════════════════
    右键菜单 & 模态框样式
-   由 Vite 自动注入（库模式 UMD 内联）
+   引用 :root 的 CSS 变量，用户可通过 time-line-container 覆盖
    ═══════════════════════════════════════════ */
 
 /* ── Context Menu ── */
 .tlc-context-menu {
   position: fixed;
   z-index: 100000;
-  background: #fff;
-  border: 1px solid #dfe3e8;
-  border-radius: 4px;
-  box-shadow: 0 4px 20px rgba(0,0,0,.14);
+  background: var(--tlc-bg-card);
+  border: 1px solid var(--tlc-border);
+  border-radius: var(--tlc-radius-md);
+  box-shadow: var(--tlc-shadow-panel);
   padding: 4px 0;
   min-width: 148px;
   opacity: 0;
@@ -18,7 +18,7 @@
   transform: scale(0.92);
   transition: opacity .1s ease, transform .1s ease;
   pointer-events: none;
-  font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  font-family: var(--tlc-font);
   font-size: 12px;
   user-select: none;
 }
@@ -30,7 +30,7 @@
 .tlc-context-item {
   padding: 7px 14px;
   cursor: pointer;
-  color: #333;
+  color: var(--tlc-text);
   display: flex;
   align-items: center;
   gap: 8px;
@@ -38,16 +38,16 @@
   white-space: nowrap;
 }
 .tlc-context-item:hover {
-  background: #f0f2f5;
+  background: var(--tlc-bg-hover);
 }
 .tlc-context-item:active {
-  background: #e5e8ec;
+  background: var(--tlc-bg-active);
 }
 .tlc-context-header {
   padding: 7px 14px 5px;
   font-size: 11px;
   font-weight: 600;
-  color: #999;
+  color: var(--tlc-text-muted);
   cursor: default;
   border-bottom: 1px solid #f0f0f0;
   margin-bottom: 4px;
@@ -55,7 +55,7 @@
   line-height: 1.4;
 }
 .tlc-context-item-danger {
-  color: #e53935;
+  color: var(--tlc-danger);
 }
 .tlc-context-item-danger:hover {
   background: #fbe9e7;
@@ -65,7 +65,7 @@
 }
 .tlc-context-divider {
   height: 1px;
-  background: #e8eaed;
+  background: var(--tlc-bg-active);
   margin: 4px 0;
 }
 
@@ -89,17 +89,17 @@
 
 /* ── Modal Card ── */
 .tlc-modal {
-  background: #fff;
-  border-radius: 6px;
-  box-shadow: 0 12px 40px rgba(0,0,0,.18);
+  background: var(--tlc-bg-card);
+  border-radius: var(--tlc-radius-lg);
+  box-shadow: var(--tlc-shadow-modal);
   min-width: 300px;
   max-width: 420px;
   width: 90vw;
   transform: scale(0.94) translateY(8px);
   transition: transform .18s ease;
-  font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  font-family: var(--tlc-font);
   font-size: 13px;
-  color: #333;
+  color: var(--tlc-text);
 }
 .tlc-modal-overlay.show .tlc-modal {
   transform: scale(1) translateY(0);
@@ -119,7 +119,7 @@
   gap: 10px;
   margin-bottom: 10px;
   font-size: 12px;
-  color: #555;
+  color: var(--tlc-text-secondary);
 }
 .tlc-modal-body label > span {
   min-width: 56px;
@@ -130,15 +130,15 @@
 .tlc-modal-body input {
   flex: 1;
   padding: 5px 9px;
-  border: 1px solid #d0d4da;
-  border-radius: 3px;
+  border: 1px solid var(--tlc-border-input);
+  border-radius: var(--tlc-radius-sm);
   font-size: 12px;
   font-family: inherit;
   outline: none;
   transition: border-color .12s, box-shadow .12s;
 }
 .tlc-modal-body input:focus {
-  border-color: #4285f4;
+  border-color: var(--tlc-primary);
   box-shadow: 0 0 0 2px rgba(66,133,244,.15);
 }
 .tlc-modal-body input[type="color"] {
@@ -155,7 +155,7 @@
 }
 .tlc-modal-body .tlc-modal-hint {
   font-size: 11px;
-  color: #999;
+  color: var(--tlc-text-muted);
   margin-top: -4px;
   margin-bottom: 8px;
 }
@@ -167,9 +167,9 @@
 }
 .tlc-btn {
   padding: 6px 18px;
-  border: 1px solid #d0d4da;
-  border-radius: 3px;
-  background: #fff;
+  border: 1px solid var(--tlc-border-input);
+  border-radius: var(--tlc-radius-sm);
+  background: var(--tlc-bg-card);
   cursor: pointer;
   font-size: 12px;
   font-family: inherit;
@@ -181,39 +181,39 @@
   border-color: #c0c5cc;
 }
 .tlc-btn:active {
-  background: #e8eaed;
+  background: var(--tlc-bg-active);
 }
 .tlc-btn-primary {
-  background: #4285f4;
+  background: var(--tlc-primary);
   color: #fff;
-  border-color: #4285f4;
+  border-color: var(--tlc-primary);
 }
 .tlc-btn-primary:hover {
-  background: #3b78e7;
-  border-color: #3b78e7;
+  background: var(--tlc-primary-hover);
+  border-color: var(--tlc-primary-hover);
 }
 .tlc-btn-primary:active {
-  background: #3367d6;
+  background: var(--tlc-primary-active);
 }
 .tlc-btn-danger {
-  background: #e53935;
+  background: var(--tlc-danger);
   color: #fff;
-  border-color: #e53935;
+  border-color: var(--tlc-danger);
 }
 .tlc-btn-danger:hover {
-  background: #d32f2f;
-  border-color: #d32f2f;
+  background: var(--tlc-danger-hover);
+  border-color: var(--tlc-danger-hover);
 }
 .tlc-btn-danger:active {
-  background: #c62828;
+  background: var(--tlc-danger-active);
 }
 
 /* ── Stepper Buttons ── */
 .tlc-step-btns {
   display: flex;
   flex-direction: column;
-  border: 1px solid #d0d4da;
-  border-radius: 3px;
+  border: 1px solid var(--tlc-border-input);
+  border-radius: var(--tlc-radius-sm);
   flex-shrink: 0;
   overflow: hidden;
 }
@@ -231,16 +231,16 @@
   font-size: 7px;
   line-height: 1;
   padding: 0;
-  color: #555;
+  color: var(--tlc-text-secondary);
   transition: background .09s;
   user-select: none;
   outline: none;
 }
 .tlc-step-btn:hover {
-  background: #e8eaed;
+  background: var(--tlc-bg-active);
 }
 .tlc-step-btn:active {
-  background: #d0d4da;
+  background: var(--tlc-border-input);
 }
 .tlc-step-btn + .tlc-step-btn {
   border-top: 1px solid #e0e3e8;
@@ -261,8 +261,8 @@
   display: block;
   width: 100%;
   padding: 5px 9px;
-  border: 1px solid #d0d4da;
-  border-radius: 3px;
+  border: 1px solid var(--tlc-border-input);
+  border-radius: var(--tlc-radius-sm);
   font-size: 13px;
   font-family: inherit;
   outline: none;
@@ -270,20 +270,20 @@
   box-sizing: border-box;
 }
 .tlc-field-input:focus {
-  border-color: #4285f4;
+  border-color: var(--tlc-primary);
   box-shadow: 0 0 0 2px rgba(66,133,244,.15);
 }
 .tlc-field-hint {
   display: block;
   margin-top: 2px;
   font-size: 11px;
-  color: #999;
+  color: var(--tlc-text-muted);
 }
 .tlc-field-error {
   display: block;
   margin-top: 2px;
   font-size: 11px;
-  color: #e53935;
+  color: var(--tlc-danger);
   line-height: 1.3;
   min-height: 0;
 }
@@ -308,8 +308,8 @@
 
 /* ── Time Control: 各列统一外边框 ── */
 .tlc-time-control .tlc-tf-col {
-  border: 1px solid #d0d4da;
-  border-radius: 3px;
+  border: 1px solid var(--tlc-border-input);
+  border-radius: var(--tlc-radius-sm);
   overflow: hidden;
 }
 .tlc-time-control .tlc-tf-input {
@@ -322,14 +322,14 @@
   border-radius: 0;
 }
 .tlc-time-control .tlc-tf-col:focus-within {
-  border-color: #4285f4;
+  border-color: var(--tlc-primary);
   box-shadow: 0 0 0 2px rgba(66,133,244,.15);
 }
 .tlc-time-control .tlc-tf-input:focus {
   box-shadow: none;
 }
 .tlc-time-control .tlc-tf-col.tlc-input-error {
-  border-color: #e53935;
+  border-color: var(--tlc-danger);
   box-shadow: 0 0 0 2px rgba(229,57,53,.15);
 }
 
@@ -338,9 +338,9 @@
   min-width: 0;
   text-align: center;
   padding: 4px 22px 4px 2px;
-  border: 1px solid #d0d4da;
+  border: 1px solid var(--tlc-border-input);
   border-right: none;
-  border-radius: 3px 0 0 3px;
+  border-radius: var(--tlc-radius-sm) 0 0 var(--tlc-radius-sm);
   font-size: 15px;
   font-family: inherit;
   font-variant-numeric: tabular-nums;
@@ -348,7 +348,7 @@
   box-sizing: border-box;
   -moz-appearance: textfield;
   transition: border-color .12s, box-shadow .12s;
-  background: #fff;
+  background: var(--tlc-bg-card);
 }
 .tlc-tf-input::-webkit-inner-spin-button,
 .tlc-tf-input::-webkit-outer-spin-button {
@@ -356,7 +356,7 @@
   margin: 0;
 }
 .tlc-tf-input:focus {
-  border-color: #4285f4;
+  border-color: var(--tlc-primary);
   box-shadow: 0 0 0 2px rgba(66,133,244,.15);
   z-index: 1;
   position: relative;
@@ -366,7 +366,7 @@
   align-items: center;
   flex-shrink: 0;
   font-size: 11px;
-  color: #999;
+  color: var(--tlc-text-muted);
   user-select: none;
   pointer-events: none;
   line-height: 1;
@@ -378,15 +378,15 @@
   flex-shrink: 0;
   font-size: 15px;
   font-weight: 600;
-  color: #555;
+  color: var(--tlc-text-secondary);
   user-select: none;
   padding: 0 1px;
 }
 .tlc-tf-steps {
   display: flex;
   flex-direction: column;
-  border: 1px solid #d0d4da;
-  border-radius: 0 3px 3px 0;
+  border: 1px solid var(--tlc-border-input);
+  border-radius: 0 var(--tlc-radius-sm) var(--tlc-radius-sm) 0;
   overflow: hidden;
   flex-shrink: 0;
 }
@@ -402,21 +402,21 @@
   line-height: 1;
   padding: 0 4px;
   min-height: 13px;
-  color: #555;
+  color: var(--tlc-text-secondary);
   transition: background .09s;
   user-select: none;
   outline: none;
 }
-.tlc-tf-step:hover { background: #e8eaed; }
-.tlc-tf-step:active { background: #d0d4da; }
+.tlc-tf-step:hover { background: var(--tlc-bg-active); }
+.tlc-tf-step:active { background: var(--tlc-border-input); }
 .tlc-tf-step + .tlc-tf-step { border-top: 1px solid #e0e3e8; }
 .tlc-time-control .tlc-field-error { margin-top: 4px; }
 .tlc-number-control .tlc-tf-steps { margin-left: 4px; }
 
 /* ── Number Control: 输入框与步进统一外边框 ── */
 .tlc-number-control .tlc-tf-row {
-  border: 1px solid #d0d4da;
-  border-radius: 3px;
+  border: 1px solid var(--tlc-border-input);
+  border-radius: var(--tlc-radius-sm);
   overflow: hidden;
   gap: 0;
 }
@@ -434,7 +434,7 @@
   margin-left: 0;
 }
 .tlc-number-control .tlc-tf-row:focus-within {
-  border-color: #4285f4;
+  border-color: var(--tlc-primary);
   box-shadow: 0 0 0 2px rgba(66,133,244,.15);
 }
 .tlc-number-control .tlc-field-input:focus {
@@ -442,7 +442,7 @@
 }
 .tlc-number-control.tlc-input-error .tlc-tf-row,
 .tlc-number-control .tlc-tf-row.tlc-input-error {
-  border-color: #e53935;
+  border-color: var(--tlc-danger);
   box-shadow: 0 0 0 2px rgba(229,57,53,.15);
 }
 
@@ -457,8 +457,8 @@
   width: 36px;
   height: 26px;
   padding: 2px;
-  border: 1px solid #d0d4da;
-  border-radius: 3px;
+  border: 1px solid var(--tlc-border-input);
+  border-radius: var(--tlc-radius-sm);
   cursor: pointer;
   box-sizing: border-box;
   flex-shrink: 0;
