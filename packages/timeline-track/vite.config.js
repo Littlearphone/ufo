@@ -14,6 +14,7 @@ export default defineConfig(({ mode }) => {
           fileName: () => 'TimelineTrack.js',
           formats: ['umd']
         },
+        cssCodeSplit: true,  // 触发 UMD 格式的 CSS 内联注入
         outDir: 'dist',
         emptyOutDir: false, // 保留上次 demo build 产出的 index.html
       },
