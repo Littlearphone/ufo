@@ -84,6 +84,26 @@ pnpm -r run build:all
 - CSS 变量以 `--tlc-`（Container）、`--tlt-`（Track）、`--tls-`（Segment）为前缀
 - 事件命名 kebab-case，统一冒泡到 document
 
+### `tooltip` 属性（`<time-line-segment>`）
+
+段元素的 tooltip 行为通过 `tooltip` 属性控制：
+
+| 值 | 行为 |
+|---|---|
+| `auto`（默认） | 仅当段内文字被截断时显示 tooltip |
+| `always` | 无论文字是否截断，hover 时始终显示 tooltip |
+| `none` | 永不显示 tooltip |
+
+示例：
+
+```html
+<time-line-segment start="14" end="15" label="超短时段" tooltip="always"></time-line-segment>
+<time-line-segment start="13" end="17" label="长名称段" tooltip="auto"></time-line-segment>
+<time-line-segment start="20" end="23" label="夜间" tooltip="none"></time-line-segment>
+```
+
+> 页面上可通过 `<time-line-segment>` 元素上的 `tooltip` 属性值来区分当前使用的模式。未设置时默认 `auto`。
+
 ## GitHub Release 策略
 
 每个组件包独立版本化：

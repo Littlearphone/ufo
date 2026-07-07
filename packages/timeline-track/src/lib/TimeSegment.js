@@ -122,23 +122,18 @@ export class TimeSegment extends HTMLElement {
     })
 
     // Tooltip — 全局 portal，不受祖先 overflow 裁剪
-    let _tipShown = false
+    // 所有入口（mouseenter / mousemove / _onMove_）都实时检查 _isTruncated()，
+    // 不依赖缓存标志，避免状态不同步
     this.addEventListener('mouseenter', () => {
       if (this._ptrActive) return
-      const mode = this.tooltip
-      if (mode === 'none') return
-      const truncated = this._isTruncated()
-      if (mode === 'always' || truncated) {
-        showGlobalTip(this)
-        _tipShown = true
-      }
+      this._refreshTooltip()
     })
     this.addEventListener('mousemove', () => {
-      if (_tipShown) showGlobalTip(this)
+      if (this._ptrActive) return   // 拖拽中由 _onMove_ 管理 tooltip
+      this._refreshTooltip()
     })
     this.addEventListener('mouseleave', () => {
       hideGlobalTip()
-      _tipShown = false
     })
 
     // 右键菜单
@@ -168,15 +163,24 @@ export class TimeSegment extends HTMLElement {
     })
   }
 
-  /** 公开的 tooltip 显示/隐藏方法（兼容外部调用） */
-  _showTooltip() {
-    if (this._ptrActive) return
+  /** 展示/隐藏（非拖拽期间的实时 tooltip 刷新） */
+  _refreshTooltip() {
     const mode = this.tooltip
     if (mode === 'none') return
-    const truncated = this._isTruncated()
-    if (mode === 'always' || truncated) showGlobalTip(this)
+    if (mode === 'always' || this._isTruncated()) {
+      showGlobalTip(this)
+    } else {
+      hideGlobalTip()
+    }
   }
 
+  /** 公开的 tooltip 显示方法（兼容外部调用） */
+  _showTooltip() {
+    if (this._ptrActive) return
+    this._refreshTooltip()
+  }
+
+  /** 公开的 tooltip 隐藏方法（兼容外部调用） */
   _hideTooltip() {
     hideGlobalTip()
   }
@@ -187,7 +191,7 @@ export class TimeSegment extends HTMLElement {
     this._updateTextVisibility()
   }
 
-  /** 容器 locale 属性变更时刷新文字相关 DOM */
+  /** 刷新文字可见性 */
   _updateTextVisibility() {
     cancelAnimationFrame(this._tvRaf)
     this._tvRaf = requestAnimationFrame(() => {
@@ -297,11 +301,9 @@ export class TimeSegment extends HTMLElement {
     this._buildDOM()
     this._updateTextVisibility()
 
-    // 拖拽/缩放期间同步更新 tooltip
-    if (this.tooltip !== 'none') {
-      const tip = document.querySelector('.tls-global-tip')
-      if (tip && tip.classList.contains('show')) showGlobalTip(this)
-    }
+    // 强制回排后检查截断状态，同步更新 tooltip
+    void this.offsetHeight
+    this._refreshTooltip()
 
     this.dispatchEvent(new CustomEvent('segment-change', {
       bubbles: true, detail: { segment: this, start: this.start, end: this.end }

@@ -791,3 +791,31 @@ h1 {
     max-height: 40%;
   }
 }
+
+/* ── Tooltip 模式标签 ── */
+/* 在段左上角显示 tooltip 模式标记，方便测试时识别 */
+time-line-segment[tooltip="always"]::after,
+time-line-segment[tooltip="none"]::after {
+  content: attr(tooltip);
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 20;
+  font-size: 8px;
+  font-weight: 700;
+  line-height: 1;
+  padding: 1px 3px;
+  border-radius: 2px;
+  pointer-events: none;
+  opacity: 0.7;
+}
+time-line-segment[tooltip="always"]::after {
+  content: "A";
+  background: #e3f2fd;
+  color: #1565c0;
+}
+time-line-segment[tooltip="none"]::after {
+  content: "N";
+  background: #fce4ec;
+  color: #c62828;
+}
