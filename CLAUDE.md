@@ -170,6 +170,7 @@ pnpm -r run build:all
 | `confirmDelete` | `loc-confirm-delete` | `确定删除` | 按钮文字 |
 | `confirmDeleteTitle` | `loc-confirm-delete-title` | `确认删除` | 删除确认弹窗标题 |
 | `segmentOverlapError` | `loc-segment-overlap-error` | `时间段重叠：新段 [{start}–{end}] 与已有段「{label}」[{segStart}–{segEnd}] 冲突` | addSegment 重叠时的异常消息，支持 `{start}`/`{end}`/`{label}`/`{segStart}`/`{segEnd}` 占位符 |
+| `axisRange` | `loc-axis-range` | `{start} – {end}` | 共享轴模式轴尺标签模板，`{start}`/`{end}` 为格式化后的起止值 |
 
 ### 设计要点
 
@@ -177,6 +178,84 @@ pnpm -r run build:all
 - 模板字符串（`confirmDeleteTrack`/`confirmDeleteSegment`）使用 `{name}` 和 `{range}` 占位符
 - 属性设置在 `time-line-container` 上，通过 `resolveLocale(el)` 函数向上查找容器并合并覆盖
 - 运行时变更 `loc-*` 属性会触发子元素自动刷新文字（`_onLocaleChange()`）
+
+## CSS 变量配置系统
+
+组件轨道尺寸通过 `time-line-track` 上的私有 CSS 变量控制，可通过覆盖变量自定义轨道高度、宽度和间距。
+
+### 轨道尺寸变量
+
+| CSS 变量 | 默认值 | 作用域 | 说明 |
+|---|---|---|---|
+| `--tlt-row-h` | `70px` | 横向模式 | **横向轨道行最小高度** |
+| `--tlt-row-w` | `150px` | 纵向模式 | **纵向轨道行宽度** |
+| `--tlt-row-min-h` | `280px` | 纵向模式 | 纵向轨道行最小高度（长度方向） |
+| `--tlt-header-w` | `110px` | 横/纵向 | 轨道头部标签区宽度 |
+| `--tlt-seg-top` | `18px` | 横向模式 | 段区域顶部留白（为轴刻度标签） |
+| `--tlt-seg-bottom` | `0px` | 横向模式 | 段区域底部留白 |
+| `--tlt-axis-gap` | `36px` | 纵向模式 | 纵向模式下段区域左右边距（为轴刻度标签） |
+
+### 容器通用变量（`:root` 或 `time-line-container`）
+
+| CSS 变量 | 默认值 | 说明 |
+|---|---|---|
+| `--tlc-gap` | `10px` | 轨道之间的间距 |
+| `--tlc-padding` | `14px 16px` | 容器内边距 |
+| `--tlc-radius` | `0` | 容器圆角 |
+| `--tlc-bg` | `#f8f9fb` | 容器背景色 |
+| `--tlc-border` | `#dfe3e8` | 容器边框色 |
+| `--tlc-primary` | `#4285f4` | 主色调（段默认颜色） |
+| `--tlc-danger` | `#e53935` | 危险色（删除按钮） |
+| `--tlc-font` | `-apple-system, ...` | 字体栈 |
+| `--tlc-bg-card` | `#fff` | 轨道卡片背景 |
+| `--tlc-bg-tooltip` | `rgba(30,35,42,.92)` | Tooltip 背景 |
+
+### 使用示例
+
+```css
+/* 横向轨道更矮 */
+time-line-track {
+  --tlt-row-h: 50px;
+  --tlt-seg-top: 12px;
+}
+
+/* 纵向轨道更窄 */
+time-line-track {
+  --tlt-row-w: 120px;
+}
+
+/* 通过容器内联 */
+<time-line-container style="--tlt-row-h: 50px; --tlt-row-w: 120px">
+```
+
+> **关于文字显示：** 当轨道尺寸过小时，段内文字会自动隐藏（通过 `_isTruncated()` 检测 scrollWidth/clientWidth 溢出），hover 时可通过 tooltip 查看完整内容。删除按钮在段宽 < 28px 时也自动隐藏。用户无需额外配置。
+
+## 共享轴轴尺标签自定义
+
+共享轴模式（`axis-mode="shared"`）下，左上角固定的轴尺标签可通过 `loc-*` 属性自定义：
+
+```html
+<!-- 默认：显示起止范围（如 "00:00 – 24:00"） -->
+<time-line-container axis-mode="shared"></time-line-container>
+
+<!-- 自定义格式 -->
+<time-line-container axis-mode="shared" loc-axis-range="{start} ~ {end}"></time-line-container>
+
+<!-- 添加前缀 -->
+<time-line-container axis-mode="shared" loc-axis-range="时间范围：{start} 至 {end}"></time-line-container>
+
+<!-- 显示固定文字（不含时间值） -->
+<time-line-container axis-mode="shared" loc-axis-range="我的日程"></time-line-container>
+
+<!-- 完全隐藏 -->
+<time-line-container axis-mode="shared" loc-axis-range=""></time-line-container>
+```
+
+| locale key | 属性名 | 默认值 | 说明 |
+|---|---|---|---|
+| `axisRange` | `loc-axis-range` | `{start} – {end}` | 轴尺标签模板，`{start}`/`{end}` 为格式化后的起止值 |
+
+该 locale 属性已包含在上面的 locale 配置表中，因其专门针对共享轴模式，在此额外说明。
 
 ## 设计文档
 

@@ -310,6 +310,12 @@ export class TimeTrack extends HTMLElement {
     const c = this.closest('time-line-container')
     const isShared = c && c.axisMode === 'shared'
 
+    // 读取 CSS 变量（可由用户覆盖），取整数值（px）
+    const cs = getComputedStyle(this)
+    const axisGap = parseFloat(cs.getPropertyValue('--tlt-axis-gap')) || 36
+    const segTop  = parseFloat(cs.getPropertyValue('--tlt-seg-top'))   || 18
+    const segBot  = parseFloat(cs.getPropertyValue('--tlt-seg-bottom')) || 0
+
     // 共享模式（有粘性轴尺）：seg-area 完全填满
     if (isShared && c && c.axisRulerActive) {
       area.style.left   = '0'
@@ -321,8 +327,8 @@ export class TimeTrack extends HTMLElement {
 
     // 纵向共享模式（兼容旧版，无轴尺情况）
     if (isShared && this.isVertical) {
-      area.style.left   = this.labelV === 'left' ? '36px' : '0'
-      area.style.right  = this.labelV === 'left' ? '0' : '36px'
+      area.style.left   = this.labelV === 'left' ? axisGap + 'px' : '0'
+      area.style.right  = this.labelV === 'left' ? '0' : axisGap + 'px'
       area.style.top    = ''
       area.style.bottom = ''
       return
@@ -330,15 +336,15 @@ export class TimeTrack extends HTMLElement {
 
     // 独立轴模式：按 labelH/labelV 为轴标签留空
     if (this.isVertical) {
-      area.style.left   = this.labelV === 'left' ? '36px' : '0'
-      area.style.right  = this.labelV === 'left' ? '0' : '36px'
+      area.style.left   = this.labelV === 'left' ? axisGap + 'px' : '0'
+      area.style.right  = this.labelV === 'left' ? '0' : axisGap + 'px'
       area.style.top    = ''
       area.style.bottom = ''
     } else {
       area.style.left   = ''
       area.style.right  = ''
-      area.style.top    = this.labelH === 'bottom' ? '0' : '18px'
-      area.style.bottom = this.labelH === 'bottom' ? '18px' : '0'
+      area.style.top    = this.labelH === 'bottom' ? segBot + 'px' : segTop + 'px'
+      area.style.bottom = this.labelH === 'bottom' ? segTop + 'px' : segBot + 'px'
     }
   }
 

@@ -73,6 +73,8 @@ time-line-track {
   display: block;
   --tlt-header-w: 110px;
   --tlt-row-h: 70px;
+  --tlt-row-w: 150px;
+  --tlt-row-min-h: 280px;
   --tlt-seg-top: 18px;
   --tlt-seg-bottom: 0px;
 }
@@ -92,8 +94,9 @@ time-line-track.vertical {
 time-line-track.vertical .tlt-row {
   flex-direction: column;
   flex: 1;
-  width: 150px;
-  min-height: 280px;
+  width: var(--tlt-row-w);
+  min-width: var(--tlt-row-w);
+  min-height: var(--tlt-row-min-h);
 }
 
 time-line-track .tlt-head {
@@ -155,9 +158,10 @@ time-line-track .tlt-seg-area {
   right: 0;
 }
 time-line-track.vertical .tlt-seg-area {
+  --tlt-axis-gap: 36px;
   top: 0;
   bottom: 0;
-  left: 36px;
+  left: var(--tlt-axis-gap);
   right: 0;
 }
 

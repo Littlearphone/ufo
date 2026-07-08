@@ -65,6 +65,14 @@ export const DEFAULT_LOCALE = {
    */
   overlapHint: '与「{label}」重叠',
 
+  /* ---- 轴尺 ---- */
+  /**
+   * 共享轴模式下轴尺标签模板
+   * 占位符：{start}=共享起始值，{end}=共享结束值
+   * 设为空字符串可隐藏标签
+   */
+  axisRange: '{start} – {end}',
+
   /* ---- 错误消息 ---- */
   /**
    * addSegment 时间段重叠错误模板

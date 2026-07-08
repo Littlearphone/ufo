@@ -243,7 +243,13 @@ export class TimeContainer extends HTMLElement {
     const fmt = this.getFormatter()
     const isHorizontal = this.direction !== 'vertical'
     const rangeEl = ruler.querySelector('.tlc-axis-range')
-    if (rangeEl) rangeEl.textContent = fmt.formatRange(this.sharedStart, this.sharedEnd, 'axis')
+    if (rangeEl) {
+      const loc = resolveLocale(this)
+      const text = loc.axisRange
+        .replace('{start}', fmt.format(this.sharedStart, 'axis'))
+        .replace('{end}', fmt.format(this.sharedEnd, 'axis'))
+      rangeEl.textContent = text
+    }
 
     const canvas = ruler.querySelector('.tlc-axis-canvas')
     const body   = ruler.querySelector('.tlc-axis-body')
