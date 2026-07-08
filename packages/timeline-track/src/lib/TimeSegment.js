@@ -399,12 +399,26 @@ export class TimeSegment extends HTMLElement {
     this._tgtTrack = track
     track.classList.add('tlt-drag-over')
     this.style.visibility = 'hidden'
-    // 创建浮动 ghost
+    // 创建浮动 ghost（结构与真实段一致，使用与 _buildDOM 相同的圆角计算）
     const loc = resolveLocale(this)
+    const darker = this._darken(this.color, 0.18)
+    const c = this.closest('time-line-container')
+    const ghostRadius = (c && c._globalRadius != null) ? c._globalRadius : '0'
     this._ghost = document.createElement('div')
     this._ghost.className = 'tlt-cross-ghost'
-    this._ghost.textContent = this.label || loc.unnamed
+    this._ghost.innerHTML = ''
+    this._ghost.append(
+      h('div', { class: 'tls-bar', style: { background: this.color, border: `1px solid ${darker}`, borderRadius: ghostRadius } }, [
+        h('div', { class: 'tls-inner' }, [
+          this.label ? h('span', { class: 'tls-label' }, this.label) : null,
+          h('span', { class: 'tls-time' }, this._formatter.formatRange(this.start, this.end, 'segment')),
+        ]),
+      ])
+    )
     document.body.appendChild(this._ghost)
+    // 触发入场动画（强制重排后加 show class）
+    void this._ghost.offsetHeight
+    this._ghost.classList.add('show')
     this._updateCrossGhost()
   }
 
@@ -429,18 +443,6 @@ export class TimeSegment extends HTMLElement {
       position: 'fixed',
       zIndex: '9999',
       pointerEvents: 'none',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      color: '#fff',
-      fontSize: '11px',
-      whiteSpace: 'nowrap',
-      overflow: 'hidden',
-      textOverflow: 'ellipsis',
-      background: this.color,
-      borderRadius: this.radius,
-      opacity: '.85',
-      boxShadow: '0 2px 10px rgba(0,0,0,.28)',
       ...(v
         ? { left: rect.left + 'px', top: rect.top + segL + 'px', width: rect.width + 'px', height: segW + 'px' }
         : { left: rect.left + segL + 'px', top: rect.top + 'px', width: segW + 'px', height: rect.height + 'px' }),
@@ -449,12 +451,17 @@ export class TimeSegment extends HTMLElement {
 
   /** 退出跨轨道拖拽模式：清理浮层，恢复原段可见 */
   _exitCrossTrack() {
-    if (this._tgtTrack) {
-      this._tgtTrack.classList.remove('tlt-drag-over')
-      this._tgtTrack = null
-    }
-    if (this._ghost) { this._ghost.remove(); this._ghost = null }
+    if (this._tgtTrack) this._tgtTrack.classList.remove('tlt-drag-over')
+    this._tgtTrack = null
     this.style.visibility = ''
+    if (this._ghost) {
+      // 退场动画后移除
+      this._ghost.classList.remove('show')
+      this._ghost.classList.add('hide')
+      const g = this._ghost
+      this._ghost = null
+      setTimeout(() => { if (g.parentNode) g.remove() }, 200)
+    }
   }
 
   /**
@@ -483,12 +490,26 @@ export class TimeSegment extends HTMLElement {
       if (curStart < seg.end && curEnd > seg.start) { this._restorePosition(); return }
     }
 
-    // ✅ 迁移 DOM 到目标轨道
+    // ✅ 成功：闪光动画后迁移 DOM
+    if (this._ghost) {
+      this._ghost.classList.add('success')
+      // 200ms 闪光动画完成后执行迁移
+      const g = this._ghost
+      this._ghost = null
+      setTimeout(() => {
+        if (g && g.parentNode) g.remove()
+        this._doMigrate(tgt, src)
+      }, 200)
+    } else {
+      this._doMigrate(tgt, src)
+    }
+  }
+
+  /** 执行 DOM 迁移到目标轨道（成功动画回调） */
+  _doMigrate(tgt, src) {
     this._buildDOM()
     src._segArea().removeChild(this)
     tgt._segArea().appendChild(this)
-    this._tgtTrack = null
-
     requestAnimationFrame(() => {
       tgt._positionOne(this)
       tgt._refreshPositions()
@@ -496,7 +517,6 @@ export class TimeSegment extends HTMLElement {
       src._refreshPositions()
       src._drawGrid()
     })
-
     this.dispatchEvent(new CustomEvent('segment-changed', {
       bubbles: true, detail: { segment: this, start: this.start, end: this.end }
     }))
@@ -507,10 +527,15 @@ export class TimeSegment extends HTMLElement {
     this.start = this._s0
     this.end = this._e0
     this._buildDOM()
+    this.style.visibility = ''
+    // 移除 ghost 清理时残留的 hide class
+    this.classList.remove('tls-text-hidden')
+    const src = this._srcTrack
+    this._srcTrack = null
     this._tgtTrack = null
     requestAnimationFrame(() => {
-      this._srcTrack._positionOne(this)
-      this._srcTrack._refreshPositions()
+      src._positionOne(this)
+      src._refreshPositions()
     })
   }
 
