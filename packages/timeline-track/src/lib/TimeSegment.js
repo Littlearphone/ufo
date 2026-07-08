@@ -4,7 +4,7 @@
  * @module TimeSegment
  */
 
-import { clamp, snap, h } from './utils.js'
+import { clamp, h, snap } from './utils.js'
 import { createFormatter } from './formatter.js'
 import { hideGlobalTip, showGlobalTip } from './tooltip.js'
 import { hideContextMenu, showContextMenu, showDeleteConfirm, showSegmentEditDialog } from './contextmenu.js'
@@ -23,6 +23,9 @@ export class TimeSegment extends HTMLElement {
     this._hi = 0             // 右边界（时间值）
     this._onMove = null
     this._onUp = null
+    this._srcTrack = null    // 来源轨道（跨轨道拖拽）
+    this._tgtTrack = null    // 目标轨道（跨轨道拖拽时）
+    this._ghost = null       // 跨轨道拖拽浮层元素
   }
 
   /* ---- 属性 ---- */
@@ -252,6 +255,7 @@ export class TimeSegment extends HTMLElement {
     this._ptr0 = this._client(e)
     this._s0 = this.start
     this._e0 = this.end
+    this._srcTrack = this._track
     this._computeBounds()
     this.setPointerCapture(e.pointerId)
 
@@ -270,6 +274,7 @@ export class TimeSegment extends HTMLElement {
     if (!this._ptrActive) return
     const t = this._track
     if (!t) return
+    const isCross = this._mode === 'move' && this._tgtTrack != null
 
     const dp = this._client(e) - this._ptr0
     const dt = t.px2Time(dp)
@@ -288,11 +293,29 @@ export class TimeSegment extends HTMLElement {
       this.end = e
     } else {
       const w = this._e0 - this._s0
+      // 跨轨道时用目标轨道范围约束，否则用源轨道相邻段边界
+      const bounds = isCross
+        ? this._tgtTrack._effRange()
+        : { start: this._lo, end: this._hi }
       let s = this._s0 + dt
       s = snap(s, step)
-      s = clamp(s, this._lo, this._hi - w)
+      s = clamp(s, bounds.start, bounds.end - w)
       this.start = s
       this.end = s + w
+    }
+
+    // 跨轨道拖拽检测（仅 move 模式）
+    if (this._mode === 'move') {
+      const targetTrack = this._detectTargetTrack(e)
+      if (targetTrack && targetTrack !== t) {
+        if (!this._tgtTrack) this._enterCrossTrack(e, targetTrack)
+        else this._updateCrossGhost()
+        this.dispatchEvent(new CustomEvent('segment-change', {
+          bubbles: true, detail: { segment: this, start: this.start, end: this.end }
+        }))
+        return
+      }
+      if (this._tgtTrack) this._exitCrossTrack()
     }
 
     t._positionOne(this)
@@ -318,6 +341,12 @@ export class TimeSegment extends HTMLElement {
     this.removeEventListener('pointercancel', this._onUp)
     this.removeEventListener('lostpointercapture', this._onUp)
 
+    // 跨轨道拖拽结束 → 完成迁移
+    if (this._tgtTrack) {
+      this._finishCrossTrack(e)
+      return
+    }
+
     this.dispatchEvent(new CustomEvent('segment-changed', {
       bubbles: true, detail: { segment: this, start: this.start, end: this.end }
     }))
@@ -339,6 +368,150 @@ export class TimeSegment extends HTMLElement {
     const t = this._track
     if (!t) return e.clientX
     return t.isVertical ? e.clientY : e.clientX
+  }
+
+  /* ---- 跨轨道拖拽 ---- */
+
+  /**
+   * 检测指针下方的目标轨道（同一容器内、同方向）
+   * @param {PointerEvent} e
+   * @returns {import('./TimeTrack.js').TimeTrack|null}
+   */
+  _detectTargetTrack(e) {
+    const el = document.elementFromPoint(e.clientX, e.clientY)
+    if (!el) return null
+    const track = el.closest('time-line-track')
+    if (!track || track === this._srcTrack) return null
+    // 必须在同一个容器内且方向相同
+    const srcC = this._srcTrack.closest('time-line-container')
+    const tgtC = track.closest('time-line-container')
+    if (srcC !== tgtC) return null
+    if (track.isVertical !== this._srcTrack.isVertical) return null
+    return track
+  }
+
+  /**
+   * 进入跨轨道拖拽模式：隐藏原段，在目标轨道上创建浮层
+   * @param {PointerEvent} e
+   * @param {import('./TimeTrack.js').TimeTrack} track
+   */
+  _enterCrossTrack(e, track) {
+    this._tgtTrack = track
+    track.classList.add('tlt-drag-over')
+    this.style.visibility = 'hidden'
+    // 创建浮动 ghost
+    const loc = resolveLocale(this)
+    this._ghost = document.createElement('div')
+    this._ghost.className = 'tlt-cross-ghost'
+    this._ghost.textContent = this.label || loc.unnamed
+    document.body.appendChild(this._ghost)
+    this._updateCrossGhost()
+  }
+
+  /** 更新浮层位置，跟随指针在当前目标轨道上映射的时间位置 */
+  _updateCrossGhost() {
+    if (!this._tgtTrack || !this._ghost) return
+    const tgt = this._tgtTrack
+    const rect = tgt._segRect()
+    if (!rect) return
+    const { start: ts, end: te } = tgt._effRange()
+    const range = te - ts
+    if (!range) return
+    const v = tgt.isVertical
+    const dim = v ? rect.height : rect.width
+    const lo = ((this.start - ts) / range) * dim
+    const hi = ((this.end   - ts) / range) * dim
+    const segW = Math.max(Math.abs(hi - lo), 2)
+    const segL = Math.min(lo, hi)
+
+    // 定位采用 fixed，坐标来自 getBoundingClientRect（视口相对）
+    Object.assign(this._ghost.style, {
+      position: 'fixed',
+      zIndex: '9999',
+      pointerEvents: 'none',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      color: '#fff',
+      fontSize: '11px',
+      whiteSpace: 'nowrap',
+      overflow: 'hidden',
+      textOverflow: 'ellipsis',
+      background: this.color,
+      borderRadius: this.radius,
+      opacity: '.85',
+      boxShadow: '0 2px 10px rgba(0,0,0,.28)',
+      ...(v
+        ? { left: rect.left + 'px', top: rect.top + segL + 'px', width: rect.width + 'px', height: segW + 'px' }
+        : { left: rect.left + segL + 'px', top: rect.top + 'px', width: segW + 'px', height: rect.height + 'px' }),
+    })
+  }
+
+  /** 退出跨轨道拖拽模式：清理浮层，恢复原段可见 */
+  _exitCrossTrack() {
+    if (this._tgtTrack) {
+      this._tgtTrack.classList.remove('tlt-drag-over')
+      this._tgtTrack = null
+    }
+    if (this._ghost) { this._ghost.remove(); this._ghost = null }
+    this.style.visibility = ''
+  }
+
+  /**
+   * 完成跨轨道拖拽：校验约束 → 迁移 DOM → 刷新双轨道
+   * 失败时回退到原轨道
+   */
+  _finishCrossTrack(e) {
+    const tgt = this._tgtTrack
+    const src = this._srcTrack
+    // 清理视觉层
+    if (this._ghost) { this._ghost.remove(); this._ghost = null }
+    tgt.classList.remove('tlt-drag-over')
+    this.style.visibility = ''
+
+    const curStart = this.start
+    const curEnd = this.end
+    const dur = curEnd - curStart
+    const { start: ts, end: te } = tgt._effRange()
+
+    // 校验：超出目标轨道范围
+    if (curStart < ts || curEnd > te || dur < tgt.minDur) { this._restorePosition(); return }
+    // 校验：段数上限
+    if (!tgt._checkSegmentLimit()) { this._restorePosition(); return }
+    // 校验：与目标轨道已有段重叠
+    for (const seg of tgt.sortedSegs()) {
+      if (curStart < seg.end && curEnd > seg.start) { this._restorePosition(); return }
+    }
+
+    // ✅ 迁移 DOM 到目标轨道
+    this._buildDOM()
+    src._segArea().removeChild(this)
+    tgt._segArea().appendChild(this)
+    this._tgtTrack = null
+
+    requestAnimationFrame(() => {
+      tgt._positionOne(this)
+      tgt._refreshPositions()
+      tgt._drawGrid()
+      src._refreshPositions()
+      src._drawGrid()
+    })
+
+    this.dispatchEvent(new CustomEvent('segment-changed', {
+      bubbles: true, detail: { segment: this, start: this.start, end: this.end }
+    }))
+  }
+
+  /** 跨轨道拖拽失败时回退到来源轨道原始位置 */
+  _restorePosition() {
+    this.start = this._s0
+    this.end = this._e0
+    this._buildDOM()
+    this._tgtTrack = null
+    requestAnimationFrame(() => {
+      this._srcTrack._positionOne(this)
+      this._srcTrack._refreshPositions()
+    })
   }
 
   /** 程序化删除（无事件参数，供右键菜单调用） */
