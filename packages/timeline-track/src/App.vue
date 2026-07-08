@@ -37,7 +37,7 @@
         <!-- 演示效果视图 -->
         <div v-show="demoView === 'demo'" class="demo-view-wrap">
           <div class="tab-content-area">
-            <!-- ════ Tab 0: 基础操作 ════ -->
+            <!-- ════ Tab 0: 基础操作 + 共用轴 ════ -->
             <div class="tab-pane" :class="{ active: activeTab === 0 }">
               <time-line-container ref="c0" id="demo0" direction="horizontal">
                 <time-line-track label="摄像头-A（前门）" start="0" end="24" step="0.25">
@@ -52,6 +52,11 @@
               <time-line-track label="摄像头-C（车库）" start="0" end="24">
                 <time-line-segment start="0"  end="6"  label="凌晨巡检" color="#16a085"></time-line-segment>
                 <time-line-segment start="18" end="24" label="夜间巡检" color="#2c3e50"></time-line-segment>
+              </time-line-track>
+              <time-line-track label="机房巡检" start="8" end="22" step="0.5">
+                <time-line-segment start="9"  end="12" label="上午巡检" color="#e67e22"></time-line-segment>
+                <time-line-segment start="13" end="17" label="下午维护" color="#2980b9"></time-line-segment>
+                <time-line-segment start="19" end="21" label="晚间值班" color="#8e44ad"></time-line-segment>
               </time-line-track>
             </time-line-container>
             </div>
@@ -69,27 +74,8 @@
               </time-line-container>
             </div>
 
-            <!-- ════ Tab 3: 布局 / 共用轴 ════ -->
-            <div class="tab-pane" :class="{ active: activeTab === 3 }">
-              <time-line-container ref="c3" id="demo3" direction="horizontal" axis-mode="shared" shared-start="0" shared-end="24">
-                <time-line-track label="早班段" start="0" end="12" step="0.5">
-                  <time-line-segment start="1"  end="5"  label="早高峰" color="#e67e22"></time-line-segment>
-                  <time-line-segment start="7"  end="10" label="上午时段" color="#f39c12"></time-line-segment>
-                </time-line-track>
-                <time-line-track label="中班段" start="6" end="20" step="0.5">
-                  <time-line-segment start="8"  end="12" label="核心时段" color="#2980b9"></time-line-segment>
-                  <time-line-segment start="14" end="18" label="下午班" color="#3498db"></time-line-segment>
-                </time-line-track>
-                <time-line-track label="全天段" start="0" end="24" step="0.5">
-                  <time-line-segment start="3"  end="7"  label="凌晨" color="#16a085"></time-line-segment>
-                  <time-line-segment start="12" end="14" label="午休" color="#1abc9c"></time-line-segment>
-                  <time-line-segment start="19" end="23" label="晚间" color="#27ae60"></time-line-segment>
-                </time-line-track>
-              </time-line-container>
-            </div>
-
-            <!-- ════ Tab 4: 模式示例（type/unit 多模式） ════ -->
-            <div class="tab-pane tab-pane--stack" :class="{ active: activeTab === 4 }">
+            <!-- ════ Tab 3: 模式示例（type/unit 多模式） ════ -->
+            <div class="tab-pane tab-pane--stack" :class="{ active: activeTab === 3 }">
               <div class="mode-example">
                 <div class="mode-example-header"><strong>自然时间输入</strong> <code>type="time" unit="hour"</code> <span class="mode-desc">默认模式，支持 09:00 / 30min 等自然时间输入</span></div>
                 <time-line-container class="mode-example-body">
@@ -151,9 +137,9 @@
               </div>
             </div>
 
-            <!-- ════ Tab 5: Vue 3 集成 ════ -->
-            <div class="tab-pane" :class="{ active: activeTab === 5 }">
-              <time-line-container ref="c5" direction="horizontal">
+            <!-- ════ Tab 4: Vue 3 集成 ════ -->
+            <div class="tab-pane" :class="{ active: activeTab === 4 }">
+              <time-line-container ref="c4" direction="horizontal">
                 <time-line-track
                   v-for="(t, i) in vueDemoTracks" :key="i"
                   :label="t.label" :start="t.start" :end="t.end"
@@ -213,10 +199,9 @@ const codeCopied = ref(false)
 const c0 = ref(null)
 const c1 = ref(null)
 const c2 = ref(null)
-const c3 = ref(null)
-const c4 = ref(null)
-const c5 = ref(null)
-const containers = computed(() => [c0.value, c1.value, c2.value, c3.value, c4.value, c5.value])
+const c3 = ref(null)   // 模式示例（stack，无单容器）
+const c4 = ref(null)   // Vue 3 集成
+const containers = computed(() => [c0.value, c1.value, c2.value, c3.value, c4.value])
 
 /** 版本计数器：每次切到 HTML 源码视图时 +1，迫使 currentHtmlCode 从真实 DOM 重新序列化 */
 const htmlRev = ref(0)
@@ -268,12 +253,12 @@ function handleControlsReset(idx) {
       c.style.height = ''
       c.style.width = ''
     }
-  } else if (idx === 4) {
-    // Tab 4 模式示例：重建所有容器 DOM
+  } else if (idx === 3) {
+    // Tab 3 模式示例：重建所有容器 DOM
     const pane = document.querySelector('.tab-pane--stack')
-    if (pane) pane.innerHTML = TAB_INNER_HTML[4]
-  } else if (idx === 5) {
-    // Tab 5 Vue 集成：恢复默认响应式数据
+    if (pane) pane.innerHTML = TAB_INNER_HTML[3]
+  } else if (idx === 4) {
+    // Tab 4 Vue 集成：恢复默认响应式数据
     vueDemoTracks.value = [
       { label: '前端开发', start: '0', end: '24', segments: [
         { start: '2', end: '8', label: '框架搭建', color: '#3498db' },
@@ -293,7 +278,7 @@ function handleControlsReset(idx) {
 
 // ── 各标签页内部轨道/段 HTML（不含容器外层） ──
 const TAB_INNER_HTML = [
-  // Tab 0 — 基础操作
+  // Tab 0 — 基础操作 + 共用轴（4 条轨道，含不同范围）
   `  <time-line-track label="摄像头-A（前门）" start="0" end="24" step="0.25">
     <time-line-segment start="6"  end="9"  label="早班值守" color="#27ae60"></time-line-segment>
     <time-line-segment start="14" end="15" label="超短时段" color="#e67e22" tooltip="always"></time-line-segment>
@@ -306,6 +291,11 @@ const TAB_INNER_HTML = [
   <time-line-track label="摄像头-C（车库）" start="0" end="24">
     <time-line-segment start="0"  end="6"  label="凌晨巡检" color="#16a085"></time-line-segment>
     <time-line-segment start="18" end="24" label="夜间巡检" color="#2c3e50"></time-line-segment>
+  </time-line-track>
+  <time-line-track label="机房巡检" start="8" end="22" step="0.5">
+    <time-line-segment start="9"  end="12" label="上午巡检" color="#e67e22"></time-line-segment>
+    <time-line-segment start="13" end="17" label="下午维护" color="#2980b9"></time-line-segment>
+    <time-line-segment start="19" end="21" label="晚间值班" color="#8e44ad"></time-line-segment>
   </time-line-track>`,
   // Tab 1 — 密集数据（无静态内嵌内容）
   ``,
@@ -314,21 +304,7 @@ const TAB_INNER_HTML = [
   </time-line-track>
   <time-line-track label="空轨道-B" start="0" end="24">
   </time-line-track>`,
-  // Tab 3 — 布局 / 共用轴
-  `  <time-line-track label="早班段" start="0" end="12" step="0.5">
-    <time-line-segment start="1"  end="5"  label="早高峰" color="#e67e22"></time-line-segment>
-    <time-line-segment start="7"  end="10" label="上午时段" color="#f39c12"></time-line-segment>
-  </time-line-track>
-  <time-line-track label="中班段" start="6" end="20" step="0.5">
-    <time-line-segment start="8"  end="12" label="核心时段" color="#2980b9"></time-line-segment>
-    <time-line-segment start="14" end="18" label="下午班" color="#3498db"></time-line-segment>
-  </time-line-track>
-  <time-line-track label="全天段" start="0" end="24" step="0.5">
-    <time-line-segment start="3"  end="7"  label="凌晨" color="#16a085"></time-line-segment>
-    <time-line-segment start="12" end="14" label="午休" color="#1abc9c"></time-line-segment>
-    <time-line-segment start="19" end="23" label="晚间" color="#27ae60"></time-line-segment>
-  </time-line-track>`,
-  // Tab 4 — 模式示例（多个独立容器）
+  // Tab 3 — 模式示例（多个独立容器）
   `<!-- 自然时间输入 -->
   <div class="mode-example">
     <div class="mode-example-header"><strong>自然时间输入</strong> <code>type="time" unit="hour"</code></div>
@@ -394,7 +370,7 @@ const TAB_INNER_HTML = [
       </time-line-track>
     </time-line-container>
   </div>`,
-  // Tab 5 — Vue 3 集成（显示 Vue 模板代码，非序列化 DOM）
+  // Tab 4 — Vue 3 集成（显示 Vue 模板代码，非序列化 DOM）
   `  <!-- 使用 v-for 渲染轨道和段 -->
   <time-line-track
     v-for="(t, i) in tracks"
@@ -412,7 +388,7 @@ const TAB_INNER_HTML = [
 
 // ── JavaScript 生成代码（按标签页，无则为 null） ──
 const TAB_JS_SOURCE = [
-  null,  // Tab 0
+  null,  // Tab 0 — 基础操作 + 共用轴
   `// 密集数据由 JavaScript 动态生成
 // 用户可通过滑块控制轨道数和每轨道段数
 // 时间段自动非重叠分布，颜色随机分配
@@ -443,9 +419,8 @@ for (let t = 0; t < trackN; t++) {
   }
 }`,  // Tab 1 — 密集数据
   null,  // Tab 2
-  null,  // Tab 3
-  null,  // Tab 4 — 纯模板渲染，无需 JS 生成
-  // Tab 5 — Vue 3 集成（仅引入方式不同，逻辑代码一致）
+  null,  // Tab 3 — 纯模板渲染，无需 JS 生成
+  // Tab 4 — Vue 3 集成（仅引入方式不同，逻辑代码一致）
   `// ═══════════════════════════════════════════════
 // 引入方式 A：构建工具（Vite / Webpack / pnpm）
 // ═══════════════════════════════════════════════
@@ -546,10 +521,10 @@ function serializeCustomElement(el, indent = 0) {
   return `${pad}<${tag}${attrStr}></${tag}>`
 }
 
-/** 获取当前标签页的 HTML 源码：Tab 0-3 从真实 DOM 序列化，Tab 4-5 使用模板字符串 */
+/** 获取当前标签页的 HTML 源码：Tab 0-2 从真实 DOM 序列化，Tab 3-4 使用模板字符串 */
 function getHtmlSource(idx) {
-  // Tab 4/5 的容器不受控制台影响，保持静态模板（Tab 5 显示 Vue 模板语法，无法从 DOM 复原）
-  if (idx === 4 || idx === 5) return TAB_INNER_HTML[idx]
+  // Tab 3（模式示例）/ Tab 4（Vue 集成）使用静态模板
+  if (idx === 3 || idx === 4) return TAB_INNER_HTML[idx]
 
   const container = containers.value[idx]
   if (!container) return ''
@@ -599,11 +574,11 @@ function switchTab(idx) {
 
   // 容器切换后刷新网格和段定位
   nextTick(() => {
-    // Tab 4 使用多个独立容器（stack 布局），需特殊处理
-    if (idx === 4) {
-      const containers4 = document.querySelectorAll('.tab-pane--stack.active time-line-container')
+    // Tab 3 使用多个独立容器（stack 布局），需特殊处理
+    if (idx === 3) {
+      const containers3 = document.querySelectorAll('.tab-pane--stack.active time-line-container')
       requestAnimationFrame(() => {
-        containers4.forEach(c => {
+        containers3.forEach(c => {
           if (c.allTracks) c.allTracks().forEach(t => {
             if (t._drawGrid) t._drawGrid()
             if (t._refreshPositions) t._refreshPositions()

@@ -21,19 +21,14 @@
         <Tab2Controls ref="tab2" :container="containers[2]" />
       </div>
 
-      <!-- ════ Tab 3: 布局 / 共用轴 ════ -->
+      <!-- ════ Tab 3: 模式示例 ════ -->
       <div class="controls-content" :class="{ active: activeTab === 3 }">
-        <Tab3Controls ref="tab3" :container="containers[3]" />
-      </div>
-
-      <!-- ════ Tab 4: 模式示例 ════ -->
-      <div class="controls-content" :class="{ active: activeTab === 4 }">
         <Tab4Controls />
       </div>
 
-      <!-- ════ Tab 5: Vue 3 集成 ════ -->
-      <div class="controls-content" :class="{ active: activeTab === 5 }">
-        <Tab5Controls :container="containers[5]" @add-track="$emit('addTrack', $event)" />
+      <!-- ════ Tab 4: Vue 3 集成 ════ -->
+      <div class="controls-content" :class="{ active: activeTab === 4 }">
+        <Tab5Controls :container="containers[4]" @add-track="$emit('addTrack', $event)" />
       </div>
 
     </div>
@@ -45,7 +40,6 @@ import { ref } from 'vue'
 import Tab0Controls from './controls/Tab0Controls.vue'
 import Tab1Controls from './controls/Tab1Controls.vue'
 import Tab2Controls from './controls/Tab2Controls.vue'
-import Tab3Controls from './controls/Tab3Controls.vue'
 import Tab4Controls from './controls/Tab4Controls.vue'
 import Tab5Controls from './controls/Tab5Controls.vue'
 
@@ -57,12 +51,11 @@ const emit = defineEmits(['addTrack', 'reset'])
 
 const tab0 = ref(null)
 const tab2 = ref(null)
-const tab3 = ref(null)
 
 function handleReset() {
   const idx = props.activeTab
-  // Tab 0/2/3：有本地状态（下拉框等），通过 defineExpose 自处理
-  const selfReset = { 0: tab0, 2: tab2, 3: tab3 }
+  // Tab 0/2：有本地状态（下拉框等），通过 defineExpose 自处理
+  const selfReset = { 0: tab0, 2: tab2 }
   const tab = selfReset[idx]?.value
   if (tab?.reset) { tab.reset(); return }
   // Tab 1/4/5：无本地状态，交由 App.vue 处理容器/数据重置

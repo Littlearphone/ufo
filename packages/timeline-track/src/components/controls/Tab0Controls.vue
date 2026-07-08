@@ -21,6 +21,18 @@
             </span>
           </label>
         </div>
+        <div class="ctrl-row">
+          <label><span class="ctrl-label">步长</span>
+            <select v-model="stepVal">
+              <option value="0">无</option>
+              <option value="0.25">0.25</option>
+              <option value="0.5">0.5</option>
+              <option value="1">1</option>
+              <option value="2">2</option>
+              <option value="4">4</option>
+            </select>
+          </label>
+        </div>
       </div>
     </div>
 
@@ -139,6 +151,25 @@ const sharedE = computed({
   set: (v) => { if (c()) { c().setAttribute('shared-end', String(v)); bumpAttr() } }
 })
 
+const stepVal = computed({
+  get: () => {
+    _attrRev.value
+    if (!c()) return '0'
+    const tracks = c().allTracks()
+    if (tracks.length) {
+      const s = tracks[0].getAttribute('step')
+      if (s) return s
+    }
+    return '0'
+  },
+  set: (v) => {
+    if (c()) {
+      c().allTracks().forEach(t => t.setAttribute('step', String(v)))
+      bumpAttr()
+    }
+  }
+})
+
 // ── 方法 ──
 function toggleDir() {
   if (!c()) return
@@ -229,6 +260,11 @@ function reset() {
     <time-line-track label="摄像头-C（车库）" start="0" end="24">\
       <time-line-segment start="0"  end="6"  label="凌晨巡检" color="#16a085"></time-line-segment>\
       <time-line-segment start="18" end="24" label="夜间巡检" color="#2c3e50"></time-line-segment>\
+    </time-line-track>\
+    <time-line-track label="机房巡检" start="8" end="22" step="0.5">\
+      <time-line-segment start="9"  end="12" label="上午巡检" color="#e67e22"></time-line-segment>\
+      <time-line-segment start="13" end="17" label="下午维护" color="#2980b9"></time-line-segment>\
+      <time-line-segment start="19" end="21" label="晚间值班" color="#8e44ad"></time-line-segment>\
     </time-line-track>`
   addLog('dir', 'horizontal (reset)')
   bumpAttr()
