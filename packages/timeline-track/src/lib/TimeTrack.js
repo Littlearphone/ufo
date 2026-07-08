@@ -388,7 +388,11 @@ export class TimeTrack extends HTMLElement {
     if (!dim) return
 
     this._creating = true
-    this._crS  = this.tStart + ((cp - orig) / dim) * (this._effRange().end - this._effRange().start)
+    const _eff = this._effRange()
+    this._crS  = _eff.start + ((cp - orig) / dim) * (_eff.end - _eff.start)
+    // 裁剪模式下禁止在禁拖区域开始创建新段
+    const { start: dbS, end: dbE } = this._dragBounds()
+    if (this._crS < dbS || this._crS > dbE) { this._creating = false; return }
     this._crP0 = cp
 
     // 创建半透明预览条
@@ -420,7 +424,11 @@ export class TimeTrack extends HTMLElement {
     const rect = this._segRect(); if (!rect) return
     const orig = v ? rect.top : rect.left
     const dim  = v ? rect.height : rect.width
-    const t2 = this.tStart + ((cp - orig) / dim) * (this._effRange().end - this._effRange().start)
+    const _eff = this._effRange()
+    let t2 = _eff.start + ((cp - orig) / dim) * (_eff.end - _eff.start)
+    // 裁剪模式下预览不超出拖拽范围
+    const { start: dbS, end: dbE } = this._dragBounds()
+    t2 = clamp(t2, dbS, dbE)
     const lo = Math.min(t1, t2), hi = Math.max(t1, t2)
     const p1 = this.time2Px(lo), p2 = this.time2Px(hi)
 
@@ -445,7 +453,8 @@ export class TimeTrack extends HTMLElement {
     const rect = this._segRect(); if (!rect) return
     const orig = v ? rect.top : rect.left
     const dim  = v ? rect.height : rect.width
-    const t2 = this.tStart + ((cp - orig) / dim) * (this._effRange().end - this._effRange().start)
+    const _eff = this._effRange()
+    const t2 = _eff.start + ((cp - orig) / dim) * (_eff.end - _eff.start)
     let lo = Math.min(this._crS, t2), hi = Math.max(this._crS, t2)
 
     if (this.step) { lo = snap(lo, this.step); hi = snap(hi, this.step) }
@@ -458,7 +467,8 @@ export class TimeTrack extends HTMLElement {
         else lo = Math.max(lo, seg.end)
       }
     }
-    const { start: ts, end: te } = this._effRange()
+    // 裁剪模式下用拖拽约束范围，防止段落在禁拖区域
+    const { start: ts, end: te } = this._dragBounds()
     lo = clamp(lo, ts, te)
     hi = clamp(hi, ts, te)
     if (hi - lo >= this.minDur) {

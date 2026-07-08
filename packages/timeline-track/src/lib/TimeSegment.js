@@ -39,8 +39,8 @@ export class TimeSegment extends HTMLElement {
   set start(v)   { this.setAttribute('start', String(typeof v === 'number' ? Math.round(v * 1e4) / 1e4 : v)) }
   get end()      { return this._formatter.parse(this.getAttribute('end'), 0) }
   set end(v)     { this.setAttribute('end',   String(typeof v === 'number' ? Math.round(v * 1e4) / 1e4 : v)) }
-  get label()    { return this.getAttribute('label') || '' }
-  set label(v)   { this.setAttribute('label', v) }
+  get label()    { const v = this.getAttribute('label'); return (v && v !== 'null' && v !== 'undefined') ? v : '' }
+  set label(v)   { if (v == null) this.removeAttribute('label'); else this.setAttribute('label', v) }
   get color()    { return this.getAttribute('color') || '#5c9ce6' }
   set color(v)   { this.setAttribute('color', v) }
   get radius()   { return this.getAttribute('radius') || '5px' }
