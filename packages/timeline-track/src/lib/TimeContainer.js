@@ -32,7 +32,7 @@ export class TimeContainer extends HTMLElement {
       'direction', 'label-h', 'label-v', 'axis-mode',
       'shared-start', 'shared-end', 'shared-clip-range',
       'tooltip-pos', 'max-segments',
-      'type', 'unit',
+      'type', 'unit', 'step',
       ...LOCALE_ATTRS
     ]
   }
@@ -46,7 +46,7 @@ export class TimeContainer extends HTMLElement {
       })
       return
     }
-    if (name === 'tooltip-pos') return // 仅在鼠标悬停时读取
+    if (name === 'tooltip-pos' || name === 'step') return // 仅运行时读取
     // type / unit 变更 → 重建 formatter 并刷新所有轨道
     if (name === 'type' || name === 'unit') {
       this._formatter = createFormatter(this.type, this.unit)
@@ -150,6 +150,16 @@ export class TimeContainer extends HTMLElement {
   set maxSegments(v) {
     if (v == null || v <= 0) this.removeAttribute('max-segments')
     else this.setAttribute('max-segments', String(v))
+  }
+
+  /** 全局默认步长（各轨道可单独覆盖，无自身 step 属性的轨道会回退到此值） */
+  get step() {
+    const v = this.getAttribute('step')
+    return v != null ? this.getFormatter().parse(v, 0) : 0
+  }
+  set step(v) {
+    if (v == null || v <= 0) this.removeAttribute('step')
+    else this.setAttribute('step', String(v))
   }
 
   /** 获取所有轨道 */

@@ -29,8 +29,15 @@ export class TimeTrack extends HTMLElement {
   get tEnd()   { return this._formatter.parse(this.getAttribute('end'),   24) }
   get label()  { return this.getAttribute('label') || '' }
   set label(v) { this.setAttribute('label', v) }
-  get step()   { return this._formatter.parse(this.getAttribute('step'),  0) }
-  set step(v)  { this.setAttribute('step', v) }
+  get step() {
+    // 轨道自身有 step 属性 → 使用自身值（0=显式禁用吸附）
+    if (this.hasAttribute('step')) return this._formatter.parse(this.getAttribute('step'), 0)
+    // 无自身属性 → 回退到容器
+    const c = this.closest('time-line-container')
+    if (c && c.hasAttribute('step')) return c.getFormatter().parse(c.getAttribute('step'), 0)
+    return 0 // 无任何配置 → 自由模式
+  }
+  set step(v)  { if (v == null) this.removeAttribute('step'); else this.setAttribute('step', v) }
   get minDur() {
     const a = this.getAttribute('min-duration')
     if (a != null) return this._formatter.parse(a)

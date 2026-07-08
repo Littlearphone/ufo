@@ -116,19 +116,20 @@ const stepVal = computed({
   get: () => {
     _attrRev.value
     if (!c()) return '1'
+    const cs = c().getAttribute('step')
+    if (cs) return cs
     const tracks = c().allTracks()
     if (tracks.length) {
-      // 从首条轨道的 step 属性读取，保持与控制台实际步长同步
       const s = tracks[0].getAttribute('step')
       if (s) return s
     }
     return '1'
   },
   set: (v) => {
-    if (c()) {
-      c().allTracks().forEach(t => t.setAttribute('step', String(v)))
-      bumpAttr()
-    }
+    if (!c()) return
+    // 只设容器步长，不影响各轨道自身属性
+    c().step = parseFloat(v) || 0
+    bumpAttr()
   }
 })
 const tipSide = ref('top')

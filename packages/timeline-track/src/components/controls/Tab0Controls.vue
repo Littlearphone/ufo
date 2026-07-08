@@ -159,18 +159,15 @@ const stepVal = computed({
   get: () => {
     _attrRev.value
     if (!c()) return '0'
-    const tracks = c().allTracks()
-    if (tracks.length) {
-      const s = tracks[0].getAttribute('step')
-      if (s) return s
-    }
-    return '0'
+    // 只读容器步长，不影响各轨道自身属性
+    const cs = c().getAttribute('step')
+    return cs || '0'
   },
   set: (v) => {
-    if (c()) {
-      c().allTracks().forEach(t => t.setAttribute('step', String(v)))
-      bumpAttr()
-    }
+    if (!c()) return
+    // 只设容器步长，不影响各轨道自身属性
+    c().step = parseFloat(v) || 0
+    bumpAttr()
   }
 })
 
@@ -214,7 +211,7 @@ function setShared() {
 function addTrack() {
   if (!c()) return
   const idx = c().allTracks().length + 1
-  const t = c().addTrack('摄像头-' + String.fromCharCode(64 + idx) + ' (新增)', 0, 24, { step: 0.5 })
+  const t = c().addTrack('摄像头-' + String.fromCharCode(64 + idx) + ' (新增)', 0, 24)
   bumpAttr() // 通知 trackList computed 重新求值
   addLog('track-add', t.label)
 }
@@ -251,6 +248,7 @@ function reset() {
   c().removeAttribute('label-v')
   c().removeAttribute('tooltip-pos')
   c().removeAttribute('shared-clip-range')
+  c().setAttribute('step', '0.5')
   c().style.height = ''
   c().style.width = ''
   radiusVal.value = '0'

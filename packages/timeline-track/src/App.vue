@@ -39,7 +39,7 @@
           <div class="tab-content-area">
             <!-- ════ Tab 0: 基础操作 + 共用轴 ════ -->
             <div class="tab-pane" :class="{ active: activeTab === 0 }">
-              <time-line-container ref="c0" id="demo0" direction="horizontal">
+              <time-line-container ref="c0" id="demo0" direction="horizontal" step="0.5">
                 <time-line-track label="摄像头-A（前门）" start="0" end="24" step="0.25">
                 <time-line-segment start="6"  end="9"  label="早班值守" color="#27ae60"></time-line-segment>
                 <time-line-segment start="14" end="15" label="超短时段" color="#e67e22" tooltip="always"></time-line-segment>
