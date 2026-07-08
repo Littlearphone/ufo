@@ -587,8 +587,11 @@ export class TimeTrack extends HTMLElement {
     if (!range) return
     const v = this.isVertical
     const dim = bulkDim ?? (v ? r.height : r.width)
-    const p1  = ((seg.start - ts) / range) * dim
-    const p2  = ((seg.end   - ts) / range) * dim
+    let p1  = ((seg.start - ts) / range) * dim
+    let p2  = ((seg.end   - ts) / range) * dim
+    // 安全防护：防止越界段溢出轨道区域（如共享轴拖拽后回退独立轴）
+    if (p1 < 0) p1 = 0
+    if (p2 > dim) p2 = dim
 
     // 计算到下一段左边界的像素间距，用于约束最小宽度
     // 避免密集场景下 6px 硬最小值导致的视觉重叠
@@ -652,8 +655,11 @@ export class TimeTrack extends HTMLElement {
 
     for (let i = 0; i < segs.length; i++) {
       const seg = segs[i]
-      const p1 = lefts[i]
-      const p2 = ((seg.end - ts) / range) * dim
+      let p1 = lefts[i]
+      let p2 = ((seg.end - ts) / range) * dim
+      // 安全防护：防止越界段溢出轨道区域（与 _positionOne 一致）
+      if (p1 < 0) p1 = 0
+      if (p2 > dim) p2 = dim
 
       // 计算右边界：仅当下一段完全在当前段右侧（不重叠）时才用其起点约束
       let rightBound = dim
@@ -712,6 +718,13 @@ export class TimeTrack extends HTMLElement {
       if (headRange) headRange.style.display = 'none'
     } else {
       if (headRange) headRange.style.display = ''
+      // 从共享轴切回独立轴：将段 clamp 到轨道自身范围，防止越界重叠 label
+      // 共享轴下段可能被拖到轨道自身范围之外，回退后需修正
+      const { start: ts, end: te } = { start: this.tStart, end: this.tEnd }
+      for (const seg of this.sortedSegs()) {
+        seg.start = clamp(seg.start, ts, te)
+        seg.end   = clamp(seg.end,   ts, te)
+      }
     }
     this._applyLabelPos()
     requestAnimationFrame(() => { this._drawGrid(); this._refreshPositions() })
