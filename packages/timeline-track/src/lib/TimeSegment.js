@@ -308,14 +308,35 @@ export class TimeSegment extends HTMLElement {
     if (this._mode === 'move') {
       const targetTrack = this._detectTargetTrack(e)
       if (targetTrack && targetTrack !== t) {
-        if (!this._tgtTrack) this._enterCrossTrack(e, targetTrack)
-        else this._updateCrossGhost()
+        if (!this._tgtTrack) {
+          this._enterCrossTrack(e, targetTrack)
+        } else {
+          // 目标轨道变更（跨越中间轨道）：切换高亮并更新 _tgtTrack
+          if (targetTrack !== this._tgtTrack) {
+            this._tgtTrack.classList.remove('tlt-drag-over')
+            targetTrack.classList.add('tlt-drag-over')
+            this._tgtTrack = targetTrack
+          }
+          this._updateCrossGhost()
+        }
         this.dispatchEvent(new CustomEvent('segment-change', {
           bubbles: true, detail: { segment: this, start: this.start, end: this.end }
         }))
         return
       }
-      if (this._tgtTrack) this._exitCrossTrack()
+      // 跨轨道拖拽中但指针不在其他轨道上
+      if (this._tgtTrack) {
+        const el = document.elementFromPoint(e.clientX, e.clientY)
+        const container = this._srcTrack.closest('time-line-container')
+        // 离开容器或回到来源轨道时才退出；轨道间隙中保持浮层不动
+        if (!el || !container.contains(el) || el.closest('time-line-track') === this._srcTrack) {
+          this._exitCrossTrack()
+        }
+        this.dispatchEvent(new CustomEvent('segment-change', {
+          bubbles: true, detail: { segment: this, start: this.start, end: this.end }
+        }))
+        return
+      }
     }
 
     t._positionOne(this)
