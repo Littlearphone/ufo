@@ -138,6 +138,17 @@
                   </time-line-track>
                 </time-line-container>
               </div>
+              <div class="mode-example">
+                <div class="mode-example-header"><strong>温度计（摄氏度）</strong> <code>type="number" unit="°C"</code> <span class="mode-desc">数值模式带单位后缀，-10°C ~ 40°C 范围</span></div>
+                <time-line-container class="mode-example-body" type="number" unit="°C">
+                  <time-line-track label="气温监测" start="-10°C" end="40°C" step="5°C">
+                    <time-line-segment start="-10°C" end="0°C"   label="严寒" color="#3498db"></time-line-segment>
+                    <time-line-segment start="0°C"   end="15°C"  label="凉爽" color="#2ecc71"></time-line-segment>
+                    <time-line-segment start="15°C"  end="30°C"  label="温暖" color="#e67e22"></time-line-segment>
+                    <time-line-segment start="30°C"  end="40°C"  label="炎热" color="#e74c3c"></time-line-segment>
+                  </time-line-track>
+                </time-line-container>
+              </div>
             </div>
 
             <!-- ════ Tab 5: Vue 3 集成 ════ -->
@@ -368,6 +379,18 @@ const TAB_INNER_HTML = [
         <time-line-segment start="0px"   end="200px" label="头像" color="#9b59b6"></time-line-segment>
         <time-line-segment start="250px" end="600px" label="正文" color="#2ecc71"></time-line-segment>
         <time-line-segment start="600px" end="800px" label="侧栏" color="#e91e63"></time-line-segment>
+      </time-line-track>
+    </time-line-container>
+  </div>
+  <!-- 温度计（摄氏度） -->
+  <div class="mode-example">
+    <div class="mode-example-header"><strong>温度计（摄氏度）</strong> <code>type="number" unit="°C"</code></div>
+    <time-line-container class="mode-example-body" type="number" unit="°C">
+      <time-line-track label="气温监测" start="-10°C" end="40°C" step="5°C">
+        <time-line-segment start="-10°C" end="0°C"   label="严寒" color="#3498db"></time-line-segment>
+        <time-line-segment start="0°C"   end="15°C"  label="凉爽" color="#2ecc71"></time-line-segment>
+        <time-line-segment start="15°C"  end="30°C"  label="温暖" color="#e67e22"></time-line-segment>
+        <time-line-segment start="30°C"  end="40°C"  label="炎热" color="#e74c3c"></time-line-segment>
       </time-line-track>
     </time-line-container>
   </div>`,

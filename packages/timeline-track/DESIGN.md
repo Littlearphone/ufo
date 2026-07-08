@@ -110,6 +110,19 @@
 </time-line-container>
 ```
 
+**8. 温度计（摄氏度）**
+```html
+<time-line-container type="number" unit="°C">
+  <time-line-track label="气温监测" start="-10°C" end="40°C" step="5°C">
+    <time-line-segment start="-10°C" end="0°C"   label="严寒" color="#3498db"></time-line-segment>
+    <time-line-segment start="0°C"   end="15°C"  label="凉爽" color="#2ecc71"></time-line-segment>
+    <time-line-segment start="15°C"  end="30°C"  label="温暖" color="#e67e22"></time-line-segment>
+    <time-line-segment start="30°C"  end="40°C"  label="炎热" color="#e74c3c"></time-line-segment>
+  </time-line-track>
+</time-line-container>
+```
+轴显示 `-10 °C`、`0 °C`、`5 °C`... 支持负数范围，段可拖拽调整区间。
+
 ### 四、API 调用
 
 `addTrack` 和 `addSegment` 的参数直接透传给 `setAttribute`，无需限制类型：
