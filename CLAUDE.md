@@ -232,6 +232,66 @@ time-line-track {
 
 > **关于文字显示：** 当轨道尺寸过小时，段内文字会自动隐藏（通过 `_isTruncated()` 检测 scrollWidth/clientWidth 溢出），hover 时可通过 tooltip 查看完整内容。删除按钮在段宽 < 28px 时也自动隐藏。用户无需额外配置。
 
+## 步长继承系统
+
+步长（`step`）控制拖拽创建/移动/调整段时的吸附粒度，通过**容器 → 轨道**的继承机制工作：
+
+### 解析规则（`TimeTrack.step` getter）
+
+1. **轨道自身有 `step` 属性** → 使用自身值（`0` = 显式禁用吸附）
+2. **轨道无自身 `step` 属性** → 回退到容器 `step` 属性
+3. **容器也无 `step`** → 返回 `0`（自由模式，无吸附）
+
+```js
+// TimeTrack.js step getter（简化逻辑）
+get step() {
+  if (this.hasAttribute('step')) return parse(this.getAttribute('step'))
+  const c = this.closest('time-line-container')
+  if (c && c.hasAttribute('step')) return parse(c.getAttribute('step'))
+  return 0
+}
+```
+
+### 容器步长属性
+
+容器通过 `step` 属性提供全局默认步长，各轨道可单独覆盖：
+
+```html
+<!-- 容器设默认步长 0.5，所有无自身 step 的轨道继承 -->
+<time-line-container step="0.5">
+  <!-- 继承容器步长 → 吸附 0.5 -->
+  <time-line-track label="默认轨道" start="0" end="24"></time-line-track>
+  <!-- 自身 step=0.25 → 覆盖容器，吸附 0.25 -->
+  <time-line-track label="精细轨道" start="0" end="24" step="0.25"></time-line-track>
+  <!-- 自身 step=0 → 显式禁用吸附 -->
+  <time-line-track label="自由轨道" start="0" end="24" step="0"></time-line-track>
+</time-line-container>
+```
+
+### 控制台步长控制
+
+控制面板（`Tab0Controls`/`Tab3Controls`）的步长选择器**只设置容器的 step**，不影响各轨道自身属性：
+
+```js
+// 只设容器步长，轨道通过继承响应
+c().step = parseFloat(v) || 0
+```
+
+| 行为 | 说明 |
+|---|---|
+| 无自身 step 的轨道 | 跟随控制台步长变化 |
+| 有自身 step 的轨道 | 保持自身值，不受控制台影响 |
+| `addTrack()` 新增轨道 | 不设自身 step，继承容器步长（除非传入 `opts.step`） |
+
+### reset 行为
+
+调用 `reset()` 时，容器被设为默认步长，轨道 innerHTML 中的自身 step 属性保留以保持各自特性：
+
+```js
+// Tab0Controls reset
+c().setAttribute('step', '0.5')
+```
+
 ## 共享轴轴尺标签自定义
 
 共享轴模式（`axis-mode="shared"`）下，左上角固定的轴尺标签可通过 `loc-*` 属性自定义：
