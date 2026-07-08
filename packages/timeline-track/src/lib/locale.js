@@ -36,6 +36,8 @@ export const DEFAULT_LOCALE = {
   labelField: '标签',
   startTime: '开始时间',
   endTime: '结束时间',
+  rangeStart: '起始',
+  rangeEnd: '结束',
   color: '颜色',
   name: '名称',
   step: '步长',
@@ -58,7 +60,7 @@ export const DEFAULT_LOCALE = {
 
   /* ---- 校验消息 ---- */
   invalidValue: '无效的值',
-  startMustBeBeforeEnd: '开始必须早于结束',
+  startMustBeBeforeEnd: '起始必须早于结束',
   /**
    * 重叠提示（显示在字段下方）
    * 占位符：{label}=冲突段名称

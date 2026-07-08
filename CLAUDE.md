@@ -158,8 +158,10 @@ pnpm -r run build:all
 | `segmentEditTitle` | `loc-segment-edit-title` | `修改时间段属性` | 编辑段弹窗标题 |
 | `trackEditTitle` | `loc-track-edit-title` | `修改轨道属性` | 编辑轨道弹窗标题 |
 | `labelField` | `loc-label` | `标签` | 表单字段名 |
-| `startTime` | `loc-start-time` | `开始时间` | 表单字段名 |
-| `endTime` | `loc-end-time` | `结束时间` | 表单字段名 |
+| `startTime` | `loc-start-time` | `开始时间` | 表单字段名（段编辑框） |
+| `endTime` | `loc-end-time` | `结束时间` | 表单字段名（段编辑框） |
+| `rangeStart` | `loc-range-start` | `起始` | 表单字段名（轨道编辑框 — 范围起始） |
+| `rangeEnd` | `loc-range-end` | `结束` | 表单字段名（轨道编辑框 — 范围结束） |
 | `color` | `loc-color` | `颜色` | 表单字段名 |
 | `name` | `loc-name` | `名称` | 表单字段名 |
 | `step` | `loc-step` | `步长` | 表单字段名 |

@@ -823,15 +823,17 @@ export function showTrackEditDialog(track) {
   const bodyChildren = [
     _renderField(loc.name, h('input', { class: 'tlc-field-input', name: 'label', type: 'text', value: track.label }),
     ),
-    _renderField(loc.startTime,
+    _renderField(loc.rangeStart,
       isTime ? _renderTimeControl(fmt, track.tStart, 'start', loc) : _renderNumberControl(fmt, track.tStart, 'start'),
       _formatStepHint(fmt, step, loc)),
-    _renderField(loc.endTime,
+    _renderField(loc.rangeEnd,
       isTime ? _renderTimeControl(fmt, track.tEnd, 'end', loc) : _renderNumberControl(fmt, track.tEnd, 'end'),
       _formatStepHint(fmt, step, loc)),
-    _renderField(loc.step, h('input', { class: 'tlc-field-input', name: 'step', type: 'text', value: track.step, style: 'width:100px' })),
+    _renderField(loc.step,
+      isTime ? _renderTimeControl(fmt, track.step, 'step', loc) : _renderNumberControl(fmt, track.step, 'step'),
+      _formatStepHint(fmt, step, loc)),
     _renderField(loc.maxSegmentsField,
-      h('input', { class: 'tlc-field-input', name: 'maxSegments', type: 'number', step: '1', min: '0', placeholder: loc.zeroUnlimited, value: track.maxSegments || '' }),
+      h('input', { class: 'tlc-field-input', name: 'maxSegments', type: 'text', inputmode: 'numeric', placeholder: loc.zeroUnlimited, value: track.maxSegments || '' }),
     ),
   ]
   _showEditDialog(modal, loc, loc.trackEditTitle, bodyChildren, track.tStart, track.tEnd, step, fmt)
@@ -841,9 +843,13 @@ export function showTrackEditDialog(track) {
 
     const { start, end } = _readTimeValues(modal, fmt, isTime)
 
-    const stepInput = modal.querySelector('input[name="step"]')
+    // 从自定义控件读取步长值
+    const stepCtl = modal.querySelector('[data-name="step"]')
+    let parsedStep = NaN
+    if (stepCtl) {
+      parsedStep = isTime ? fmt.parse(_readTimeFields(stepCtl)) : fmt.parse(stepCtl.querySelector('input').value)
+    }
     const maxSegInput = modal.querySelector('input[name="maxSegments"]')
-    const parsedStep = stepInput ? fmt.parse(stepInput.value) : NaN
     const maxSeg = maxSegInput ? parseInt(maxSegInput.value, 10) : NaN
 
     let valid = _validateTimeRange(start, end, loc)
