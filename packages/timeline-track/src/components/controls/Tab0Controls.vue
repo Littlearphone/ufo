@@ -32,6 +32,10 @@
               <option value="4">4</option>
             </select>
           </label>
+          <label v-show="isShared" style="cursor:pointer;gap:4px">
+            <span style="font-size:11px;color:#555">范围裁剪</span>
+            <input type="checkbox" :checked="sharedClip" @change="toggleClip" />
+          </label>
         </div>
       </div>
     </div>
@@ -170,6 +174,15 @@ const stepVal = computed({
   }
 })
 
+const sharedClip = computed(() => c() && c().sharedClipRange)
+
+function toggleClip() {
+  if (c()) {
+    c().sharedClipRange = !c().sharedClipRange
+    addLog('shared-clip-range', c().sharedClipRange)
+  }
+}
+
 // ── 方法 ──
 function toggleDir() {
   if (!c()) return
@@ -237,6 +250,7 @@ function reset() {
   c().removeAttribute('label-h')
   c().removeAttribute('label-v')
   c().removeAttribute('tooltip-pos')
+  c().removeAttribute('shared-clip-range')
   c().style.height = ''
   c().style.width = ''
   radiusVal.value = '0'

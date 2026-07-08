@@ -30,7 +30,8 @@ export class TimeContainer extends HTMLElement {
   static get observedAttributes() {
     return [
       'direction', 'label-h', 'label-v', 'axis-mode',
-      'shared-start', 'shared-end', 'tooltip-pos', 'max-segments',
+      'shared-start', 'shared-end', 'shared-clip-range',
+      'tooltip-pos', 'max-segments',
       'type', 'unit',
       ...LOCALE_ATTRS
     ]
@@ -56,7 +57,7 @@ export class TimeContainer extends HTMLElement {
       this.querySelectorAll('time-line-track').forEach(t => {
         if (t._onLabelPosChange) t._onLabelPosChange()
       })
-    } else if (name === 'axis-mode' || name === 'shared-start' || name === 'shared-end') {
+    } else if (name === 'axis-mode' || name === 'shared-start' || name === 'shared-end' || name === 'shared-clip-range') {
       this._onSharedConfigChange()
     } else {
       this._applyDir()
@@ -133,6 +134,10 @@ export class TimeContainer extends HTMLElement {
     return Math.max(...tracks.map(t => t.tEnd))
   }
   set sharedEnd(v) { this.setAttribute('shared-end', v) }
+
+  /** 共享轴裁剪模式：段拖拽不超出各轨道自身范围 */
+  get sharedClipRange() { return this.hasAttribute('shared-clip-range') }
+  set sharedClipRange(v) { this.toggleAttribute('shared-clip-range', v) }
 
   /* ---- 公共 API ---- */
 

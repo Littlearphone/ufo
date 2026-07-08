@@ -492,3 +492,30 @@ time-line-container[direction="vertical"] .tlc-axis-ruler .tlc-axis-canvas {
   width: 100%;
   height: 100%;
 }
+
+/* ── 共享轴裁剪模式遮罩 ── */
+time-line-track .tlt-clip-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+}
+time-line-track .tlt-clip-overlay .tlt-clip-block {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  background: repeating-linear-gradient(
+    -45deg,
+    rgba(160, 167, 175, 0.38) 0px,
+    rgba(160, 167, 175, 0.38) 8px,
+    rgba(180, 186, 192, 0.30) 8px,
+    rgba(180, 186, 192, 0.30) 16px
+  );
+  border-right: 1px solid rgba(130, 138, 148, 0.5);
+  pointer-events: none;
+  transition: opacity 0.25s;
+}
+time-line-track .tlt-clip-overlay .tlt-clip-block + .tlt-clip-block {
+  border-right: none;
+  border-left: 1px solid rgba(130, 138, 148, 0.5);
+}

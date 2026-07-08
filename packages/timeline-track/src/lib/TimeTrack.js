@@ -293,6 +293,7 @@ export class TimeTrack extends HTMLElement {
     this._applyLabelPos()
 
     requestAnimationFrame(() => { this._drawGrid(); this._refreshPositions() })
+    this._updateClipOverlay()
   }
 
   /** 方向变更时重新应用布局 */
@@ -300,6 +301,7 @@ export class TimeTrack extends HTMLElement {
     const v = this.isVertical
     this.classList.toggle('vertical', v)
     this._applyLabelPos()
+    this._updateClipOverlay()
     requestAnimationFrame(() => { this._drawGrid(); this._refreshPositions() })
   }
 
@@ -640,6 +642,7 @@ export class TimeTrack extends HTMLElement {
    * 一次计算总尺寸，所有段共享，避免反复 layout thrashing
    */
   _refreshPositions() {
+    this._updateClipOverlay()
     const segs = this.sortedSegs()
     if (!segs.length) return
     const r = this._segRect()
@@ -711,11 +714,32 @@ export class TimeTrack extends HTMLElement {
     return { start: this.tStart, end: this.tEnd }
   }
 
+  /**
+   * 拖拽约束范围（共享轴裁剪模式时仅限轨道自身范围）
+   * 段在该范围内可自由拖拽，防止越界到其他轨道的不可见区域
+   */
+  _dragBounds() {
+    const c = this.closest('time-line-container')
+    if (c && c.sharedClipRange && this._isSharedMode()) {
+      return { start: this.tStart, end: this.tEnd }
+    }
+    return this._effRange()
+  }
+
   /** 共享轴配置变更时回调 */
   _onSharedConfigChange() {
+    const c = this.closest('time-line-container')
     const headRange = this.querySelector(':scope > .tlt-row > .tlt-head > .tlt-head-range')
     if (this._isSharedMode()) {
       if (headRange) headRange.style.display = 'none'
+      // 裁剪模式下自动修正越界段到轨道自身范围
+      if (c && c.sharedClipRange) {
+        const { start: ts, end: te } = { start: this.tStart, end: this.tEnd }
+        for (const seg of this.sortedSegs()) {
+          seg.start = clamp(seg.start, ts, te)
+          seg.end   = clamp(seg.end,   ts, te)
+        }
+      }
     } else {
       if (headRange) headRange.style.display = ''
       // 从共享轴切回独立轴：将段 clamp 到轨道自身范围，防止越界重叠 label
@@ -727,6 +751,55 @@ export class TimeTrack extends HTMLElement {
       }
     }
     this._applyLabelPos()
+    this._updateClipOverlay()
     requestAnimationFrame(() => { this._drawGrid(); this._refreshPositions() })
+  }
+
+  /* ---- 共享轴裁剪模式遮罩 ---- */
+
+  /**
+   * 在 seg-area 上叠加半透明斜纹遮罩，标识不可拖拽区域
+   * 仅 shared-clip-range 开启且在共享轴模式时生效
+   */
+  _updateClipOverlay() {
+    const c = this.closest('time-line-container')
+    const active = c && c.sharedClipRange && this._isSharedMode()
+    const area = this._segArea()
+    if (!area) return
+
+    // 获取或创建遮罩容器
+    let overlay = area.querySelector(':scope > .tlt-clip-overlay')
+    if (!active) {
+      if (overlay) overlay.remove()
+      return
+    }
+
+    if (!overlay) {
+      overlay = document.createElement('div')
+      overlay.className = 'tlt-clip-overlay'
+      overlay.innerHTML = '<div class="tlt-clip-block tlt-clip-left"></div><div class="tlt-clip-block tlt-clip-right"></div>'
+      area.appendChild(overlay)
+    }
+
+    // 计算遮罩位置：轨道自身范围在共享轴中的像素偏移
+    const { start: sharedStart, end: sharedEnd } = this._effRange()
+    const range = sharedEnd - sharedStart
+    if (!range) return
+
+    const dim = this.isVertical ? area.offsetHeight : area.offsetWidth
+    if (!dim) return
+
+    const leftPx  = ((this.tStart - sharedStart) / range) * dim
+    const rightPx = ((this.tEnd   - sharedStart) / range) * dim
+    const leftBlock  = overlay.querySelector('.tlt-clip-left')
+    const rightBlock = overlay.querySelector('.tlt-clip-right')
+
+    if (this.isVertical) {
+      Object.assign(leftBlock.style,  { left: '0', right: '0', top: '0', height: leftPx + 'px', bottom: 'auto' })
+      Object.assign(rightBlock.style, { left: '0', right: '0', top: rightPx + 'px', bottom: '0', height: 'auto' })
+    } else {
+      Object.assign(leftBlock.style,  { top: '0', bottom: '0', left: '0', width: leftPx + 'px', right: 'auto' })
+      Object.assign(rightBlock.style, { top: '0', bottom: '0', left: rightPx + 'px', right: '0', width: 'auto' })
+    }
   }
 }

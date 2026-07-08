@@ -295,7 +295,7 @@ export class TimeSegment extends HTMLElement {
       const w = this._e0 - this._s0
       // 跨轨道时用目标轨道范围约束，否则用源轨道相邻段边界
       const bounds = isCross
-        ? this._tgtTrack._effRange()
+        ? (this._tgtTrack._dragBounds ? this._tgtTrack._dragBounds() : this._tgtTrack._effRange())
         : { start: this._lo, end: this._hi }
       let s = this._s0 + dt
       s = snap(s, step)
@@ -379,7 +379,8 @@ export class TimeSegment extends HTMLElement {
     if (!t) { this._lo = 0; this._hi = 24; return }
     const segs = t.sortedSegs()
     const idx  = segs.indexOf(this)
-    const { start: ts, end: te } = t._effRange ? t._effRange() : { start: t.tStart, end: t.tEnd }
+    // 使用拖拽约束范围（共享轴裁剪 → 轨道自身范围；否则为有效范围）
+    const { start: ts, end: te } = t._dragBounds ? t._dragBounds() : (t._effRange ? t._effRange() : { start: t.tStart, end: t.tEnd })
     this._lo = idx > 0 ? segs[idx - 1].end : ts
     this._hi = idx < segs.length - 1 ? segs[idx + 1].start : te
   }
@@ -500,7 +501,8 @@ export class TimeSegment extends HTMLElement {
     const curStart = this.start
     const curEnd = this.end
     const dur = curEnd - curStart
-    const { start: ts, end: te } = tgt._effRange()
+    // 使用拖拽约束范围校验（共享轴裁剪 → 轨道自身范围）
+    const { start: ts, end: te } = tgt._dragBounds ? tgt._dragBounds() : tgt._effRange()
 
     // 校验：超出目标轨道范围
     if (curStart < ts || curEnd > te || dur < tgt.minDur) { this._restorePosition(); return }

@@ -471,7 +471,7 @@ function addTrack(label) {
  */
 const CUSTOM_TAGS = new Set(['time-line-container', 'time-line-track', 'time-line-segment'])
 const ATTR_ALLOW = {
-  'time-line-container': ['direction', 'axis-mode', 'shared-start', 'shared-end', 'label-h', 'label-v', 'tooltip-pos', 'type', 'unit'],
+  'time-line-container': ['direction', 'axis-mode', 'shared-start', 'shared-end', 'shared-clip-range', 'label-h', 'label-v', 'tooltip-pos', 'type', 'unit'],
   'time-line-track': ['label', 'start', 'end', 'step', 'max-segments'],
   'time-line-segment': ['start', 'end', 'label', 'color', 'tooltip'],
 }

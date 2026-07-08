@@ -178,7 +178,41 @@ NumberFormatter ──  type="number"
 <time-line-container type="number" unit="px">
   <time-line-track start="0px" end="500px"></time-line-track>
 </time-line-container>
+
+<!-- 共享轴裁剪模式 -->
+<time-line-container axis-mode="shared" shared-clip-range>
+  <time-line-track label="全天" start="0" end="24"></time-line-track>
+  <time-line-track label="机房" start="8" end="22"></time-line-track>
+</time-line-container>
 ```
+
+### `shared-clip-range` 属性
+
+在 `time-line-container` 上设置 `shared-clip-range`，启用**共享轴裁剪模式**：
+
+```html
+<time-line-container axis-mode="shared" shared-clip-range>
+```
+
+| 模式 | 显示 | 拖拽范围 |
+|---|---|---|
+| 普通共享轴 | 所有轨道共用同一轴尺 | 段可在整个共享范围内自由拖拽 |
+| **裁剪模式** | 同上（视觉完全一致） | **段不能拖出所属轨道的自身范围** |
+
+适用于部分轨道范围小于共享轴的场景（如「机房巡检」8-22 在 0-24 共享轴中），避免段被拖到轨道实际范围之外导致切换模式时位置错乱。
+
+```html
+<time-line-container axis-mode="shared" shared-start="0" shared-end="24" shared-clip-range>
+  <time-line-track label="全天" start="0" end="24"><!-- 全范围可拖 -->
+    <time-line-segment start="6" end="18" label="核心时段" color="#3498db"></time-line-segment>
+  </time-line-track>
+  <time-line-track label="机房" start="8" end="22"><!-- 仅 8-22 内可拖 -->
+    <time-line-segment start="9" end="12" label="上午" color="#e67e22"></time-line-segment>
+  </time-line-track>
+</time-line-container>
+```
+
+取消属性即可恢复普通共享轴行为。
 
 ### 解析规则（formatter.parse）
 
