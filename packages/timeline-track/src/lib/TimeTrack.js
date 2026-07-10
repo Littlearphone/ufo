@@ -724,10 +724,20 @@ export class TimeTrack extends HTMLElement {
     return c && c.axisMode === 'shared'
   }
 
-  /** 有效时间范围（共享轴 → 容器范围；独立轴 → 自身范围） */
+  /** 有效时间范围（缩放 > 共享轴 > 独立轴） */
   _effRange() {
     const c = this.closest('time-line-container')
-    if (c && c.axisMode === 'shared') return { start: c.sharedStart, end: c.sharedEnd }
+    if (!c) return { start: this.tStart, end: this.tEnd }
+
+    // 容器缩放范围优先
+    if (c.zoomStart != null && c.zoomEnd != null) {
+      return { start: c.zoomStart, end: c.zoomEnd }
+    }
+
+    // 共享轴模式 → 容器范围
+    if (c.axisMode === 'shared') return { start: c.sharedStart, end: c.sharedEnd }
+
+    // 独立轴模式 → 轨道自身范围
     return { start: this.tStart, end: this.tEnd }
   }
 
@@ -769,6 +779,11 @@ export class TimeTrack extends HTMLElement {
     }
     this._applyLabelPos()
     this._updateClipOverlay()
+    requestAnimationFrame(() => { this._drawGrid(); this._refreshPositions() })
+  }
+
+  /** 视图范围（缩放）变更时回调：仅重绘，不做模式切换相关操作 */
+  _onViewRangeChange() {
     requestAnimationFrame(() => { this._drawGrid(); this._refreshPositions() })
   }
 

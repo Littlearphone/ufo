@@ -93,15 +93,38 @@
       </div>
     </div>
 
+    <!-- 缩放 -->
+    <div class="ctrl-group">
+      <div class="ctrl-header" :class="{ collapsed: !state[3] }" @click="toggle(3)">🔍 缩放</div>
+      <div class="ctrl-body" v-show="state[3]">
+        <div class="ctrl-row">
+          <span style="font-size:11px;color:#666;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
+            {{ zoomRangeText }}
+          </span>
+          <span style="font-size:13px;font-weight:600;min-width:50px;text-align:right">
+            {{ zoomLevel }}%
+          </span>
+        </div>
+        <div class="ctrl-row" style="gap:4px">
+          <button @click="zoomOut" title="缩小" style="flex:1">−</button>
+          <button @click="zoomIn" title="放大" style="flex:1">＋</button>
+          <button @click="zoomReset" title="重置缩放" style="flex:2">适应</button>
+        </div>
+        <div class="ctrl-row">
+          <span style="font-size:10px;color:#999">⌘/Ctrl + 滚轮 缩放</span>
+        </div>
+      </div>
+    </div>
+
   </div>
 </template>
 
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { addLog } from '../../stores/eventLog.js'
 import { useAccordion } from '../../composables/useAccordion.js'
 
-const { state, toggle } = useAccordion(3, 0)
+const { state, toggle } = useAccordion(4, 0)
 
 const props = defineProps({
   container: { type: Object, default: null }
@@ -173,6 +196,30 @@ const stepVal = computed({
 
 const sharedClip = computed(() => c() && c().sharedClipRange)
 
+// ── 缩放 ──
+const zoomLevel = computed(() => {
+  _attrRev.value
+  if (!c()) return 100
+  const zs = c().zoomStart
+  const ze = c().zoomEnd
+  if (zs == null || ze == null) return 100
+  const zoomRange = ze - zs
+  if (!zoomRange) return 100
+  const baseRange = c().sharedEnd - c().sharedStart
+  if (!baseRange) return 100
+  return Math.round((baseRange / zoomRange) * 100)
+})
+
+const zoomRangeText = computed(() => {
+  _attrRev.value
+  if (!c()) return ''
+  const zs = c().zoomStart
+  const ze = c().zoomEnd
+  if (zs == null || ze == null) return '全部视图'
+  const fmt = c().getFormatter()
+  return fmt.format(zs, 'axis') + ' — ' + fmt.format(ze, 'axis')
+})
+
 function toggleClip() {
   if (c()) {
     c().sharedClipRange = !c().sharedClipRange
@@ -237,6 +284,38 @@ function updateTip() {
   addLog("api", "tooltip-pos = " + c().tooltipPos)
 }
 
+// ── 缩放操作 ──
+function zoomIn() {
+  if (!c()) return
+  c().zoomIn()
+  bumpAttr()
+  addLog('zoom', 'in')
+}
+function zoomOut() {
+  if (!c()) return
+  c().zoomOut()
+  bumpAttr()
+  addLog('zoom', 'out')
+}
+function zoomReset() {
+  if (!c()) return
+  c().zoomReset()
+  bumpAttr()
+  addLog('zoom', 'reset')
+}
+
+/** 观察容器 zoom 属性变化以刷新显示 */
+let _zoomObs = null
+function _startZoomObs() {
+  _stopZoomObs()
+  if (!c()) return
+  _zoomObs = new MutationObserver(() => bumpAttr())
+  _zoomObs.observe(c(), { attributes: true, attributeFilter: ['zoom-start', 'zoom-end'] })
+}
+function _stopZoomObs() {
+  if (_zoomObs) { _zoomObs.disconnect(); _zoomObs = null }
+}
+
 /** 重置当前标签页演示到初始状态（从控制台标题栏调用） */
 function reset() {
   if (!c()) return
@@ -244,6 +323,8 @@ function reset() {
   c().removeAttribute('axis-mode')
   c().removeAttribute('shared-start')
   c().removeAttribute('shared-end')
+  c().removeAttribute('zoom-start')
+  c().removeAttribute('zoom-end')
   c().removeAttribute('label-h')
   c().removeAttribute('label-v')
   c().removeAttribute('tooltip-pos')
@@ -283,4 +364,8 @@ function reset() {
 }
 
 defineExpose({ reset })
+
+// 启动 zoom 属性观察器，wheel 缩放时实时刷新百分比显示
+onMounted(() => _startZoomObs())
+onUnmounted(() => _stopZoomObs())
 </script>

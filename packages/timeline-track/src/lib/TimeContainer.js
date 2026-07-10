@@ -5,7 +5,7 @@
  */
 
 import { ensureCSS } from './css.js'
-import { h } from './utils.js'
+import { clamp, h } from './utils.js'
 import { LOCALE_ATTRS, resolveLocale } from './locale.js'
 import { createFormatter } from './formatter.js'
 
@@ -25,6 +25,13 @@ export class TimeContainer extends HTMLElement {
     this._formatter = createFormatter(this.type, this.unit)
     this._applyDir()
     this._syncAxisRuler() // 处理初始共享模式
+    // Ctrl/⌘+滚轮缩放
+    this.addEventListener('wheel', this._wheelZoom, { passive: false })
+  }
+
+  disconnectedCallback() {
+    this.removeEventListener('wheel', this._wheelZoom)
+    if (this._vrfRaf) cancelAnimationFrame(this._vrfRaf)
   }
 
   static get observedAttributes() {
@@ -33,6 +40,7 @@ export class TimeContainer extends HTMLElement {
       'shared-start', 'shared-end', 'shared-clip-range',
       'tooltip-pos', 'max-segments',
       'type', 'unit', 'step',
+      'zoom-start', 'zoom-end',
       ...LOCALE_ATTRS
     ]
   }
@@ -59,6 +67,8 @@ export class TimeContainer extends HTMLElement {
       })
     } else if (name === 'axis-mode' || name === 'shared-start' || name === 'shared-end' || name === 'shared-clip-range') {
       this._onSharedConfigChange()
+    } else if (name === 'zoom-start' || name === 'zoom-end') {
+      this._onViewRangeChange()
     } else {
       this._applyDir()
       this._syncAxisRuler()
@@ -162,6 +172,52 @@ export class TimeContainer extends HTMLElement {
     else this.setAttribute('step', String(v))
   }
 
+  /* ---- 缩放（视图范围） ---- */
+
+  /** 视图起始（缩小范围 = 放大；null = 禁用缩放，使用默认范围） */
+  get zoomStart() {
+    const v = this.getAttribute('zoom-start')
+    return v != null ? this.getFormatter().parse(v, null) : null
+  }
+  set zoomStart(v) {
+    if (v == null) this.removeAttribute('zoom-start')
+    else this.setAttribute('zoom-start', String(+(+v).toFixed(4)))
+  }
+
+  /** 视图结束 */
+  get zoomEnd() {
+    const v = this.getAttribute('zoom-end')
+    return v != null ? this.getFormatter().parse(v, null) : null
+  }
+  set zoomEnd(v) {
+    if (v == null) this.removeAttribute('zoom-end')
+    else this.setAttribute('zoom-end', String(+(+v).toFixed(4)))
+  }
+
+  /** 最小缩放范围（防止无限放大），默认内容总范围的 0.3% */
+  get minZoomRange() {
+    const attr = this.getAttribute('min-zoom-range')
+    if (attr != null) {
+      const v = this.getFormatter().parse(attr, 0)
+      if (v > 0) return v
+    }
+    // 默认：所有轨道总范围的 0.3%，最低不低于 0.05
+    const total = this.sharedEnd - this.sharedStart
+    return Math.max(total * 0.003, 0.05)
+  }
+  set minZoomRange(v) {
+    if (v == null) this.removeAttribute('min-zoom-range')
+    else this.setAttribute('min-zoom-range', String(v))
+  }
+
+  /** 轴尺渲染所用范围（优先使用缩放视图） */
+  _axisRange() {
+    if (this.zoomStart != null && this.zoomEnd != null) {
+      return { start: this.zoomStart, end: this.zoomEnd }
+    }
+    return { start: this.sharedStart, end: this.sharedEnd }
+  }
+
   /** 获取所有轨道 */
   allTracks() { return Array.from(this.querySelectorAll(':scope > time-line-track')) }
 
@@ -180,6 +236,101 @@ export class TimeContainer extends HTMLElement {
 
   /** 移除轨道 */
   removeTrack(track) { track.remove() }
+
+  /* ---- 缩放 API ---- */
+
+  /** 以指定（或鼠标位置）为中心放大一步 */
+  zoomIn(centerRatio = 0.5) {
+    this._zoomAtRatio(centerRatio, 1 / 1.2)
+  }
+
+  /** 以指定（或鼠标位置）为中心缩小一步 */
+  zoomOut(centerRatio = 0.5) {
+    this._zoomAtRatio(centerRatio, 1.2)
+  }
+
+  /**
+   * 缩放到指定范围
+   * @param {number} start - 视图起始
+   * @param {number} end - 视图结束
+   */
+  zoomTo(start, end) {
+    this.zoomStart = start
+    this.zoomEnd = end
+  }
+
+  /** 重置缩放：清除 zoom-start/zoom-end，恢复默认视图范围 */
+  zoomReset() {
+    this.removeAttribute('zoom-start')
+    this.removeAttribute('zoom-end')
+  }
+
+  /** 缩放到适合所有内容（重置 + 若共享模式则自动计算全范围） */
+  zoomFit() {
+    this.zoomReset()
+  }
+
+  /**
+   * 在给定比例位置执行缩放
+   * @param {number} ratio - 缩放中心在视图中的比例（0~1）
+   * @param {number} factor - 缩放系数（>1 缩小，<1 放大）
+   */
+  _zoomAtRatio(ratio, factor) {
+    const vs = this.zoomStart != null ? this.zoomStart : this.sharedStart
+    const ve = this.zoomEnd   != null ? this.zoomEnd   : this.sharedEnd
+    const range = ve - vs
+    if (!range) return
+
+    const center = vs + ratio * range
+    const newRange = range * factor
+    const minR = this.minZoomRange
+    if (newRange < minR) return
+
+    this.zoomStart = center - newRange * ratio
+    this.zoomEnd   = center + newRange * (1 - ratio)
+  }
+
+  /** 视图范围变更：刷新轴尺 + 所有轨道 */
+  _onViewRangeChange() {
+    const doDraw = () => {
+      // 刷新轴尺（如果存在）
+      if (this._axisRuler) this._drawAxisRuler()
+      // 刷新所有轨道
+      this.allTracks().forEach(t => {
+        if (t._onViewRangeChange) t._onViewRangeChange()
+      })
+    }
+    if (this._vrfRaf) cancelAnimationFrame(this._vrfRaf)
+    this._vrfRaf = requestAnimationFrame(doDraw)
+  }
+
+  /**
+   * 滚轮事件处理（Ctrl/Meta+滚轮 = 缩放，纯滚轮 = 滚动）
+   * 使用 passive:false 以允许 preventDefault 阻止浏览器页面缩放
+   */
+  _wheelZoom(e) {
+    // 只响应 Ctrl/Meta 组合键（阻止页面缩放，用于轨道缩放）
+    const isZoom = e.ctrlKey || e.metaKey
+    if (!isZoom) return
+
+    e.preventDefault()
+
+    const rect = this.getBoundingClientRect()
+    if (!rect.width || !rect.height) return
+
+    const isV = this.direction === 'vertical'
+    const cp = isV ? e.clientY - rect.top : e.clientX - rect.left
+    const dim = isV ? rect.height : rect.width
+
+    // 鼠标位置在视图中的比例（0~1）
+    const ratio = clamp(cp / dim, 0, 1)
+
+    // 缩放系数：向下滚（deltaY>0）缩小，向上滚放大
+    const FACTOR = 1.2
+    const factor = e.deltaY > 0 ? FACTOR : 1 / FACTOR
+
+    this._zoomAtRatio(ratio, factor)
+  }
 
   /** 设置全局段圆角 */
   setGlobalRadius(val) {
@@ -257,12 +408,14 @@ export class TimeContainer extends HTMLElement {
 
     const fmt = this.getFormatter()
     const isHorizontal = this.direction !== 'vertical'
+    // 使用缩放感知的范围
+    const { start: axisStart, end: axisEnd } = this._axisRange()
     const rangeEl = ruler.querySelector('.tlc-axis-range')
     if (rangeEl) {
       const loc = resolveLocale(this)
       const text = loc.axisRange
-        .replace('{start}', fmt.format(this.sharedStart, 'axis'))
-        .replace('{end}', fmt.format(this.sharedEnd, 'axis'))
+        .replace('{start}', fmt.format(axisStart, 'axis'))
+        .replace('{end}', fmt.format(axisEnd, 'axis'))
       rangeEl.textContent = text
     }
 
@@ -280,7 +433,7 @@ export class TimeContainer extends HTMLElement {
     const ctx = canvas.getContext('2d')
     ctx.scale(dpr, dpr)
 
-    const range = this.sharedEnd - this.sharedStart
+    const range = axisEnd - axisStart
     if (!range) return
 
     const dim  = isHorizontal ? rect.width : rect.height
@@ -293,16 +446,16 @@ export class TimeContainer extends HTMLElement {
 
       // 次刻度
       ctx.strokeStyle = '#e0e3e8'; ctx.lineWidth = 0.5
-      for (let t = Math.floor(this.sharedStart / step) * step; t <= this.sharedEnd; t += step / 2) {
-        const px = ((t - this.sharedStart) / range) * dim
+      for (let t = Math.floor(axisStart / step) * step; t <= axisEnd; t += step / 2) {
+        const px = ((t - axisStart) / range) * dim
         if (px < 2 || px > dim - 2) continue
         ctx.beginPath(); ctx.moveTo(px, rect.height - 0.5); ctx.lineTo(px, rect.height - 4); ctx.stroke()
       }
 
       // 主刻度
       ctx.strokeStyle = '#c0c5cc'; ctx.lineWidth = 1
-      for (let t = Math.floor(this.sharedStart / step) * step; t <= this.sharedEnd; t += step) {
-        const px = ((t - this.sharedStart) / range) * dim
+      for (let t = Math.floor(axisStart / step) * step; t <= axisEnd; t += step) {
+        const px = ((t - axisStart) / range) * dim
         if (px < 1 || px > dim - 1) continue
         ctx.beginPath(); ctx.moveTo(px, rect.height - 0.5); ctx.lineTo(px, rect.height - 8); ctx.stroke()
       }
@@ -310,16 +463,16 @@ export class TimeContainer extends HTMLElement {
       // 时间文字
       ctx.fillStyle = '#6b7d8e'; ctx.font = '10px -apple-system,BlinkMacSystemFont,sans-serif'
       ctx.textAlign = 'center'; ctx.textBaseline = 'bottom'
-      for (let t = Math.floor(this.sharedStart / step) * step; t <= this.sharedEnd; t += step) {
-        const px = ((t - this.sharedStart) / range) * dim
+      for (let t = Math.floor(axisStart / step) * step; t <= axisEnd; t += step) {
+        const px = ((t - axisStart) / range) * dim
         if (px < 20 || px > dim - 20) continue
         ctx.fillText(fmt.format(t, 'axis'), px, rect.height - 9)
       }
       // 强制显示首尾
       ctx.textAlign = 'left'
-      if (0 < 20) ctx.fillText(fmt.format(this.sharedStart, 'axis'), Math.max(0, 2), rect.height - 9)
+      if (0 < 20) ctx.fillText(fmt.format(axisStart, 'axis'), Math.max(0, 2), rect.height - 9)
       ctx.textAlign = 'right'
-      if (dim > dim - 20) ctx.fillText(fmt.format(this.sharedEnd, 'axis'), Math.min(dim, dim - 2), rect.height - 9)
+      if (dim > dim - 20) ctx.fillText(fmt.format(axisEnd, 'axis'), Math.min(dim, dim - 2), rect.height - 9)
     } else {
       // 纵向轴尺（左侧，刻度朝右）
       ctx.strokeStyle = '#d0d4da'; ctx.lineWidth = 1
@@ -327,16 +480,16 @@ export class TimeContainer extends HTMLElement {
 
       // 次刻度
       ctx.strokeStyle = '#e0e3e8'; ctx.lineWidth = 0.5
-      for (let t = Math.floor(this.sharedStart / step) * step; t <= this.sharedEnd; t += step / 2) {
-        const py = ((t - this.sharedStart) / range) * dim
+      for (let t = Math.floor(axisStart / step) * step; t <= axisEnd; t += step / 2) {
+        const py = ((t - axisStart) / range) * dim
         if (py < 2 || py > dim - 2) continue
         ctx.beginPath(); ctx.moveTo(rect.width - 0.5, py); ctx.lineTo(rect.width - 5, py); ctx.stroke()
       }
 
       // 主刻度
       ctx.strokeStyle = '#c0c5cc'; ctx.lineWidth = 1
-      for (let t = Math.floor(this.sharedStart / step) * step; t <= this.sharedEnd; t += step) {
-        const py = ((t - this.sharedStart) / range) * dim
+      for (let t = Math.floor(axisStart / step) * step; t <= axisEnd; t += step) {
+        const py = ((t - axisStart) / range) * dim
         if (py < 1 || py > dim - 1) continue
         ctx.beginPath(); ctx.moveTo(rect.width - 0.5, py); ctx.lineTo(rect.width - 9, py); ctx.stroke()
       }
@@ -344,14 +497,14 @@ export class TimeContainer extends HTMLElement {
       // 时间文字
       ctx.fillStyle = '#6b7d8e'; ctx.font = '10px -apple-system,BlinkMacSystemFont,sans-serif'
       ctx.textAlign = 'right'; ctx.textBaseline = 'middle'
-      for (let t = Math.floor(this.sharedStart / step) * step; t <= this.sharedEnd; t += step) {
-        const py = ((t - this.sharedStart) / range) * dim
+      for (let t = Math.floor(axisStart / step) * step; t <= axisEnd; t += step) {
+        const py = ((t - axisStart) / range) * dim
         if (py < 12 || py > dim - 12) continue
         ctx.fillText(fmt.format(t, 'axis'), rect.width - 11, py)
       }
       // 强制显示首尾
-      if (0 < 12) ctx.fillText(fmt.format(this.sharedStart, 'axis'), rect.width - 11, Math.max(0, 8))
-      if (dim > dim - 12) ctx.fillText(fmt.format(this.sharedEnd, 'axis'), rect.width - 11, Math.min(dim, dim - 8))
+      if (0 < 12) ctx.fillText(fmt.format(axisStart, 'axis'), rect.width - 11, Math.max(0, 8))
+      if (dim > dim - 12) ctx.fillText(fmt.format(axisEnd, 'axis'), rect.width - 11, Math.min(dim, dim - 8))
     }
   }
 
