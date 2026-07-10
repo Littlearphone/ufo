@@ -349,14 +349,33 @@ export class TimeContainer extends HTMLElement {
 
     e.preventDefault()
 
-    const rect = this.getBoundingClientRect()
-    if (!rect.width || !rect.height) return
-
     const isV = this.direction === 'vertical'
-    const cp = isV ? e.clientY - rect.top : e.clientX - rect.left
-    const dim = isV ? rect.height : rect.width
+    const tracks = this.allTracks()
+    if (!tracks.length) return
 
-    // 鼠标位置在视图中的比例（0~1）
+    // 找到鼠标所在轨道的段区域（.tlt-seg-area）作为参照系
+    // 段区域排除了轨道头部标签（110px）、轴尺等非内容区域，
+    // 确保鼠标在内容区中的位置比例直接映射到值空间比例
+    let areaRect = null
+    const hovered = document.elementFromPoint(e.clientX, e.clientY)
+    if (hovered) {
+      const track = hovered.closest('time-line-track')
+      if (track && tracks.includes(track)) {
+        const area = track.querySelector(':scope > .tlt-row > .tlt-body > .tlt-seg-area')
+        if (area) areaRect = area.getBoundingClientRect()
+      }
+    }
+    // 回退：鼠标不在轨道上方时使用第一条轨道的段区域
+    if (!areaRect) {
+      const first = tracks[0].querySelector(':scope > .tlt-row > .tlt-body > .tlt-seg-area')
+      if (first) areaRect = first.getBoundingClientRect()
+    }
+    if (!areaRect || !areaRect.width || !areaRect.height) return
+
+    const cp = isV ? e.clientY - areaRect.top : e.clientX - areaRect.left
+    const dim = isV ? areaRect.height : areaRect.width
+
+    // 鼠标位置在段区域中的比例（0~1），直接对应值空间中的比例
     const ratio = clamp(cp / dim, 0, 1)
 
     // 缩放系数：向下滚（deltaY>0）缩小，向上滚放大
