@@ -494,7 +494,8 @@ export class TimeContainer extends HTMLElement {
         ctx.beginPath(); ctx.moveTo(px, rect.height - 0.5); ctx.lineTo(px, rect.height - 8); ctx.stroke()
       }
 
-      // 时间文字（跳过格式化后文字重复的相邻刻度，如 30s 步长时同一分钟不重复）
+      // 时间文字（步长 < 1min 时自动显示秒，避免格式化重复）
+      fmt.showSec = step < 1 / 60
       ctx.fillStyle = '#6b7d8e'; ctx.font = '10px -apple-system,BlinkMacSystemFont,sans-serif'
       ctx.textAlign = 'center'; ctx.textBaseline = 'bottom'
       let _lastHLabel = ''
@@ -552,7 +553,8 @@ export class TimeContainer extends HTMLElement {
         ctx.beginPath(); ctx.moveTo(rect.width - 0.5, py); ctx.lineTo(rect.width - 9, py); ctx.stroke()
       }
 
-      // 时间文字（跳过格式化后文字重复的相邻刻度）
+      // 时间文字（步长 < 1min 时自动显示秒）
+      fmt.showSec = step < 1 / 60
       ctx.fillStyle = '#6b7d8e'; ctx.font = '10px -apple-system,BlinkMacSystemFont,sans-serif'
       ctx.textAlign = 'right'; ctx.textBaseline = 'middle'
       let _lastVLabel = ''

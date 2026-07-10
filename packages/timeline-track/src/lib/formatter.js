@@ -105,6 +105,10 @@ export class ValueFormatter {
   /** @returns {string} 当前单位 */
   get unit() { return this._unit }
 
+  /** 是否在格式中显示秒（默认 false，子类可覆盖） */
+  get showSec() { return false }
+  set showSec(v) {}
+
   /**
    * 解析属性字符串 → 归一化数值
    * @param {string|number|null} str
@@ -189,7 +193,11 @@ export class TimeFormatter extends ValueFormatter {
   constructor(unit = 'hour') {
     super(unit)
     this._ticks = _ticksForUnit(unit)
+    this._showSec = false
   }
+
+  get showSec() { return this._showSec || this._unit === 'second' }
+  set showSec(v) { this._showSec = !!v }
 
   /** 转换为小时（所有内部计算以小时为基准 */
   _toHours(val) {
@@ -199,6 +207,12 @@ export class TimeFormatter extends ValueFormatter {
   /** 从小时转换为当前单位 */
   _fromHours(hours) {
     return hours / (TO_HOUR[this._unit] || 1)
+  }
+
+  _doFormat(val, context) {
+    // 秒级精度模式：showSec 或 second 单位下的 tooltip/editor 含秒
+    const showSec = this.showSec || (this._unit === 'second' && (context === 'tooltip' || context === 'editor'))
+    return _fmtHours(this._toHours(val), showSec)
   }
 
   _doParse(str, fallback) {
@@ -219,12 +233,6 @@ export class TimeFormatter extends ValueFormatter {
     // 3. 纯数字回退
     const n = parseFloat(str)
     return isNaN(n) ? fallback : n
-  }
-
-  _doFormat(val, context) {
-    // 秒级精度模式下 tooltip/editor 才含秒，axis/segment 和 hour/minute 均仅 HH:MM
-    const showSec = this._unit === 'second' && (context === 'tooltip' || context === 'editor')
-    return _fmtHours(this._toHours(val), showSec)
   }
 
   _doNiceStep(raw) {

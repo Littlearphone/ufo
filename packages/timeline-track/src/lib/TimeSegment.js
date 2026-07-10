@@ -90,6 +90,7 @@ export class TimeSegment extends HTMLElement {
     const c = this.closest('time-line-container')
     const r = (c && c._globalRadius != null) ? c._globalRadius : '0'
     const loc = resolveLocale(this)
+    // 秒级显示由轴/轨道帧绘制时统一设置 fmt.showSec，段继承即可
     this.innerHTML = ''
     this.append(
       h('div', { class: 'tls-hdl tls-hdl-left', 'data-role': 'hdl-left' }, h('div', { class: 'tls-hdl-bar' })),
@@ -279,16 +280,27 @@ export class TimeSegment extends HTMLElement {
     const dp = this._client(e) - this._ptr0
     const dt = t.px2Time(dp)
     const step = t.step || 0
+    // 放大后步长回退到轴刻度步长，确保拉伸对齐刻度
+    const vis = t._effRange()
+    const visRange = vis.end - vis.start
+    let axisStep = 0
+    const body = t._bodyEl()
+    if (body) {
+      const bodyRect = body.getBoundingClientRect()
+      const dim = t.isVertical ? bodyRect.height : bodyRect.width
+      axisStep = t._formatter.niceStep(visRange, dim)
+    }
+    const effStep = step > 0 ? Math.min(step, (axisStep || visRange * 0.05) / 2) : 0
     const minW = t.minDur
 
     if (this._mode === 'resize-left') {
       let s = this._s0 + dt
-      s = snap(s, step)
+      s = snap(s, effStep)
       s = clamp(s, this._lo, this._e0 - minW)
       this.start = s
     } else if (this._mode === 'resize-right') {
       let e = this._e0 + dt
-      e = snap(e, step)
+      e = snap(e, effStep)
       e = clamp(e, this._s0 + minW, this._hi)
       this.end = e
     } else {
@@ -298,7 +310,7 @@ export class TimeSegment extends HTMLElement {
         ? (this._tgtTrack._dragBounds ? this._tgtTrack._dragBounds() : this._tgtTrack._effRange())
         : { start: this._lo, end: this._hi }
       let s = this._s0 + dt
-      s = snap(s, step)
+      s = snap(s, effStep)
       s = clamp(s, bounds.start, bounds.end - w)
       this.start = s
       this.end = s + w

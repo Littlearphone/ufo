@@ -464,7 +464,20 @@ export class TimeTrack extends HTMLElement {
     const t2 = _eff.start + ((cp - orig) / dim) * (_eff.end - _eff.start)
     let lo = Math.min(this._crS, t2), hi = Math.max(this._crS, t2)
 
-    if (this.step) { lo = snap(lo, this.step); hi = snap(hi, this.step) }
+    if (this.step) {
+      // 放大后步长回退到轴刻度步长，确保创建段对齐刻度
+      const vis = this._effRange()
+      const visRange = vis.end - vis.start
+      const body = this._bodyEl()
+      let axisStep = 0
+      if (body) {
+        const bodyRect = body.getBoundingClientRect()
+        const dim = this.isVertical ? bodyRect.height : bodyRect.width
+        axisStep = this._formatter.niceStep(visRange, dim)
+      }
+      const effStep = Math.min(this.step, (axisStep || visRange * 0.05) / 2)
+      lo = snap(lo, effStep); hi = snap(hi, effStep)
+    }
 
     // 确保不与其他段重叠
     const exist = this.sortedSegs()
@@ -545,8 +558,9 @@ export class TimeTrack extends HTMLElement {
       if (c && c.axisRulerActive) return
     }
 
-    // 标签
+    // 标签（步长 < 1min 时自动显示秒）
     ctx.fillStyle = '#7a8591'; ctx.font = '10px -apple-system,BlinkMacSystemFont,sans-serif'
+    fmt.showSec = step < 1 / 60
     if (v) {
       ctx.textBaseline = 'middle'
       ctx.textAlign = this.labelV === 'left' ? 'left' : 'right'
