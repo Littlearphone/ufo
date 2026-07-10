@@ -551,28 +551,77 @@ export class TimeTrack extends HTMLElement {
       ctx.textBaseline = 'middle'
       ctx.textAlign = this.labelV === 'left' ? 'left' : 'right'
       const labelX = this.labelV === 'left' ? 6 : rect.width - 6
+      let _lastTLabel = ''
       for (let t = Math.floor(gridStart / step) * step; t <= gridEnd; t += step) {
         const px = this.time2Px(t)
-        if (px > 14 && px < rect.height - 8) ctx.fillText(fmt.format(t, 'axis'), labelX, px + offY)
+        if (px > 14 && px < rect.height - 8) {
+          const text = fmt.format(t, 'axis')
+          if (text !== _lastTLabel) {
+            ctx.fillText(text, labelX, px + offY)
+            _lastTLabel = text
+          }
+        }
       }
-      // 强制显示首尾
+      // 强制显示首尾（防重叠：相邻标签 < 28px 则跳过）
       const sp = this.time2Px(gridStart), ep = this.time2Px(gridEnd)
-      if (sp <= 14) ctx.fillText(fmt.format(gridStart, 'axis'), labelX, sp + offY + 10)
-      if (ep >= rect.height - 8) ctx.fillText(fmt.format(gridEnd, 'axis'), labelX, ep + offY - 10)
+      if (sp <= 14) {
+        const tick = Math.floor(gridStart / step) * step + step
+        const nextPx = tick <= gridEnd ? this.time2Px(tick) : rect.height
+        const drawPx = sp + offY + 10
+        if (nextPx - drawPx > 28) {
+          if (tick > gridEnd || fmt.format(gridStart, 'axis') !== fmt.format(tick, 'axis')) {
+            ctx.fillText(fmt.format(gridStart, 'axis'), labelX, drawPx)
+          }
+        }
+      }
+      if (ep >= rect.height - 8) {
+        const lastTick = Math.floor(gridEnd / step) * step
+        const prevPx = lastTick > gridStart ? this.time2Px(lastTick) : 0
+        const drawPx = ep + offY - 10
+        if (drawPx - prevPx > 28) {
+          if (!_lastTLabel || fmt.format(gridEnd, 'axis') !== _lastTLabel) {
+            ctx.fillText(fmt.format(gridEnd, 'axis'), labelX, drawPx)
+          }
+        }
+      }
     } else {
       ctx.textAlign = 'center'
       ctx.textBaseline = this.labelH === 'bottom' ? 'bottom' : 'top'
       const labelY = this.labelH === 'bottom' ? rect.height - 4 : 4
+      let _lastHLabel = ''
       for (let t = Math.floor(gridStart / step) * step; t <= gridEnd; t += step) {
         const px = this.time2Px(t)
-        if (px > 24 && px < rect.width - 24) ctx.fillText(fmt.format(t, 'axis'), px + offX, labelY)
+        if (px > 24 && px < rect.width - 24) {
+          const text = fmt.format(t, 'axis')
+          if (text === _lastHLabel) continue
+          ctx.fillText(text, px + offX, labelY)
+          _lastHLabel = text
+        }
       }
-      // 强制显示首尾
+      // 强制显示首尾（防重叠：相邻标签 < 28px 则跳过）
       const sp = this.time2Px(gridStart), ep = this.time2Px(gridEnd)
       ctx.textAlign = 'left'
-      if (sp <= 24) ctx.fillText(fmt.format(gridStart, 'axis'), Math.max(sp + offX, 2), labelY)
+      if (sp <= 24) {
+        const tick = Math.floor(gridStart / step) * step + step
+        const nextPx = tick <= gridEnd ? this.time2Px(tick) : rect.width
+        const drawX = Math.max(sp + offX, 2)
+        if (nextPx - drawX > 28) {
+          if (tick > gridEnd || fmt.format(gridStart, 'axis') !== fmt.format(tick, 'axis')) {
+            ctx.fillText(fmt.format(gridStart, 'axis'), drawX, labelY)
+          }
+        }
+      }
       ctx.textAlign = 'right'
-      if (ep >= rect.width - 24) ctx.fillText(fmt.format(gridEnd, 'axis'), Math.min(ep + offX, rect.width - 2), labelY)
+      if (ep >= rect.width - 24) {
+        const lastTick = Math.floor(gridEnd / step) * step
+        const prevPx = lastTick > gridStart ? this.time2Px(lastTick) : 0
+        const drawX = Math.min(ep + offX, rect.width - 2)
+        if (drawX - prevPx > 28) {
+          if (!_lastHLabel || fmt.format(gridEnd, 'axis') !== _lastHLabel) {
+            ctx.fillText(fmt.format(gridEnd, 'axis'), drawX, labelY)
+          }
+        }
+      }
     }
   }
 
@@ -611,6 +660,13 @@ export class TimeTrack extends HTMLElement {
     // 安全防护：防止越界段溢出轨道区域（如共享轴拖拽后回退独立轴）
     if (p1 < 0) p1 = 0
     if (p2 > dim) p2 = dim
+
+    // 段完全在可视范围之外 → 隐藏（避免 overflow:auto 产生滚动条）
+    if (p1 >= dim || p2 <= 0) {
+      seg.style.display = 'none'
+      return
+    }
+    seg.style.display = ''
 
     // 计算到下一段左边界的像素间距，用于约束最小宽度
     // 避免密集场景下 6px 硬最小值导致的视觉重叠
@@ -680,6 +736,13 @@ export class TimeTrack extends HTMLElement {
       // 安全防护：防止越界段溢出轨道区域（与 _positionOne 一致）
       if (p1 < 0) p1 = 0
       if (p2 > dim) p2 = dim
+
+      // 段完全在可视范围之外 → 隐藏（避免 overflow:auto 产生滚动条）
+      if (p1 >= dim || p2 <= 0) {
+        seg.style.display = 'none'
+        continue
+      }
+      seg.style.display = ''
 
       // 计算右边界：仅当下一段完全在当前段右侧（不重叠）时才用其起点约束
       let rightBound = dim

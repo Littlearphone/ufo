@@ -201,13 +201,29 @@ export class TimeContainer extends HTMLElement {
       const v = this.getFormatter().parse(attr, 0)
       if (v > 0) return v
     }
-    // 默认：所有轨道总范围的 0.3%，最低不低于 0.05
+    // 默认：所有轨道总范围的 0.3%，最低不低于 0.01（≈36s 时间模式）
     const total = this.sharedEnd - this.sharedStart
-    return Math.max(total * 0.003, 0.05)
+    return Math.max(total * 0.003, 0.01)
   }
   set minZoomRange(v) {
     if (v == null) this.removeAttribute('min-zoom-range')
     else this.setAttribute('min-zoom-range', String(v))
+  }
+
+  /** 最大缩放范围（防止缩小超出内容范围），默认内容总范围 + 20% padding */
+  get maxZoomRange() {
+    const attr = this.getAttribute('max-zoom-range')
+    if (attr != null) {
+      const v = this.getFormatter().parse(attr, 0)
+      if (v > 0) return v
+    }
+    // 默认：内容总范围的 1.2 倍，留一定余量
+    const total = this.sharedEnd - this.sharedStart
+    return total * 1.2
+  }
+  set maxZoomRange(v) {
+    if (v == null) this.removeAttribute('max-zoom-range')
+    else this.setAttribute('max-zoom-range', String(v))
   }
 
   /** 轴尺渲染所用范围（优先使用缩放视图） */
@@ -283,11 +299,29 @@ export class TimeContainer extends HTMLElement {
 
     const center = vs + ratio * range
     const newRange = range * factor
-    const minR = this.minZoomRange
-    if (newRange < minR) return
 
-    this.zoomStart = center - newRange * ratio
-    this.zoomEnd   = center + newRange * (1 - ratio)
+    // 约束：不超出最小/最大范围
+    const minR = this.minZoomRange
+    const maxR = this.maxZoomRange
+    if (newRange < minR || newRange >= maxR) return
+
+    // 计算新视口范围，并约束到内容边界内（避免边缘缩放时越界）
+    const ss = this.sharedStart
+    const se = this.sharedEnd
+    let newStart = center - newRange * ratio
+    let newEnd   = center + newRange * (1 - ratio)
+
+    if (newStart < ss) {
+      newEnd = Math.min(newEnd + (ss - newStart), se)
+      newStart = ss
+    }
+    if (newEnd > se) {
+      newStart = Math.max(newStart - (newEnd - se), ss)
+      newEnd = se
+    }
+
+    this.zoomStart = newStart
+    this.zoomEnd   = newEnd
   }
 
   /** 视图范围变更：刷新轴尺 + 所有轨道 */
@@ -460,19 +494,43 @@ export class TimeContainer extends HTMLElement {
         ctx.beginPath(); ctx.moveTo(px, rect.height - 0.5); ctx.lineTo(px, rect.height - 8); ctx.stroke()
       }
 
-      // 时间文字
+      // 时间文字（跳过格式化后文字重复的相邻刻度，如 30s 步长时同一分钟不重复）
       ctx.fillStyle = '#6b7d8e'; ctx.font = '10px -apple-system,BlinkMacSystemFont,sans-serif'
       ctx.textAlign = 'center'; ctx.textBaseline = 'bottom'
+      let _lastHLabel = ''
       for (let t = Math.floor(axisStart / step) * step; t <= axisEnd; t += step) {
         const px = ((t - axisStart) / range) * dim
         if (px < 20 || px > dim - 20) continue
-        ctx.fillText(fmt.format(t, 'axis'), px, rect.height - 9)
+        const text = fmt.format(t, 'axis')
+        if (text === _lastHLabel) continue
+        ctx.fillText(text, px, rect.height - 9)
+        _lastHLabel = text
       }
-      // 强制显示首尾
+      // 强制显示首尾（防重叠 + 防格式化文字重复）
       ctx.textAlign = 'left'
-      if (0 < 20) ctx.fillText(fmt.format(axisStart, 'axis'), Math.max(0, 2), rect.height - 9)
+      {
+        const tick = Math.floor(axisStart / step) * step + step
+        const nextPx = tick <= axisEnd ? ((tick - axisStart) / range) * dim : dim
+        const drawX = Math.max(0, 2)
+        if (nextPx - drawX > 30) {
+          // 仅当文字与第一个可见主刻度不同时绘制（避免同一分钟文字重复）
+          if (tick > axisEnd || fmt.format(axisStart, 'axis') !== fmt.format(tick, 'axis')) {
+            ctx.fillText(fmt.format(axisStart, 'axis'), drawX, rect.height - 9)
+          }
+        }
+      }
       ctx.textAlign = 'right'
-      if (dim > dim - 20) ctx.fillText(fmt.format(axisEnd, 'axis'), Math.min(dim, dim - 2), rect.height - 9)
+      {
+        const lastTick = Math.floor(axisEnd / step) * step
+        const prevPx = lastTick > axisStart ? ((lastTick - axisStart) / range) * dim : 0
+        const drawX = Math.min(dim, dim - 2)
+        if (drawX - prevPx > 30) {
+          // 仅当文字与最后绘制的主刻度文字不同时绘制（考虑去重）
+          if (!_lastHLabel || fmt.format(axisEnd, 'axis') !== _lastHLabel) {
+            ctx.fillText(fmt.format(axisEnd, 'axis'), drawX, rect.height - 9)
+          }
+        }
+      }
     } else {
       // 纵向轴尺（左侧，刻度朝右）
       ctx.strokeStyle = '#d0d4da'; ctx.lineWidth = 1
@@ -494,17 +552,39 @@ export class TimeContainer extends HTMLElement {
         ctx.beginPath(); ctx.moveTo(rect.width - 0.5, py); ctx.lineTo(rect.width - 9, py); ctx.stroke()
       }
 
-      // 时间文字
+      // 时间文字（跳过格式化后文字重复的相邻刻度）
       ctx.fillStyle = '#6b7d8e'; ctx.font = '10px -apple-system,BlinkMacSystemFont,sans-serif'
       ctx.textAlign = 'right'; ctx.textBaseline = 'middle'
+      let _lastVLabel = ''
       for (let t = Math.floor(axisStart / step) * step; t <= axisEnd; t += step) {
         const py = ((t - axisStart) / range) * dim
         if (py < 12 || py > dim - 12) continue
-        ctx.fillText(fmt.format(t, 'axis'), rect.width - 11, py)
+        const text = fmt.format(t, 'axis')
+        if (text === _lastVLabel) continue
+        ctx.fillText(text, rect.width - 11, py)
+        _lastVLabel = text
       }
-      // 强制显示首尾
-      if (0 < 12) ctx.fillText(fmt.format(axisStart, 'axis'), rect.width - 11, Math.max(0, 8))
-      if (dim > dim - 12) ctx.fillText(fmt.format(axisEnd, 'axis'), rect.width - 11, Math.min(dim, dim - 8))
+      // 强制显示首尾（防重叠 + 防格式化文字重复）
+      {
+        const tick = Math.floor(axisStart / step) * step + step
+        const nextPy = tick <= axisEnd ? ((tick - axisStart) / range) * dim : dim
+        const drawPy = Math.max(0, 8)
+        if (nextPy - drawPy > 30) {
+          if (tick > axisEnd || fmt.format(axisStart, 'axis') !== fmt.format(tick, 'axis')) {
+            ctx.fillText(fmt.format(axisStart, 'axis'), rect.width - 11, drawPy)
+          }
+        }
+      }
+      {
+        const lastTick = Math.floor(axisEnd / step) * step
+        const prevPy = lastTick > axisStart ? ((lastTick - axisStart) / range) * dim : 0
+        const drawPy = Math.min(dim, dim - 8)
+        if (drawPy - prevPy > 30) {
+          if (!_lastVLabel || fmt.format(axisEnd, 'axis') !== _lastVLabel) {
+            ctx.fillText(fmt.format(axisEnd, 'axis'), rect.width - 11, drawPy)
+          }
+        }
+      }
     }
   }
 
