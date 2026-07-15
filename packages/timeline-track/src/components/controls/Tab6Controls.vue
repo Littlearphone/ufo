@@ -44,19 +44,19 @@
       <div class="ctrl-body">
         <div class="ctrl-row">
           <label><span class="ctrl-label">creatable</span>
-            <input type="checkbox" :checked="t.creatable" @change="setTrack(i, 'creatable', $event.target.checked)">
+            <input type="checkbox" :checked="t.creatable !== false" @change="setTrack(i, 'creatable', $event.target.checked)">
           </label>
           <label><span class="ctrl-label">editable</span>
-            <input type="checkbox" :checked="t.editable" @change="setTrack(i, 'editable', $event.target.checked)">
+            <input type="checkbox" :checked="t.editable !== false" @change="setTrack(i, 'editable', $event.target.checked)">
           </label>
           <label><span class="ctrl-label">deletable</span>
-            <input type="checkbox" :checked="t.deletable" @change="setTrack(i, 'deletable', $event.target.checked)">
+            <input type="checkbox" :checked="t.deletable !== false" @change="setTrack(i, 'deletable', $event.target.checked)">
           </label>
           <label><span class="ctrl-label">clearable</span>
-            <input type="checkbox" :checked="t.clearable" @change="setTrack(i, 'clearable', $event.target.checked)">
+            <input type="checkbox" :checked="t.clearable !== false" @change="setTrack(i, 'clearable', $event.target.checked)">
           </label>
           <label><span class="ctrl-label">copyable</span>
-            <input type="checkbox" :checked="t.copyable" @change="setTrack(i, 'copyable', $event.target.checked)">
+            <input type="checkbox" :checked="t.copyable !== false" @change="setTrack(i, 'copyable', $event.target.checked)">
           </label>
         </div>
       </div>
@@ -68,10 +68,13 @@
       <div class="ctrl-body">
         <div class="ctrl-row">
           <label><span class="ctrl-label">editable</span>
-            <input type="checkbox" :checked="s.editable" @change="setSegment(i, 'editable', $event.target.checked)">
+            <input type="checkbox" :checked="s.editable !== false" @change="setSegment(i, 'editable', $event.target.checked)">
           </label>
           <label><span class="ctrl-label">deletable</span>
-            <input type="checkbox" :checked="s.deletable" @change="setSegment(i, 'deletable', $event.target.checked)">
+            <input type="checkbox" :checked="s.deletable !== false" @change="setSegment(i, 'deletable', $event.target.checked)">
+          </label>
+          <label><span class="ctrl-label">copyable</span>
+            <input type="checkbox" :checked="s.copyable !== false" @change="setSegment(i, 'copyable', $event.target.checked)">
           </label>
         </div>
       </div>
@@ -123,6 +126,7 @@ function syncFromDOM() {
       label: trackLabel + ' / ' + segLabel,
       editable: s.hasAttribute('editable') ? s.getAttribute('editable') !== 'false' : null,
       deletable: s.hasAttribute('deletable') ? s.getAttribute('deletable') !== 'false' : null,
+      copyable: s.hasAttribute('copyable') ? s.getAttribute('copyable') !== 'false' : null,
     }
   })
 }
