@@ -8,7 +8,7 @@ export const COLORS = [
   '#3498db', '#9b59b6', '#e91e63', '#00bcd4', '#ff5722'
 ]
 
-export const TAB_NAMES = ['基础操作', '密集数据', 'API 调用', '模式示例', 'Vue 3 集成', 'CRUD 权限']
+export const TAB_NAMES = ['基础操作', '密集数据', 'API 调用', '模式示例', 'Vue 3 集成', 'CRUD 权限', 'Vue 组件']
 export const TAB_DESCS = [
   '空白处<strong>拖拽</strong>创建段 · 拖拽段体<strong>移动</strong> · 拖拽两端<strong>调长度</strong> · 悬停 <strong>×</strong> 删除 · <strong>共用轴</strong>对齐不同范围',
   '调节下方滑块，点击「生成数据」快速创建大量时间段，测试组件渲染与交互性能',
@@ -16,6 +16,7 @@ export const TAB_DESCS = [
   '展示 <code>type</code> / <code>unit</code> 多模式：<strong>自然时间</strong> · <strong>秒级</strong> · <strong>百分比</strong> · <strong>像素</strong> · <strong>温度</strong>',
   '在 Vue 3 中使用 <code>v-for</code> / <code>:bind</code> / <code>@event</code> 操作此组件库',
   '展示 <code>creatable</code> · <code>editable</code> · <code>deletable</code> · <code>clearable</code> · <code>copyable</code> 五级 CRUD 权限控制',
+  '使用 <strong>Vue 原生组件</strong>（非 Custom Elements）渲染轨道和段，完全支持 <code>v-for</code> 和 <code>v-model</code>',
 ]
 
 export function rand(min, max) { return min + Math.random() * (max - min) }

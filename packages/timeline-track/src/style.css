@@ -644,6 +644,13 @@ h1 {
 
 .ctrl-result.err { color: #e53935; }
 
+.ctrl-desc {
+  font-size: 10px;
+  color: #546e7a;
+  line-height: 1.6;
+  margin-bottom: 6px;
+}
+
 .inline-group {
   display: inline-flex;
   gap: 4px;
@@ -817,4 +824,141 @@ time-line-segment[tooltip="none"]::after {
   content: "N";
   background: #fce4ec;
   color: #c62828;
+}
+
+/* ── Tab 4 Vue 3 集成 ── */
+.vue-tab4 {
+  position: relative;
+  overflow: hidden;
+}
+
+.vue-tab4-layout {
+  display: flex;
+  flex-direction: row;
+  gap: 12px;
+  height: 100%;
+  min-height: 0;
+}
+
+.vue-tab4-ce {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+}
+
+.vue-tab4-ce > time-line-container {
+  height: 100%;
+}
+
+.vue-tab4-data {
+  flex: 0 0 320px;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  border-left: 1px solid #e8eaed;
+  padding-left: 12px;
+}
+
+.vue-t4-actions {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+  margin-bottom: 8px;
+}
+
+.vue-t4-actions .demo-seg {
+  font-size: 10px;
+  padding: 3px 10px;
+}
+
+.vue-t4-scroll {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
+}
+
+.vue-t4-track {
+  border: 1px solid #eef0f2;
+  border-radius: 6px;
+  background: #fafbfc;
+  margin-bottom: 6px;
+  overflow: hidden;
+}
+
+.vue-t4-th {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  background: #f4f6f8;
+  border-bottom: 1px solid #e8eaed;
+  font-size: 11px;
+}
+
+.vue-t4-th-label {
+  font-weight: 600;
+  color: #37474f;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.vue-t4-th-range {
+  font-size: 10px;
+  color: #8d9ba9;
+}
+
+.vue-t4-th-count {
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+.vue-t4-segs {
+  padding: 4px 8px 6px;
+}
+
+.vue-t4-seg {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10px;
+  padding: 2px 0;
+  line-height: 1.4;
+}
+
+.vue-t4-seg-color {
+  flex-shrink: 0;
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  border: 1px solid rgba(0,0,0,.08);
+}
+
+.vue-t4-seg-label {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
+  min-width: 0;
+  color: #37474f;
+}
+
+.vue-t4-seg-time {
+  color: #8d9ba9;
+  flex-shrink: 0;
+}
+
+.vue-t4-empty {
+  font-size: 10px;
+  color: #b0bec5;
+  text-align: center;
+  padding: 6px 0;
+  font-style: italic;
+}
+
+.vue-t4-empty-all {
+  font-size: 11px;
+  color: #b0bec5;
+  text-align: center;
+  padding: 20px 0;
 }
