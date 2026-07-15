@@ -4,11 +4,11 @@
  * @module TimeSegment
  */
 
-import { clamp, h, snap } from './utils.js'
-import { createFormatter } from './formatter.js'
+import { clamp, h, snap } from '../shared/utils.js'
+import { createFormatter } from '../shared/formatter.js'
 import { hideGlobalTip, showGlobalTip } from './tooltip.js'
 import { hideContextMenu, showContextMenu, showDeleteConfirm, showSegmentEditDialog } from './contextmenu.js'
-import { resolveLocale } from './locale.js'
+import { resolveLocale } from '../shared/locale.js'
 import { clearClipboard, copyToClipboard, getClipboard, hasClipboard } from './clipboard.js'
 
 export class TimeSegment extends HTMLElement {

@@ -6,6 +6,13 @@
   "packageManager": "pnpm@11.6.0",
   "description": "时间线轨道组件 — Custom Elements v1 + Pointer Events",
   "main": "dist/TimelineTrack.js",
+  "exports": {
+    ".": "./dist/TimelineTrack.js",
+    "./vue": {
+      "import": "./vue/index.js",
+      "default": "./vue/index.js"
+    }
+  },
   "scripts": {
     "dev": "vite",
     "build": "vite build",

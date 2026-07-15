@@ -715,7 +715,7 @@ import EventLog from './components/EventLog.vue'
 
 import { useTimelineSync } from './composables/useTimelineSync.js'
 
-import { VTimelineContainer } from './vue/index.js'
+import { VTimelineContainer } from '../vue/index.js'
 
 // 语法高亮（Prism 核心已内置 markup / javascript 支持）
 import Prism from 'prismjs'

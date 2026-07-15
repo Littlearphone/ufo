@@ -9,7 +9,7 @@ export default defineConfig(({ mode }) => {
     return {
       build: {
         lib: {
-          entry: resolve(__dirname, 'src/lib/index.js'),
+          entry: resolve(__dirname, 'lib/index.js'),
           name: 'TimelineTrack',
           fileName: () => 'TimelineTrack.js',
           formats: ['umd']

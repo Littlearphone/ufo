@@ -8,7 +8,7 @@ import { createApp } from 'vue'
 import App from './App.vue'
 
 // 导入自定义元素库（自动注册三个 Custom Element）
-import './lib/index.js'
+import '../lib/index.js'
 
 import './style.css'
 

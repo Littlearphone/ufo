@@ -14,7 +14,7 @@
       v-if="editable && segWidth >= 28"
       class="tls-hdl tls-hdl-left"
       data-role="hdl-left"
-      @pointerdown.stop="onHandleDown('resize-left')"
+      @pointerdown.stop="onHandleDown('resize-left', $event)"
     >
       <div class="tls-hdl-bar"></div>
     </div>
@@ -35,7 +35,7 @@
       v-if="editable && segWidth >= 28"
       class="tls-hdl tls-hdl-right"
       data-role="hdl-right"
-      @pointerdown.stop="onHandleDown('resize-right')"
+      @pointerdown.stop="onHandleDown('resize-right', $event)"
     >
       <div class="tls-hdl-bar"></div>
     </div>
@@ -73,7 +73,7 @@
  * ```
  */
 import { computed, ref } from 'vue'
-import { clamp, snap } from './shared/utils.js'
+import { clamp, snap } from '../shared/utils.js'
 
 const props = defineProps({
   /** 段数据 */
@@ -182,9 +182,9 @@ function onDown(e) {
 }
 
 /** pointerdown — 手柄：开始调整大小 */
-function onHandleDown(mode) {
-  if (!props.editable) return
-  // 需要真实 pointerdown event
+function onHandleDown(mode, e) {
+  if (!props.editable || !e) return
+  _startDrag(mode, e)
 }
 
 /** 启动拖拽 */
@@ -238,18 +238,24 @@ function _onMove(e) {
   }
 }
 
-function _onUp(e) {
+function _onUp(ev) {
   _dragging.value = false
   _resizing.value = false
   _mode = null
-  wrapperRef.value?.releasePointerCapture(e.pointerId)
+  wrapperRef.value?.releasePointerCapture(ev.pointerId)
 
-  // Emit final value
-  emit('change', {
-    id: props.segment.id,
-    start: props.segment.start,
-    end: props.segment.end,
-  })
+  // 从 dataset 读取拖拽后的最终值，回退到原始 props
+  const el = wrapperRef.value
+  const finalStart = el?.dataset.dragS != null ? parseFloat(el.dataset.dragS) : props.segment.start
+  const finalEnd = el?.dataset.dragE != null ? parseFloat(el.dataset.dragE) : props.segment.end
+
+  // 清除临时 dataset
+  if (el) {
+    delete el.dataset.dragS
+    delete el.dataset.dragE
+  }
+
+  emit('change', { id: props.segment.id, start: finalStart, end: finalEnd })
 }
 
 /** 直接在 DOM 上应用临时位置（拖拽中视觉反馈） */

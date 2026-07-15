@@ -5,9 +5,9 @@
  */
 
 import { ensureCSS } from './css.js'
-import { clamp, h } from './utils.js'
-import { LOCALE_ATTRS, resolveLocale } from './locale.js'
-import { createFormatter } from './formatter.js'
+import { clamp, h } from '../shared/utils.js'
+import { LOCALE_ATTRS, resolveLocale } from '../shared/locale.js'
+import { createFormatter } from '../shared/formatter.js'
 
 export class TimeContainer extends HTMLElement {
   constructor() {

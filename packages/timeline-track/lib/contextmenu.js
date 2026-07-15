@@ -4,8 +4,8 @@
  * @module contextmenu
  */
 
-import { h } from './utils.js'
-import { formatLocale, resolveLocale } from './locale.js'
+import { h } from '../shared/utils.js'
+import { formatLocale, resolveLocale } from '../shared/locale.js'
 
 /* ============================ CSS（Vite 库模式自动内联）============================ */
 import './popup.css'

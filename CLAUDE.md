@@ -22,15 +22,30 @@ ufo/                              # GitHub repo 根
 │
 └── packages/
     ├── timeline-track/           # ▸ 时间线轨道组件
-    │   ├── src/lib/              #   Custom Elements 源码（框架无关）
+    │   ├── lib/                  #   Custom Elements 源码（框架无关）
     │   │   ├── index.js          #   入口 & 注册
     │   │   ├── TimeContainer.js  #   <time-line-container>
     │   │   ├── TimeTrack.js      #   <time-line-track>
     │   │   ├── TimeSegment.js    #   <time-line-segment>
-    │   │   ├── css.js            #   样式注入
+    │   │   ├── contextmenu.js    #   右键菜单与编辑弹窗
     │   │   ├── tooltip.js        #   全局 Tooltip
-    │   │   └── utils.js          #   工具函数
-    │   ├── src/components/       #   Vue 3 演示组件
+    │   │   ├── clipboard.js      #   内部剪贴板
+    │   │   └── css.js            #   样式注入
+    │   ├── vue/                  #   Vue 3 包装组件（可复制到 Vue 项目直接使用）
+    │   │   ├── index.js          #   导出 VTimelineContainer/Track/Segment
+    │   │   ├── VTimelineContainer.vue
+    │   │   ├── VTimelineTrack.vue
+    │   │   └── VTimelineSegment.vue
+    │   ├── shared/               #   共享逻辑（lib 与 vue 共同引用）
+    │   │   ├── formatter.js      #   可插拔的值格式化/解析/刻度系统
+    │   │   ├── locale.js         #   用户可见文字配置系统
+    │   │   └── utils.js          #   工具函数（clamp/snap）
+    │   ├── src/                  #   Vue 3 演示应用
+    │   │   ├── main.js
+    │   │   ├── App.vue
+    │   │   ├── components/       #   控制面板、事件日志等
+    │   │   ├── composables/      #   Vue composables
+    │   │   └── stores/           #   响应式事件日志
     │   ├── dist/
     │   │   ├── TimelineTrack.js  #   构建产物（UMD 库）
     │   │   └── index.html        #   构建产物（自包含 demo）
@@ -39,7 +54,10 @@ ufo/                              # GitHub repo 根
     │   └── package.json          #   @ufo/timeline-track
     │
     └── 其他组件/                   # ▸ 未来新增组件（相同结构）
-        ├── src/lib/
+        ├── lib/
+        ├── vue/                  #   Vue 3 包装组件（如有）
+        ├── shared/               #   共享逻辑（如有）
+        ├── src/                  #   演示应用
         ├── dist/
         │   ├── OtherModule.js    #   构建产物（UMD 库）
         │   └── index.html        #   构建产物（自包含 demo）
@@ -76,13 +94,15 @@ pnpm -r run build:all
 
 | 目录/文件 | 说明 |
 |---|---|
-| `src/lib/` | Custom Elements 源码，纯原生、零框架依赖 |
+| `lib/` | Custom Elements 源码，纯原生、零框架依赖 |
+| `vue/` | Vue 3 包装组件，可复制到 Vue 项目直接使用 |
+| `shared/` | formatter/locale/utils 共享逻辑，lib 与 vue 共同引用 |
 | `dist/TimelineTrack.js` | 构建产出的 UMD 独立库，**由 Actions 构建发布** |
 | `dist/index.html` | 构建产出的自包含 demo 页面，**可 GH Pages / 直接打开** |
 | `index.html` | Vite 唯一入口（开发 HMR + 构建共用） |
-| `src/` (除 lib) | Vue 3 演示组件源码 |
+| `src/` | Vue 3 演示应用源码 |
 | `vite.config.js` | `mode=lib` 输出 UMD 库；默认模式输出单文件 demo |
-| `package.json` | 独立版本号，`build:all` 一次产出库 + demo |
+| `package.json` | 独立版本号，`build:all` 一次产出库 + demo；含 `exports` 配置支持 `@ufo/timeline-track/vue` |
 
 ### 自定义元素约定
 

@@ -5,9 +5,9 @@
  */
 
 import { ensureCSS } from './css.js'
-import { clamp, h, snap } from './utils.js'
+import { clamp, h, snap } from '../shared/utils.js'
 import { showContextMenu, showCopyToTracksDialog, showDeleteConfirm, showTrackEditDialog } from './contextmenu.js'
-import { resolveLocale } from './locale.js'
+import { resolveLocale } from '../shared/locale.js'
 import { clearClipboard, copyToClipboard, getClipboard } from './clipboard.js'
 
 export class TimeTrack extends HTMLElement {

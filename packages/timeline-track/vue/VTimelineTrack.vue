@@ -58,7 +58,7 @@
  * ```
  */
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
-import { clamp, snap } from './shared/utils.js'
+import { clamp, snap } from '../shared/utils.js'
 import VTimelineSegment from './VTimelineSegment.vue'
 
 const props = defineProps({

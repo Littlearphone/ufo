@@ -4,7 +4,7 @@
  * @module tooltip
  */
 
-import { clamp, h } from './utils.js'
+import { clamp, h } from '../shared/utils.js'
 
 let _globalTip = null
 

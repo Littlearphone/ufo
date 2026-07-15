@@ -39,7 +39,7 @@
 <script setup>
 /** VTimelineContainer.vue — 顶层容器 Vue 组件 */
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
-import { createFormatter } from '../lib/formatter.js'
+import { createFormatter } from '../shared/formatter.js'
 import VTimelineTrack from './VTimelineTrack.vue'
 
 // v-model 支持
