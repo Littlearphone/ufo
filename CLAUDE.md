@@ -298,9 +298,9 @@ c().step = parseFloat(v) || 0
 c().setAttribute('step', '0.5')
 ```
 
-## CRUD 权限控制系统（creatable / editable / deletable / clearable）
+## CRUD 权限控制系统（creatable / editable / deletable / clearable / copyable）
 
-四级布尔属性，控制每个元素是否可创建、可编辑、可删除、可清空。所有属性默认 `true`（不设置 = 全部允许），完全向后兼容。
+五级布尔属性，控制每个元素是否可创建、可编辑、可删除、可清空、可复制。所有属性默认 `true`（不设置 = 全部允许），完全向后兼容。
 
 ### 属性概览
 
@@ -310,6 +310,7 @@ c().setAttribute('step', '0.5')
 | `editable` | 可修改已有内容 | 为轨道提供默认值 | 移动/调整段、编辑属性 | 拖拽移动/调整、编辑属性 |
 | `deletable` | 可删除内容 | 为轨道提供默认值 | 删除轨道 | 删除按钮、删除菜单 |
 | `clearable` | 可清空段 | 为轨道提供默认值 | 右键菜单"清空时间段" | —（轨道级操作） |
+| `copyable` | 可复制 | 为轨道提供默认值 | 右键"复制段/轨道"、Ctrl+拖拽复制 | 右键"复制段"、Ctrl+拖拽复制 |
 
 ### 继承链
 
@@ -320,6 +321,7 @@ container.creatable  → track.creatable  (段无 creatable)
 container.editable   → track.editable   → segment.editable
 container.deletable  → track.deletable  → segment.deletable
 container.clearable  → track.clearable  (段无 clearable)
+container.copyable   → track.copyable   → segment.copyable
 ```
 
 ### 各操作归属表
@@ -348,6 +350,17 @@ container.clearable  → track.clearable  (段无 clearable)
 | 操作 | 守卫层级 | 守卫属性 |
 |---|---|---|
 | 右键菜单「清空时间段」 | Track | `track.clearable` |
+
+**Copy — `copyable`：**
+| 操作 | 源端守卫 | 目标端守卫 |
+|---|---|---|
+| Ctrl+拖拽复制段 | `segment.copyable` + `track.copyable` | `track.creatable` |
+| 右键菜单「复制段」 | `segment.copyable` | — |
+| 右键菜单「复制轨道」 | `track.copyable` | — |
+| 右键菜单「复制到其他轨道…」 | `track.copyable` | 各勾选轨道的 `deletable` |
+| 右键菜单「粘贴段」 | — | `track.creatable` |
+| 右键菜单「覆盖粘贴到本轨道」 | — | `track.deletable` |
+| 右键菜单「粘贴为新轨道」 | — | `container.creatable` |
 
 ### 使用示例
 
@@ -379,7 +392,8 @@ container.clearable  → track.clearable  (段无 clearable)
     creatable: false,  // 不可拖拽创建新段
     editable: true,    // 可移动/调整已有段
     deletable: false,  // 不可删除
-    clearable: false   // 不可清空段
+    clearable: false,  // 不可清空段
+    copyable: true     // 可复制段
   })
 </script>
 ```
@@ -389,6 +403,7 @@ container.clearable  → track.clearable  (段无 clearable)
 - `editable="false"` 的段：拖拽手柄不渲染、`×` 删除按钮不渲染（若同时 `deletable="false"`）
 - `deletable="false"` 的轨道：右键菜单隐藏"删除轨道"项
 - `clearable="false"` 的轨道：右键菜单隐藏"清空时间段"项
+- `copyable="false"` 的轨道/段：右键菜单隐藏"复制段/复制轨道"项；Ctrl+拖拽不触发复制
 - `creatable="false"` 的轨道：拖拽创建被扼制，指针无响应
 
 ## 共享轴轴尺标签自定义

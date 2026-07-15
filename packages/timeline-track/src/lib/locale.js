@@ -1,86 +1,109 @@
 /**
- * 本地化配置 — 用户可见文本的默认值与解析
- * 所有硬编码 UI 文字集中管理，支持通过 time-line-container 的 loc-* 属性覆盖
- * 用法：<time-line-container loc-unnamed="未命名轨道" loc-cancel="取消">
+ * Locale configuration — user-visible text defaults and resolution.
+ * All hardcoded UI strings are centralized here and overridable via
+ * `loc-*` attributes on `time-line-container`.
+ *
+ * Usage: <time-line-container loc-unnamed="Untitled" loc-cancel="Cancel">
  * @module locale
  */
 
-/** 默认中文 locale */
+/** Default English locale */
 export const DEFAULT_LOCALE = {
-  /** 轨道/段无标签时的回退显示名 */
-  unnamed: '未命名',
-  /** 无效时间的回退显示 */
-  invalidTime: '--:--',
-  /** 段删除按钮的 title tooltip */
-  deleteBtnTitle: '删除',
-  /** 右键菜单项 */
-  modifyProps: '修改属性',
-  /** 删除轨道菜单项 */
-  deleteTrack: '删除轨道',
-  /** 清空时间段菜单项 */
-  clearSegments: '清空时间段',
-  /** 轨道菜单标题模板，{name}=轨道名 */
+  /** Fallback display name when a track/segment has no label */
+  unnamed: 'Untitled',
+  /** Title tooltip on segment delete button */
+  deleteBtnTitle: 'Delete',
+  /** Context menu item — edit properties */
+  modifyProps: 'Edit Properties',
+  /** Context menu item — delete track */
+  deleteTrack: 'Delete Track',
+  /** Context menu item — clear all segments */
+  clearSegments: 'Clear Segments',
+  /** Track context menu header template, {name}=track name */
   trackMenuHeader: '📋 {name}',
-  /** 段菜单标题模板，{name}=段名，{range}=时间范围 */
+  /** Segment context menu header template, {name}=segment name, {range}=time range */
   segmentMenuHeader: '🔖 {name}  {range}',
-  /** 删除轨道确认模板，{name}=轨道名，{range}=时间范围 */
-  confirmDeleteTrack: '确定要删除轨道「{name}」({range}) 吗？',
-  /** 删除段确认模板 */
-  confirmDeleteSegment: '确定要删除时间段「{name}」({range}) 吗？',
-  /** 清空轨道所有时间段确认模板，{name}=轨道名 */
-  confirmClearSegments: '确定要清空轨道「{name}」的所有时间段吗？',
+  /** Delete track confirmation template, {name}=track name, {range}=time range */
+  confirmDeleteTrack: 'Delete track "{name}" ({range})?',
+  /** Delete segment confirmation template */
+  confirmDeleteSegment: 'Delete segment "{name}" ({range})?',
+  /** Clear all segments confirmation template, {name}=track name */
+  confirmClearSegments: 'Clear all segments in track "{name}"?',
 
-  /* ---- 编辑弹窗 ---- */
-  segmentEditTitle: '修改时间段属性',
-  trackEditTitle: '修改轨道属性',
-  labelField: '标签',
-  startTime: '开始时间',
-  endTime: '结束时间',
-  rangeStart: '起始',
-  rangeEnd: '结束',
-  color: '颜色',
-  name: '名称',
-  step: '步长',
-  maxSegmentsField: '最大段数',
-  zeroUnlimited: '0=无限制',
+  /* ---- Copy / Paste ---- */
+  /** Context menu — copy segment */
+  copySegment: 'Copy Segment',
+  /** Context menu — copy track */
+  copyTrack: 'Copy Track',
+  /** Context menu — copy to other tracks */
+  copyToTracks: 'Copy to Tracks…',
+  /** Context menu — paste segment */
+  pasteSegment: 'Paste Segment',
+  /** Context menu — paste as new track */
+  pasteNewTrack: 'Paste as New Track',
+  /** Context menu — paste and overwrite this track */
+  pasteOverwrite: 'Paste to This Track',
+  /** Copy-to-tracks dialog title, {name}=source track name */
+  copyToTracksTitle: 'Copy segments of "{name}" to:',
+  /** Copy-to-tracks dialog when no targets available */
+  copyToTracksEmpty: 'No available target tracks (target must be editable and different from source)',
+  /** Select all */
+  copySelectAll: 'Select All',
+  /** Segment count unit (e.g. "5 segments") */
+  segmentUnit: 'segments',
 
-  /* ---- 按钮 ---- */
-  cancel: '取消',
-  confirm: '确定',
-  confirmDelete: '确定删除',
-  confirmDeleteTitle: '确认删除',
+  /* ---- Edit Dialogs ---- */
+  segmentEditTitle: 'Edit Segment',
+  trackEditTitle: 'Edit Track',
+  labelField: 'Label',
+  startTime: 'Start Time',
+  endTime: 'End Time',
+  rangeStart: 'Start',
+  rangeEnd: 'End',
+  color: 'Color',
+  name: 'Name',
+  step: 'Step',
+  maxSegmentsField: 'Max Segments',
+  zeroUnlimited: '0=Unlimited',
 
-  /* ---- 时间单位 --- */
-  hourUnit: '时',
-  minuteUnit: '分',
-  secondUnit: '秒',
+  /* ---- Buttons ---- */
+  cancel: 'Cancel',
+  confirm: 'OK',
+  confirmDeleteTitle: 'Confirm Delete',
 
-  /* ---- 步进提示 ---- */
-  stepHint: '步进 {step}（点击增减）',
+  /* ---- Time units --- */
+  hourUnit: 'h',
+  minuteUnit: 'm',
+  secondUnit: 's',
 
-  /* ---- 校验消息 ---- */
-  invalidValue: '无效的值',
-  startMustBeBeforeEnd: '起始必须早于结束',
+  /* ---- Step hint ---- */
+  stepHint: 'Step {step} (click to adjust)',
+
+  /* ---- Validation messages ---- */
+  invalidValue: 'Invalid value',
+  startMustBeBeforeEnd: 'Start must be before end',
   /**
-   * 重叠提示（显示在字段下方）
-   * 占位符：{label}=冲突段名称
+   * Overlap hint shown below the field
+   * Placeholder: {label}=conflicting segment name
    */
-  overlapHint: '与「{label}」重叠',
+  overlapHint: 'Overlaps with "{label}"',
 
-  /* ---- 轴尺 ---- */
+  /* ---- Axis ruler ---- */
   /**
-   * 共享轴模式下轴尺标签模板
-   * 占位符：{start}=共享起始值，{end}=共享结束值
-   * 设为空字符串可隐藏标签
+   * Shared axis mode ruler label template.
+   * Placeholders: {start}=shared start, {end}=shared end.
+   * Set to empty string to hide the label.
    */
   axisRange: '{start} – {end}',
 
-  /* ---- 错误消息 ---- */
+  /* ---- Error messages ---- */
   /**
-   * addSegment 时间段重叠错误模板
-   * 占位符：{start}{end}=新段时间，{label}=冲突段名称，{segStart}{segEnd}=冲突段时间
+   * addSegment segment overlap error template.
+   * Placeholders: {start}/{end}=new segment range,
+   * {label}=conflicting segment name,
+   * {segStart}/{segEnd}=conflicting segment range.
    */
-  segmentOverlapError: '时间段重叠：新段 [{start}–{end}] 与已有段「{label}」[{segStart}–{segEnd}] 冲突',
+  segmentOverlapError: 'Segment overlap: new [{start}–{end}] conflicts with "{label}" [{segStart}–{segEnd}]',
 }
 
 /**

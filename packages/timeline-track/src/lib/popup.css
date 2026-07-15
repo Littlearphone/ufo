@@ -112,6 +112,8 @@
 }
 .tlc-modal-body {
   padding: 8px 18px 14px;
+  max-height: 400px;
+  overflow-y: auto;
 }
 .tlc-modal-body label {
   display: flex;
@@ -497,4 +499,92 @@
 .tlc-text-center .tlc-tf-input,
 .tlc-text-center .tlc-field-input {
   text-align: center !important;
+}
+
+/* ── 复制到其他轨道弹窗：轨道列表项 ── */
+/* 用 .tlc-modal-body 前缀提升特异性，覆盖通用 .tlc-modal-body label > span 规则 */
+.tlc-modal-body .tlc-copy-track-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 8px;
+  margin: 0;
+  cursor: pointer;
+  font-size: 12px;
+  user-select: none;
+  border-radius: 6px;
+  transition: background .09s;
+  color: inherit;
+}
+.tlc-modal-body .tlc-copy-track-item:hover {
+  background: #f5f7fa;
+}
+.tlc-modal-body .tlc-copy-track-item .tlc-copy-track-name,
+.tlc-modal-body .tlc-copy-toggle-item .tlc-copy-track-name {
+  flex: 1;
+  font-weight: 500;
+  color: #2c3e50;
+  text-align: left;
+  min-width: 0;
+}
+.tlc-modal-body .tlc-copy-track-item .tlc-copy-track-meta {
+  font-size: 10px;
+  color: #aab3bf;
+  flex-shrink: 0;
+  text-align: left;
+  min-width: 0;
+}
+.tlc-modal-body .tlc-copy-track-item .tlc-copy-track-check,
+.tlc-modal-body .tlc-copy-toggle-item .tlc-copy-track-check {
+  width: 14px;
+  height: 14px;
+  min-width: 14px;
+  border: 1.5px solid #cdd3db;
+  border-radius: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all .1s;
+  flex-shrink: 0;
+  box-sizing: border-box;
+}
+.tlc-modal-body .tlc-copy-track-item:has(input:checked) .tlc-copy-track-check,
+.tlc-modal-body .tlc-copy-toggle-item:has(input:checked) .tlc-copy-track-check {
+  background: var(--tlc-primary);
+  border-color: var(--tlc-primary);
+}
+.tlc-modal-body .tlc-copy-track-item:has(input:checked) .tlc-copy-track-check::after,
+.tlc-modal-body .tlc-copy-toggle-item:has(input:checked) .tlc-copy-track-check::after {
+  content: '✓';
+  color: #fff;
+  font-size: 9px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+/* ── 全选行 + 分割线 ── */
+.tlc-copy-track-header {
+  border-bottom: 1px solid #e8eaed;
+  margin-bottom: 4px;
+  padding-bottom: 4px;
+}
+.tlc-copy-toggle-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 8px;
+  cursor: pointer;
+  font-size: 12px;
+  user-select: none;
+  border-radius: 6px;
+  transition: background .09s;
+  color: inherit;
+  margin: 0;
+}
+.tlc-copy-toggle-item:hover {
+  background: #f5f7fa;
+}
+.tlc-copy-toggle-label {
+  font-weight: 600;
+  color: #37474f;
 }

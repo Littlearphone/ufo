@@ -8,6 +8,7 @@
           <div>☑ <strong>editable</strong> — 可<strong>拖拽移动/调整</strong>已有段、右键<strong>修改属性</strong></div>
           <div>☑ <strong>deletable</strong> — 可删除段（×按钮/右键菜单）<strong>或删除轨道</strong></div>
           <div>☑ <strong>clearable</strong> — 右键菜单<strong>"清空时间段"</strong>（移除全部段但保留轨道）</div>
+          <div>☑ <strong>copyable</strong> — 右键<strong>复制段/轨道</strong>、<strong>Ctrl+拖拽</strong>复制段</div>
           <div style="margin-top:4px;color:#90a4ae;font-size:9px;">下层未设属性时<strong>继承</strong>上层值。勾选 = 允许，不勾 = 禁止。</div>
         </div>
       </div>
@@ -30,6 +31,9 @@
           <label><span class="ctrl-label">clearable</span>
             <input type="checkbox" :checked="c.clearable" @change="setContainer('clearable', $event.target.checked)">
           </label>
+          <label><span class="ctrl-label">copyable</span>
+            <input type="checkbox" :checked="c.copyable" @change="setContainer('copyable', $event.target.checked)">
+          </label>
         </div>
       </div>
     </div>
@@ -50,6 +54,9 @@
           </label>
           <label><span class="ctrl-label">clearable</span>
             <input type="checkbox" :checked="t.clearable" @change="setTrack(i, 'clearable', $event.target.checked)">
+          </label>
+          <label><span class="ctrl-label">copyable</span>
+            <input type="checkbox" :checked="t.copyable" @change="setTrack(i, 'copyable', $event.target.checked)">
           </label>
         </div>
       </div>
@@ -79,7 +86,7 @@ const props = defineProps({
   container: { type: Object, default: null }
 })
 
-const c = ref({ creatable: true, editable: true, deletable: true, clearable: true })
+const c = ref({ creatable: true, editable: true, deletable: true, clearable: true, copyable: true })
 const trackStates = ref([])
 const segStates = ref([])
 
@@ -93,6 +100,7 @@ function syncFromDOM() {
     editable: ct.getAttribute('editable') !== 'false',
     deletable: ct.getAttribute('deletable') !== 'false',
     clearable: ct.getAttribute('clearable') !== 'false',
+    copyable: ct.getAttribute('copyable') !== 'false',
   }
 
   const tracks = ct.querySelectorAll(':scope > time-line-track')
@@ -102,6 +110,7 @@ function syncFromDOM() {
     editable: t.hasAttribute('editable') ? t.getAttribute('editable') !== 'false' : null,
     deletable: t.hasAttribute('deletable') ? t.getAttribute('deletable') !== 'false' : null,
     clearable: t.hasAttribute('clearable') ? t.getAttribute('clearable') !== 'false' : null,
+    copyable: t.hasAttribute('copyable') ? t.getAttribute('copyable') !== 'false' : null,
   }))
 
   // 片段 label 加上父轨道前缀

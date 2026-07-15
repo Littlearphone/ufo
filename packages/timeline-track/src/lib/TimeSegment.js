@@ -9,6 +9,7 @@ import { createFormatter } from './formatter.js'
 import { hideGlobalTip, showGlobalTip } from './tooltip.js'
 import { hideContextMenu, showContextMenu, showDeleteConfirm, showSegmentEditDialog } from './contextmenu.js'
 import { resolveLocale } from './locale.js'
+import { clearClipboard, copyToClipboard, getClipboard, hasClipboard } from './clipboard.js'
 
 export class TimeSegment extends HTMLElement {
   constructor() {
@@ -26,6 +27,10 @@ export class TimeSegment extends HTMLElement {
     this._srcTrack = null    // 来源轨道（跨轨道拖拽）
     this._tgtTrack = null    // 目标轨道（跨轨道拖拽时）
     this._ghost = null       // 跨轨道拖拽浮层元素
+    this._copyMode = false   // Ctrl+拖拽复制模式
+    this._copyMoved = false  // 复制模式中是否真正拖拽移动过
+    this._ctrlOnDown = false // pointerdown 时是否按着 Ctrl
+    this._copyGhost = null   // 复制浮层
   }
 
   /* ---- 属性 ---- */
@@ -71,6 +76,13 @@ export class TimeSegment extends HTMLElement {
   set deletable(v) {
     if (v == null || v === true || v === 'true') this.removeAttribute('deletable')
     else this.setAttribute('deletable', 'false')
+  }
+
+  /** 是否允许复制（右键菜单"复制段"），默认继承轨道值或 true */
+  get copyable() {
+    if (this.hasAttribute('copyable')) return this.getAttribute('copyable') !== 'false'
+    const t = this._track
+    return t ? t.copyable : true
   }
 
   /** 获取所属的 time-line-track 元素 */
@@ -184,6 +196,29 @@ export class TimeSegment extends HTMLElement {
       if (this.editable) {
         menuItems.push({ label: l.modifyProps, action: () => showSegmentEditDialog(this) })
       }
+      // ---- 复制 ----
+      if (this.copyable) {
+        menuItems.push({ label: l.copySegment, action: () => {
+          clearClipboard() // 覆写前清空旧数据
+          copyToClipboard('segment', {
+            label: this.label,
+            color: this.color,
+            start: this.start,
+            end: this.end,
+          })
+          this._pulseCopy()
+        } })
+      }
+      // ---- 粘贴（剪贴板有段数据时） ----
+      if (hasClipboard('segment')) {
+        const t = this._track
+        if (t && t.creatable) {
+          const clip = getClipboard()
+          menuItems.push({ label: l.pasteSegment, action: () => {
+            t._pasteSegment(e, clip.data)
+          } })
+        }
+      }
       if (this.deletable) {
         menuItems.push({ label: l.deleteBtnTitle, danger: true, action: () => {
           showDeleteConfirm(
@@ -296,6 +331,11 @@ export class TimeSegment extends HTMLElement {
     this._s0 = this.start
     this._e0 = this.end
     this._srcTrack = this._track
+    this._copyMode = false
+    this._copyMoved = false // 标记是否真正发生了拖拽移动
+    // 记录 Ctrl 状态，在 _onMove_ 中检测移动后才决定是否进入复制模式
+    this._ctrlOnDown = this._mode === 'move' && (e.ctrlKey || e.metaKey)
+
     this._computeBounds()
     this.setPointerCapture(e.pointerId)
 
@@ -314,6 +354,35 @@ export class TimeSegment extends HTMLElement {
     if (!this._ptrActive) return
     const t = this._track
     if (!t) return
+
+    // Ctrl+拖拽复制模式：移动超过 3px 阈值才激活，原段保持可见供参考
+    if (this._ctrlOnDown && !this._copyMode && Math.abs(this._client(e) - this._ptr0) > 3) {
+      const t = this._track
+      if (t && t.copyable && t.creatable) {
+        this._copyMode = true
+        this._copyMoved = true
+        this._createCopyGhost()
+      }
+    }
+    if (this._copyMode) {
+      // 复制模式中也检测跨轨道目标（类似移动模式）
+      if (this._mode === 'move') {
+        const targetTrack = this._detectTargetTrack(e)
+        if (targetTrack && targetTrack !== this._tgtTrack) {
+          // 进入新目标轨道
+          if (this._tgtTrack) this._tgtTrack.classList.remove('tlt-drag-over')
+          this._tgtTrack = targetTrack
+          targetTrack.classList.add('tlt-drag-over')
+        } else if (!targetTrack && this._tgtTrack) {
+          // 离开目标轨道
+          this._tgtTrack.classList.remove('tlt-drag-over')
+          this._tgtTrack = null
+        }
+      }
+      if (this._copyGhost) this._updateCopyGhost(e)
+      return // 复制模式中，跳过普通拖拽
+    }
+
     const isCross = this._mode === 'move' && this._tgtTrack != null
 
     const dp = this._client(e) - this._ptr0
@@ -421,6 +490,14 @@ export class TimeSegment extends HTMLElement {
     this.removeEventListener('pointercancel', this._onUp)
     this.removeEventListener('lostpointercapture', this._onUp)
 
+    // Ctrl+拖拽复制结束
+    if (this._copyMode) {
+      this._finishCopy(e)
+      return
+    }
+    // 清理 _ctrlOnDown（未进入复制模式的 Ctrl+拖拽→当做普通拖拽，正常走下面的 segment-changed）
+    this._ctrlOnDown = false
+
     // 跨轨道拖拽结束 → 完成迁移
     if (this._tgtTrack) {
       this._finishCrossTrack(e)
@@ -430,6 +507,128 @@ export class TimeSegment extends HTMLElement {
     this.dispatchEvent(new CustomEvent('segment-changed', {
       bubbles: true, detail: { segment: this, start: this.start, end: this.end }
     }))
+  }
+
+  /* ---- Ctrl+拖拽复制 ---- */
+
+  /** 创建复制浮层 */
+  _createCopyGhost() {
+    const t = this._track
+    if (!t) return
+    const darker = this._darken(this.color, 0.18)
+    const c = this.closest('time-line-container')
+    const ghostRadius = (c && c._globalRadius != null) ? c._globalRadius : '0'
+    this._copyGhost = document.createElement('div')
+    this._copyGhost.className = 'tlt-cross-ghost' // 复用跨轨道浮层样式
+    this._copyGhost.style.opacity = '0.7'
+    this._copyGhost.innerHTML = ''
+    this._copyGhost.append(
+      h('div', { class: 'tls-bar', style: { background: this.color, border: `1px solid ${darker}`, borderRadius: ghostRadius } }, [
+        h('div', { class: 'tls-inner' }, [
+          this.label ? h('span', { class: 'tls-label' }, this.label) : null,
+          h('span', { class: 'tls-time' }, this._formatter.formatRange(this.start, this.end, 'segment')),
+        ]),
+      ])
+    )
+    document.body.appendChild(this._copyGhost)
+    void this._copyGhost.offsetHeight
+    this._copyGhost.classList.add('show')
+  }
+
+  /** 更新复制浮层位置（支持跨轨道：有 _tgtTrack 时用目标轨道的坐标范围） */
+  _updateCopyGhost(e) {
+    if (!this._copyGhost) return
+    const t = this._tgtTrack || this._track
+    if (!t) return
+    const rect = t._segRect()
+    if (!rect) return
+    const { start: ts, end: te } = t._effRange()
+    const range = te - ts
+    if (!range) return
+    const v = t.isVertical
+    const dim = v ? rect.height : rect.width
+
+    // 计算拖拽偏移后的起止
+    const dp = this._client(e) - this._ptr0
+    const dt = t.px2Time(dp)
+    const w = this._e0 - this._s0
+    let s = this._s0 + dt
+    s = snap(s, t.step || 0)
+    const bounds = t._dragBounds()
+    s = clamp(s, bounds.start, bounds.end - w)
+    const eTime = s + w
+
+    const lo = ((s - ts) / range) * dim
+    const hi = ((eTime - ts) / range) * dim
+    const segW = Math.max(Math.abs(hi - lo), 2)
+    const segL = Math.min(lo, hi)
+
+    Object.assign(this._copyGhost.style, {
+      position: 'fixed',
+      zIndex: '9999',
+      pointerEvents: 'none',
+      ...(v
+        ? { left: rect.left + 'px', top: rect.top + segL + 'px', width: rect.width + 'px', height: segW + 'px' }
+        : { left: rect.left + segL + 'px', top: rect.top + 'px', width: segW + 'px', height: rect.height + 'px' }),
+    })
+  }
+
+  /** 完成复制：在目标位置创建新段（支持跨轨道：_tgtTrack 存在时复制到目标轨道） */
+  _finishCopy(e) {
+    if (this._copyGhost) { this._copyGhost.remove(); this._copyGhost = null }
+    this._copyMode = false
+    this._copyMoved = false
+    this._ctrlOnDown = false
+
+    // 使用目标轨道（跨轨道复制）或当前轨道（同轨道复制）
+    const t = this._tgtTrack || this._track
+    if (!t) return
+
+    // 同轨道复制时暂时从 DOM 移除原段，避免 addSegment 重叠检测误把自身算入
+    const isSameTrack = this._tgtTrack == null
+    if (isSameTrack) {
+      const area = t._segArea()
+      if (area && this.parentNode === area) {
+        area.removeChild(this)
+      }
+    }
+
+    const dp = this._client(e) - this._ptr0
+    const dt = t.px2Time(dp)
+    const w = this._e0 - this._s0
+    let s = this._s0 + dt
+    s = snap(s, t.step || 0)
+    const bounds = t._dragBounds()
+    s = clamp(s, bounds.start, bounds.end - w)
+    let eTime = s + w
+    if (eTime > bounds.end) { eTime = bounds.end; s = eTime - w }
+
+    let copyError = null
+    try {
+      const seg = t.addSegment(s, eTime, { label: this.label, color: this.color })
+      if (seg) { seg._pulseCopy() }
+      else { copyError = 'segment-limit' } // addSegment 返回 null = 段数超限
+    } catch (_) { copyError = 'overlap' } // addSegment 抛出 = 重叠
+
+    if (copyError) {
+      // 复制失败时派发事件，允许外部监听（如 toast 提示）
+      this.dispatchEvent(new CustomEvent('segment-copy-error', {
+        bubbles: true,
+        detail: { source: this, targetTrack: t, reason: copyError, start: s, end: eTime }
+      }))
+    }
+
+    // 恢复原段到 DOM
+    if (isSameTrack) {
+      const area = t._segArea()
+      if (area) area.appendChild(this)
+    }
+
+    // 清理跨轨道状态
+    if (this._tgtTrack) {
+      this._tgtTrack.classList.remove('tlt-drag-over')
+      this._tgtTrack = null
+    }
   }
 
   /** 计算拖拽边界（左右相邻段之间） */
@@ -623,6 +822,14 @@ export class TimeSegment extends HTMLElement {
       src._positionOne(this)
       src._refreshPositions()
     })
+  }
+
+  /** 脉冲动画反馈（复制/粘贴成功） */
+  _pulseCopy() {
+    this.classList.remove('tls-copy-pulse')
+    void this.offsetHeight
+    this.classList.add('tls-copy-pulse')
+    setTimeout(() => this.classList.remove('tls-copy-pulse'), 1200)
   }
 
   /** 程序化删除（无事件参数，供右键菜单调用） */

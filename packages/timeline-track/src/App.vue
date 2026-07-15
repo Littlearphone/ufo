@@ -394,11 +394,13 @@ function handleControlsReset(idx) {
       ct.removeAttribute('editable')
       ct.removeAttribute('deletable')
       ct.removeAttribute('clearable')
+      ct.removeAttribute('copyable')
       ct.querySelectorAll(':scope > time-line-track').forEach(t => {
         t.removeAttribute('creatable')
         t.removeAttribute('editable')
         t.removeAttribute('deletable')
         t.removeAttribute('clearable')
+        t.removeAttribute('copyable')
       })
       ct.querySelectorAll('time-line-segment').forEach(s => {
         s.removeAttribute('editable')
@@ -669,8 +671,8 @@ function addTrack(label) {
  */
 const CUSTOM_TAGS = new Set(['time-line-container', 'time-line-track', 'time-line-segment'])
 const ATTR_ALLOW = {
-  'time-line-container': ['direction', 'axis-mode', 'shared-start', 'shared-end', 'shared-clip-range', 'label-h', 'label-v', 'tooltip-pos', 'type', 'unit', 'creatable', 'editable', 'deletable', 'clearable'],
-  'time-line-track': ['label', 'start', 'end', 'step', 'max-segments', 'creatable', 'editable', 'deletable', 'clearable'],
+  'time-line-container': ['direction', 'axis-mode', 'shared-start', 'shared-end', 'shared-clip-range', 'label-h', 'label-v', 'tooltip-pos', 'type', 'unit', 'creatable', 'editable', 'deletable', 'clearable', 'copyable'],
+  'time-line-track': ['label', 'start', 'end', 'step', 'max-segments', 'creatable', 'editable', 'deletable', 'clearable', 'copyable'],
   'time-line-segment': ['start', 'end', 'label', 'color', 'tooltip', 'editable', 'deletable'],
 }
 

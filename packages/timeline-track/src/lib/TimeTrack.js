@@ -6,8 +6,9 @@
 
 import { ensureCSS } from './css.js'
 import { clamp, h, snap } from './utils.js'
-import { showContextMenu, showDeleteConfirm, showTrackEditDialog } from './contextmenu.js'
+import { showContextMenu, showCopyToTracksDialog, showDeleteConfirm, showTrackEditDialog } from './contextmenu.js'
 import { resolveLocale } from './locale.js'
+import { clearClipboard, copyToClipboard, getClipboard } from './clipboard.js'
 
 export class TimeTrack extends HTMLElement {
   constructor() {
@@ -90,6 +91,17 @@ export class TimeTrack extends HTMLElement {
   set clearable(v) {
     if (v == null || v === true || v === 'true') this.removeAttribute('clearable')
     else this.setAttribute('clearable', 'false')
+  }
+
+  /** 是否允许复制本轨道的段（菜单"复制段/轨道"），默认继承容器值或 true */
+  get copyable() {
+    if (this.hasAttribute('copyable')) return this.getAttribute('copyable') !== 'false'
+    const c = this.closest('time-line-container')
+    return c ? c.copyable : true
+  }
+  set copyable(v) {
+    if (v == null || v === true || v === 'true') this.removeAttribute('copyable')
+    else this.setAttribute('copyable', 'false')
   }
 
   /** 是否允许创建新段（拖拽创建），默认继承容器值或 true */
@@ -208,6 +220,93 @@ export class TimeTrack extends HTMLElement {
     }))
   }
 
+  /* ---- 复制/粘贴 ---- */
+
+  /** 复制本轨道全部段到剪贴板（覆写已有剪贴板内容） */
+  _copyTrack() {
+    // 先清空旧剪贴板数据，避免残留的粘贴选项干扰菜单
+    clearClipboard()
+    const segs = this.sortedSegs().map(s => ({
+      label: s.label,
+      color: s.color,
+      start: s.start,
+      end: s.end,
+      radius: s.radius,
+    }))
+    copyToClipboard('track', {
+      label: this.label,
+      segments: segs,
+    })
+    // 脉冲视觉反馈
+    this._pulseCopy()
+  }
+
+  /** 从右键点击位置粘贴段（仅段数据到本轨道） */
+  _pasteSegment(e, data) {
+    // 计算点击位置的时间值
+    const rect = this._segRect()
+    if (!rect) return
+    const v = this.isVertical
+    const cp = v ? e.clientY : e.clientX
+    const orig = v ? rect.top : rect.left
+    const dim = v ? rect.height : rect.width
+    if (!dim) return
+    const { start: ts, end: te } = this._effRange()
+    const duration = data.end - data.start
+    let start = ts + ((cp - orig) / dim) * (te - ts)
+    // 吸附到步长
+    if (this.step > 0) start = snap(start, this.step)
+    let end = start + duration
+    // 约束到轨道范围
+    const { start: dbS, end: dbE } = this._dragBounds()
+    if (end > dbE) { start = dbE - duration; end = dbE }
+    if (start < dbS) { start = dbS; end = dbS + duration }
+    // 创建段
+    try {
+      const seg = this.addSegment(start, end, {
+        label: data.label,
+        color: data.color,
+      })
+      if (seg) seg._pulseCopy()
+    } catch (_) { /* 重叠等错误静默忽略 */ }
+  }
+
+  /** 从剪贴板轨道数据创建新轨道 */
+  _pasteNewTrack(data) {
+    const container = this.closest('time-line-container')
+    if (!container) return
+    const label = data.label ? data.label + '（副本）' : ''
+    const track = container.addTrack(label, this.tStart, this.tEnd)
+    // 复制段
+    for (const sd of data.segments) {
+      try {
+        track.addSegment(sd.start, sd.end, { label: sd.label, color: sd.color })
+      } catch (_) { /* 静默 */ }
+    }
+    track._pulseCopy()
+  }
+
+  /** 用剪贴板轨道数据覆盖本轨道所有段 */
+  _pasteOverwrite(data) {
+    this.clearAllSegments()
+    for (const sd of data.segments) {
+      try {
+        this.addSegment(sd.start, sd.end, { label: sd.label, color: sd.color })
+      } catch (_) { /* 静默 */ }
+    }
+    this._pulseCopy()
+  }
+
+  /** 脉冲动画反馈 */
+  _pulseCopy() {
+    const row = this.querySelector(':scope > .tlt-row')
+    if (!row) return
+    row.classList.remove('tlt-copy-pulse')
+    void row.offsetHeight // 强制重排
+    row.classList.add('tlt-copy-pulse')
+    setTimeout(() => row.classList.remove('tlt-copy-pulse'), 1200)
+  }
+
   /* ---- 生命周期 ---- */
   connectedCallback() {
     ensureCSS()
@@ -223,7 +322,7 @@ export class TimeTrack extends HTMLElement {
     if (this._winResizeHandler) window.removeEventListener('resize', this._winResizeHandler)
   }
 
-  static get observedAttributes() { return ['label', 'start', 'end', 'step', 'min-duration', 'max-segments', 'editable', 'deletable', 'creatable', 'clearable'] }
+  static get observedAttributes() { return ['label', 'start', 'end', 'step', 'min-duration', 'max-segments', 'editable', 'deletable', 'creatable', 'clearable', 'copyable'] }
 
   attributeChangedCallback(name, _ov, nv) {
     if (!this._init) return
@@ -287,11 +386,41 @@ export class TimeTrack extends HTMLElement {
       e.preventDefault()
       const l = resolveLocale(this)
       const trackLabel = this.label || l.unnamed
+      const clip = getClipboard()
       const menuItems = [
         { type: 'header', label: l.trackMenuHeader.replace('{name}', trackLabel) },
       ]
       if (this.editable) {
         menuItems.push({ label: l.modifyProps, action: () => showTrackEditDialog(this) })
+      }
+      // ---- 粘贴（从剪贴板） ----
+      if (clip && clip.type === 'segment' && this.creatable) {
+        menuItems.push({ label: l.pasteSegment, action: () => {
+          this._pasteSegment(e, clip.data)
+        } })
+      }
+      if (clip && clip.type === 'track' && this.creatable) {
+        // 粘贴为新轨道需要容器 creatable
+        const container = this.closest('time-line-container')
+        if (container && container.creatable) {
+          menuItems.push({ label: l.pasteNewTrack, action: () => {
+            this._pasteNewTrack(clip.data)
+          } })
+        }
+      }
+      if (clip && clip.type === 'track' && this.deletable) {
+        menuItems.push({ label: l.pasteOverwrite, action: () => {
+          this._pasteOverwrite(clip.data)
+        } })
+      }
+      // ---- 复制 ----
+      if (this.copyable) {
+        menuItems.push({ label: l.copyTrack, action: () => {
+          this._copyTrack()
+        } })
+        menuItems.push({ label: l.copyToTracks, action: () => {
+          showCopyToTracksDialog(this)
+        } })
       }
       if (this.clearable) {
         menuItems.push({ label: l.clearSegments, action: () => {

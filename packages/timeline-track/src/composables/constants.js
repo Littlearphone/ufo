@@ -15,7 +15,7 @@ export const TAB_DESCS = [
   '在右侧控制台调用组件编程 API：addTrack / addSegment / removeTrack 等',
   '展示 <code>type</code> / <code>unit</code> 多模式：<strong>自然时间</strong> · <strong>秒级</strong> · <strong>百分比</strong> · <strong>像素</strong> · <strong>温度</strong>',
   '在 Vue 3 中使用 <code>v-for</code> / <code>:bind</code> / <code>@event</code> 操作此组件库',
-  '展示 <code>creatable</code> · <code>editable</code> · <code>deletable</code> · <code>clearable</code> 四级 CRUD 权限控制',
+  '展示 <code>creatable</code> · <code>editable</code> · <code>deletable</code> · <code>clearable</code> · <code>copyable</code> 五级 CRUD 权限控制',
 ]
 
 export function rand(min, max) { return min + Math.random() * (max - min) }

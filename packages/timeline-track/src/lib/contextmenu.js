@@ -16,6 +16,7 @@ let _overlay = null
 let _modalEl = null
 let _closeHandler = null
 let _keyHandler = null
+let _menuClickHandler = null
 
 /* ============================ CLOSE ALL ============================ */
 
@@ -60,15 +61,17 @@ export function showContextMenu(items, x, y) {
   })
   _menuEl.append(...menuChildren)
 
-  // 菜单项点击处理
-  _menuEl.addEventListener('click', (e) => {
+  // 菜单项点击处理（需先移除旧监听器避免闭包持有过期 items）
+  if (_menuClickHandler) _menuEl.removeEventListener('click', _menuClickHandler)
+  _menuClickHandler = (e) => {
     const itemEl = e.target.closest('.tlc-context-item')
     if (!itemEl) return
     const idx = parseInt(itemEl.dataset.idx, 10)
     const item = items[idx]
     if (item && item.action) item.action()
     hideContextMenu()
-  })
+  }
+  _menuEl.addEventListener('click', _menuClickHandler)
 
   // 布局后再定位，确保获取正确尺寸
   requestAnimationFrame(() => {
@@ -893,8 +896,95 @@ export function showDeleteConfirm(message, onConfirm, refEl) {
     h('div', { class: 'tlc-modal-body' }, h('p', message)),
     h('div', { class: 'tlc-modal-footer' }, [
       h('button', { class: 'tlc-btn', 'data-action': 'cancel', onClick: closeModal }, loc.cancel),
-      h('button', { class: 'tlc-btn tlc-btn-danger', 'data-action': 'confirm', onClick: () => { closeModal(); if (onConfirm) onConfirm() } }, loc.confirmDelete),
+      h('button', { class: 'tlc-btn tlc-btn-danger', 'data-action': 'confirm', onClick: () => { closeModal(); if (onConfirm) onConfirm() } }, loc.confirm),
     ])
   )
+  _showModal()
+}
+
+/* ============================ COPY TO TRACKS DIALOG ============================ */
+
+/**
+ * 显示"复制到其他轨道"多选弹窗
+ * @param {import('./TimeTrack.js').TimeTrack} srcTrack - 源轨道
+ */
+export function showCopyToTracksDialog(srcTrack) {
+  const container = srcTrack.closest('time-line-container')
+  if (!container) return
+  const loc = resolveLocale(srcTrack)
+  const allTracks = container.allTracks()
+  // 过滤出可编辑且不是源轨道的目标
+  const targets = allTracks.filter(t => t !== srcTrack && t.deletable)
+
+  const modal = _getModal()
+  modal.innerHTML = ''
+
+  const header = h('div', { class: 'tlc-modal-header' },
+    loc.copyToTracksTitle.replace('{name}', srcTrack.label || loc.unnamed)
+  )
+
+  const bodyChildren = []
+  if (!targets.length) {
+    bodyChildren.push(h('p', { style: 'color:#999;font-size:12px;padding:12px' }, loc.copyToTracksEmpty))
+  } else {
+    // 全选/取消全选行（与轨道项视觉一致，勾选对齐）
+    const syncToggle = () => {
+      const cbs = modal.querySelectorAll('input[name="copy-target"]')
+      const allChecked = Array.from(cbs).every(cb => cb.checked)
+      const toggleCb = modal.querySelector('.tlc-copy-toggle-cb')
+      if (toggleCb) toggleCb.checked = allChecked
+    }
+    const toggleAll = () => {
+      const cbs = modal.querySelectorAll('input[name="copy-target"]')
+      const allChecked = Array.from(cbs).every(cb => cb.checked)
+      cbs.forEach(cb => cb.checked = !allChecked)
+      syncToggle()
+    }
+    bodyChildren.push(h('div', { class: 'tlc-copy-track-header' }, [
+      h('div', { class: 'tlc-copy-toggle-item', onClick: toggleAll }, [
+        h('span', { class: 'tlc-copy-track-name tlc-copy-toggle-label' }, loc.copySelectAll),
+        h('span', { class: 'tlc-copy-track-meta' }),
+        h('input', { type: 'checkbox', class: 'tlc-copy-toggle-cb', checked: true, hidden: true }),
+        h('span', { class: 'tlc-copy-track-check' }),
+      ]),
+    ]))
+    const checkboxes = targets.map((t, i) => {
+      const segCount = t.sortedSegs().length
+      return h('label', { class: 'tlc-copy-track-item' }, [
+        h('span', { class: 'tlc-copy-track-name' }, t.label || loc.unnamed),
+        h('span', { class: 'tlc-copy-track-meta' }, `${segCount} ${loc.segmentUnit}`),
+        h('input', { type: 'checkbox', name: 'copy-target', 'data-idx': String(i), checked: true, hidden: true, onChange: syncToggle }),
+        h('span', { class: 'tlc-copy-track-check' }),
+      ])
+    })
+    bodyChildren.push(...checkboxes)
+  }
+
+  const body = h('div', { class: 'tlc-modal-body' }, bodyChildren)
+  const footer = h('div', { class: 'tlc-modal-footer' }, [
+    h('button', { class: 'tlc-btn', 'data-action': 'cancel', onClick: closeModal }, loc.cancel),
+    h('button', { class: 'tlc-btn tlc-btn-primary', 'data-action': 'confirm', onClick: () => {
+      const checked = modal.querySelectorAll('input[name="copy-target"]:checked')
+      if (checked.length === 0) return
+      // 收集源轨道数据
+      const srcSegs = srcTrack.sortedSegs().map(s => ({
+        label: s.label, color: s.color, start: s.start, end: s.end, radius: s.radius,
+      }))
+      // 逐个覆盖目标轨道
+      checked.forEach(cb => {
+        const idx = parseInt(cb.dataset.idx, 10)
+        const tgt = targets[idx]
+        if (!tgt) return
+        tgt.clearAllSegments()
+        for (const sd of srcSegs) {
+          try { tgt.addSegment(sd.start, sd.end, { label: sd.label, color: sd.color }) } catch (_) {}
+        }
+        tgt._pulseCopy()
+      })
+      closeModal()
+    } }, loc.confirm),
+  ])
+
+  modal.append(header, body, footer)
   _showModal()
 }
