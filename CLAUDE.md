@@ -1,5 +1,11 @@
 # UFO — 自定义元素组件库
 
+## Development Rules
+
+- NEVER run development servers (e.g., `npm run dev`, `vite`) automatically.
+- Do not run any long-running or non-terminating background processes.
+- Only run build (`npm run build`) or linting/testing commands if needed to verify code.
+
 ## 项目概览
 
 基于 **Custom Elements v1** + **Pointer Events** 的原生 Web 组件库。采用 **pnpm workspace monorepo** 结构，每个组件独立构建发布。
@@ -291,6 +297,91 @@ c().step = parseFloat(v) || 0
 // Tab0Controls reset
 c().setAttribute('step', '0.5')
 ```
+
+## CRUD 权限控制系统（creatable / editable / deletable）
+
+三级布尔属性，控制每个元素是否可创建、可编辑、可删除。所有属性默认 `true`（不设置 = 全部允许），完全向后兼容。
+
+### 属性概览
+
+| 属性 | 含义 | Container | Track | Segment |
+|---|---|---|---|---|
+| `creatable` | 可创建新内容 | 为轨道提供默认值 | 拖拽创建新段 | —（段无子内容） |
+| `editable` | 可修改已有内容 | 为轨道提供默认值 | 移动/调整段、编辑属性 | 拖拽移动/调整、编辑属性 |
+| `deletable` | 可删除内容 | 为轨道提供默认值 | 删除轨道、清空段 | 删除按钮、删除菜单 |
+
+### 继承链
+
+下层未设属性时**继承**上层值（和 `step` / `maxSegments` 的继承机制一致）：
+
+```
+container.creatable  → track.creatable  (段无 creatable)
+container.editable   → track.editable   → segment.editable
+container.deletable  → track.deletable  → segment.deletable
+```
+
+### 各操作归属表
+
+**Create — `creatable`：**
+| 操作 | 守卫层级 | 守卫属性 |
+|---|---|---|
+| 在轨道空白区域拖拽创建新段 | Track | `track.creatable` |
+
+**Update — `editable`：**
+| 操作 | 守卫层级 | 守卫属性 |
+|---|---|---|
+| 拖拽段体移动 | Segment | `segment.editable` |
+| 拖拽左/右手柄调整大小 | Segment | `segment.editable` |
+| 右键菜单「修改属性」 | Segment / Track | 各自的 `editable` |
+| 跨轨道拖拽落位 | Track（目标） | `track.editable` |
+
+**Delete — `deletable`：**
+| 操作 | 守卫层级 | 守卫属性 |
+|---|---|---|
+| 段上 × 按钮 | Segment | `segment.deletable` |
+| 右键菜单「删除」 | Segment | `segment.deletable` |
+| 右键菜单「清空时间段」 | Track | `track.deletable` |
+| 右键菜单「删除轨道」 | Track | `track.deletable` |
+
+### 使用示例
+
+```html
+<!-- 全局只读 -->
+<time-line-container creatable="false" editable="false" deletable="false">
+  <time-line-track label="只读轨道" start="0" end="24">
+    <time-line-segment start="8" end="12" label="不可操作"></time-line-segment>
+  </time-line-track>
+</time-line-container>
+
+<!-- 精细化控制：轨道级覆盖 + 片段级覆盖 -->
+<time-line-container editable="true" deletable="true">
+  <!-- 此轨道只可添加新段，不可编辑/删除已有段 -->
+  <time-line-track label="投稿区" start="0" end="24"
+    creatable="true" editable="false" deletable="false">
+    <time-line-segment start="8" end="12" label="已有段"></time-line-segment>
+  </time-line-track>
+  <!-- 此轨道普通，但其中一段设为只读 -->
+  <time-line-track label="回放区" start="0" end="24">
+    <time-line-segment start="14" end="16" label="可操作"></time-line-segment>
+    <time-line-segment start="17" end="19" label="只读" editable="false" deletable="false"></time-line-segment>
+  </time-line-track>
+</time-line-container>
+
+<!-- 编程式 addTrack -->
+<script>
+  container.addTrack('动态轨道', 0, 24, {
+    creatable: false,  // 不可拖拽创建新段
+    editable: true,    // 可移动/调整已有段
+    deletable: false   // 不可删除
+  })
+</script>
+```
+
+### 视觉效果
+
+- `editable="false"` 的段：拖拽手柄不渲染、`×` 删除按钮不渲染（若同时 `deletable="false"`）
+- `deletable="false"` 的轨道：右键菜单隐藏"删除轨道"和"清空时间段"项
+- `creatable="false"` 的轨道：拖拽创建被扼制，指针无响应
 
 ## 共享轴轴尺标签自定义
 

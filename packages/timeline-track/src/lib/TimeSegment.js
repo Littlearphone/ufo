@@ -49,6 +49,30 @@ export class TimeSegment extends HTMLElement {
   set tooltip(v) { this.setAttribute('tooltip', v) }
   get duration() { return this.end - this.start }
 
+  /* ---- 可编辑/可删除（继承自轨道） ---- */
+
+  /** 是否允许编辑（拖拽移动/调整/修改属性），默认继承轨道值或 true */
+  get editable() {
+    if (this.hasAttribute('editable')) return this.getAttribute('editable') !== 'false'
+    const t = this._track
+    return t ? t.editable : true
+  }
+  set editable(v) {
+    if (v == null || v === true || v === 'true') this.removeAttribute('editable')
+    else this.setAttribute('editable', 'false')
+  }
+
+  /** 是否允许删除（删除按钮/菜单项），默认继承轨道值或 true */
+  get deletable() {
+    if (this.hasAttribute('deletable')) return this.getAttribute('deletable') !== 'false'
+    const t = this._track
+    return t ? t.deletable : true
+  }
+  set deletable(v) {
+    if (v == null || v === true || v === 'true') this.removeAttribute('deletable')
+    else this.setAttribute('deletable', 'false')
+  }
+
   /** 获取所属的 time-line-track 元素 */
   get _track() {
     let p = this.parentElement
@@ -67,10 +91,14 @@ export class TimeSegment extends HTMLElement {
     this._bind()
   }
 
-  static get observedAttributes() { return ['start', 'end', 'label', 'color', 'radius'] }
+  static get observedAttributes() { return ['start', 'end', 'label', 'color', 'radius', 'editable', 'deletable'] }
 
   attributeChangedCallback(name, _ov, nv) {
     if (!this._init) return
+    if (name === 'editable' || name === 'deletable') {
+      this._buildDOM()
+      return
+    }
     if (name === 'label' || name === 'color') {
       this._buildDOM()
     }
@@ -92,17 +120,18 @@ export class TimeSegment extends HTMLElement {
     const loc = resolveLocale(this)
     // 秒级显示由轴/轨道帧绘制时统一设置 fmt.showSec，段继承即可
     this.innerHTML = ''
-    this.append(
-      h('div', { class: 'tls-hdl tls-hdl-left', 'data-role': 'hdl-left' }, h('div', { class: 'tls-hdl-bar' })),
-      h('div', { class: 'tls-hdl tls-hdl-right', 'data-role': 'hdl-right' }, h('div', { class: 'tls-hdl-bar' })),
+    // 用数组 + filter(Boolean) 避免 append(null) 生成 "null" 文本
+    this.append(...[
+      this.editable ? h('div', { class: 'tls-hdl tls-hdl-left', 'data-role': 'hdl-left' }, h('div', { class: 'tls-hdl-bar' })) : null,
+      this.editable ? h('div', { class: 'tls-hdl tls-hdl-right', 'data-role': 'hdl-right' }, h('div', { class: 'tls-hdl-bar' })) : null,
       h('div', { class: 'tls-bar', style: { background: col, border: `1px solid ${darker}`, borderRadius: r } }, [
         h('div', { class: 'tls-inner' }, [
           this.label ? h('span', { class: 'tls-label' }, this.label) : null,
           h('span', { class: 'tls-time' }, this._formatter.formatRange(this.start, this.end, 'segment')),
         ]),
       ]),
-      h('button', { class: 'tls-del', 'data-role': 'del', title: loc.deleteBtnTitle, onClick: null }, '×'),
-    )
+      this.deletable ? h('button', { class: 'tls-del', 'data-role': 'del', title: loc.deleteBtnTitle, onClick: null }, '×') : null,
+    ].filter(Boolean))
   }
 
   _bind() {
@@ -149,10 +178,14 @@ export class TimeSegment extends HTMLElement {
       // 无标签时使用时间范围替代"未命名"，避免无意义占位文字
       const segName = this.label || segRange
       const name = this.label || segRange
-      showContextMenu([
+      const menuItems = [
         { type: 'header', label: l.segmentMenuHeader.replace('{name}', segName).replace('{range}', segRange) },
-        { label: l.modifyProps, action: () => showSegmentEditDialog(this) },
-        { label: l.deleteBtnTitle, danger: true, action: () => {
+      ]
+      if (this.editable) {
+        menuItems.push({ label: l.modifyProps, action: () => showSegmentEditDialog(this) })
+      }
+      if (this.deletable) {
+        menuItems.push({ label: l.deleteBtnTitle, danger: true, action: () => {
           showDeleteConfirm(
             l.confirmDeleteSegment
               .replace('{name}', name)
@@ -160,8 +193,12 @@ export class TimeSegment extends HTMLElement {
             () => this._deleteSegment(),
             this
           )
-        }}
-      ], e.clientX, e.clientY)
+        }})
+      }
+      // 至少 header + 一个有效菜单项才显示
+      if (menuItems.length > 1) {
+        showContextMenu(menuItems, e.clientX, e.clientY)
+      }
     })
   }
 
@@ -243,6 +280,8 @@ export class TimeSegment extends HTMLElement {
   _onDown(e) {
     if (e.target.closest('[data-role="del"]')) return // 让 click 处理
     if (e.button !== 0) return
+    // 段不可编辑时禁止拖拽移动/调整
+    if (!this.editable) return
     hideContextMenu() // 左键点击段时关闭可能存在的右键菜单
     this.classList.add('tls-selected')
 
@@ -338,6 +377,14 @@ export class TimeSegment extends HTMLElement {
       }
       // 跨轨道拖拽中但指针不在其他轨道上
       if (this._tgtTrack) {
+        // 目标轨道变为不可编辑时退出跨轨道模式
+        if (!this._tgtTrack.editable) {
+          this._exitCrossTrack()
+          this.dispatchEvent(new CustomEvent('segment-change', {
+            bubbles: true, detail: { segment: this, start: this.start, end: this.end }
+          }))
+          return
+        }
         const el = document.elementFromPoint(e.clientX, e.clientY)
         const container = this._srcTrack.closest('time-line-container')
         // 离开容器或回到来源轨道时才退出；轨道间隙中保持浮层不动
@@ -416,6 +463,8 @@ export class TimeSegment extends HTMLElement {
     if (!el) return null
     const track = el.closest('time-line-track')
     if (!track || track === this._srcTrack) return null
+    // 目标轨道不可编辑时不允许跨轨道拖入
+    if (!track.editable) return null
     // 必须在同一个容器内且方向相同
     const srcC = this._srcTrack.closest('time-line-container')
     const tgtC = track.closest('time-line-container')
@@ -516,6 +565,8 @@ export class TimeSegment extends HTMLElement {
     // 使用拖拽约束范围校验（共享轴裁剪 → 轨道自身范围）
     const { start: ts, end: te } = tgt._dragBounds ? tgt._dragBounds() : tgt._effRange()
 
+    // 校验：目标轨道不可编辑
+    if (!tgt.editable) { this._restorePosition(); return }
     // 校验：超出目标轨道范围
     if (curStart < ts || curEnd > te || dur < tgt.minDur) { this._restorePosition(); return }
     // 校验：段数上限

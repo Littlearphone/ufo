@@ -31,6 +31,11 @@
         <Tab5Controls :container="containers[4]" @add-track="$emit('addTrack', $event)" />
       </div>
 
+      <!-- ════ Tab 5: CRUD 权限 ════ -->
+      <div class="controls-content" :class="{ active: activeTab === 5 }">
+        <Tab6Controls :container="containers[5]" />
+      </div>
+
     </div>
   </div>
 </template>
@@ -42,6 +47,7 @@ import Tab1Controls from './controls/Tab1Controls.vue'
 import Tab2Controls from './controls/Tab2Controls.vue'
 import Tab4Controls from './controls/Tab4Controls.vue'
 import Tab5Controls from './controls/Tab5Controls.vue'
+import Tab6Controls from './controls/Tab6Controls.vue'
 
 const props = defineProps({
   activeTab: { type: Number, required: true },

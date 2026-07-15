@@ -46,10 +46,11 @@ export function showGlobalTip(seg) {
 
   const fmt = seg._formatter
   tip.innerHTML = ''
-  tip.append(
+  // 用数组 + filter(Boolean) 避免 append(null) 生成 "null" 文本
+  tip.append(...[
     seg.label ? h('div', { class: 'tls-global-tip-label' }, seg.label) : null,
     h('div', { class: 'tls-global-tip-time' }, fmt.formatRange(seg.start, seg.end, 'tooltip')),
-  )
+  ].filter(Boolean))
 
   // 重置样式和类
   tip.className = 'tls-global-tip'

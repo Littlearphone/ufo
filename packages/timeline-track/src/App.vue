@@ -152,6 +152,120 @@
                 </time-line-track>
               </time-line-container>
             </div>
+
+            <!-- ════ Tab 5: CRUD 权限 ════ -->
+            <div class="tab-pane tab-pane--stack" :class="{ active: activeTab === 5 }">
+              <!-- 交互沙盒 -->
+              <div class="mode-example">
+                <div class="mode-example-header">
+                  <strong>🎮 交互沙盒</strong>
+                  <code>在右侧控制台切换各项权限</code>
+                  <span class="mode-desc">实时观察拖拽/菜单/按钮的变化</span>
+                </div>
+                <time-line-container ref="c5" class="mode-example-body" id="sandbox" style="height:170px">
+                  <time-line-track label="轨道-A" start="0" end="24">
+                    <time-line-segment start="8" end="12" label="段A" color="#3498db"></time-line-segment>
+                    <time-line-segment start="14" end="17" label="段B" color="#2ecc71"></time-line-segment>
+                  </time-line-track>
+                  <time-line-track label="轨道-B" start="0" end="24">
+                    <time-line-segment start="9" end="13" label="段C" color="#e67e22"></time-line-segment>
+                    <time-line-segment start="15" end="18" label="段D" color="#9b59b6"></time-line-segment>
+                  </time-line-track>
+                </time-line-container>
+              </div>
+
+              <!-- 案例 1: 完全只读 -->
+              <div class="mode-example">
+                <div class="mode-example-header">
+                  <strong>🔒 完全只读</strong>
+                  <code>creatable="false" editable="false" deletable="false"</code>
+                  <span class="mode-desc">拖拽、编辑、删除全部禁止</span>
+                </div>
+                <time-line-container class="mode-example-body" creatable="false" editable="false" deletable="false">
+                  <time-line-track label="只读轨道" start="0" end="24">
+                    <time-line-segment start="8" end="12" label="不可操作" color="#95a5a6"></time-line-segment>
+                  </time-line-track>
+                </time-line-container>
+              </div>
+
+              <!-- 案例 2: 仅可创建 -->
+              <div class="mode-example">
+                <div class="mode-example-header">
+                  <strong>➕ 仅创建</strong>
+                  <code>creatable="true" editable="false" deletable="false"</code>
+                  <span class="mode-desc">可拖拽添加新段，但不可编辑或删除已有段</span>
+                </div>
+                <time-line-container class="mode-example-body" creatable="true" editable="false" deletable="false">
+                  <time-line-track label="可添加段" start="0" end="24">
+                    <time-line-segment start="9" end="12" label="已有段" color="#27ae60"></time-line-segment>
+                  </time-line-track>
+                </time-line-container>
+              </div>
+
+              <!-- 案例 3: 仅可编辑 -->
+              <div class="mode-example">
+                <div class="mode-example-header">
+                  <strong>✏️ 仅编辑</strong>
+                  <code>creatable="false" editable="true" deletable="false"</code>
+                  <span class="mode-desc">可拖拽移动/调整/修改属性，不可添加或删除</span>
+                </div>
+                <time-line-container class="mode-example-body" creatable="false" editable="true" deletable="false">
+                  <time-line-track label="可编辑段" start="0" end="24">
+                    <time-line-segment start="8" end="11" label="可移动/拉伸" color="#2980b9"></time-line-segment>
+                    <time-line-segment start="13" end="16" label="可修改属性" color="#8e44ad"></time-line-segment>
+                  </time-line-track>
+                </time-line-container>
+              </div>
+
+              <!-- 案例 4: 仅可删除 -->
+              <div class="mode-example">
+                <div class="mode-example-header">
+                  <strong>🗑️ 仅删除</strong>
+                  <code>creatable="false" editable="false" deletable="true"</code>
+                  <span class="mode-desc">仅可删除段、清空轨道，不可添加或编辑</span>
+                </div>
+                <time-line-container class="mode-example-body" creatable="false" editable="false" deletable="true">
+                  <time-line-track label="可删除段" start="0" end="24">
+                    <time-line-segment start="10" end="14" label="可删除" color="#e74c3c"></time-line-segment>
+                    <time-line-segment start="16" end="19" label="也可删除" color="#e67e22"></time-line-segment>
+                  </time-line-track>
+                </time-line-container>
+              </div>
+
+              <!-- 案例 5: 轨道级覆盖 -->
+              <div class="mode-example">
+                <div class="mode-example-header">
+                  <strong>🛤️ 轨道级覆盖</strong>
+                  <code>轨道各自设置 creatable / editable / deletable</code>
+                  <span class="mode-desc">同一容器内各轨道权限独立</span>
+                </div>
+                <time-line-container class="mode-example-body" style="height:160px">
+                  <time-line-track label="普通轨道" start="0" end="24">
+                    <time-line-segment start="8" end="12" label="全部可操作" color="#3498db"></time-line-segment>
+                  </time-line-track>
+                  <time-line-track label="只读轨道" start="0" end="24" creatable="false" editable="false" deletable="false">
+                    <time-line-segment start="14" end="18" label="完全只读" color="#95a5a6"></time-line-segment>
+                  </time-line-track>
+                </time-line-container>
+              </div>
+
+              <!-- 案例 6: 片段级覆盖 -->
+              <div class="mode-example">
+                <div class="mode-example-header">
+                  <strong>🧩 片段级覆盖</strong>
+                  <code>各 segment 单独控制 editable / deletable</code>
+                  <span class="mode-desc">同一轨道内各段权限独立</span>
+                </div>
+                <time-line-container class="mode-example-body">
+                  <time-line-track label="混合控制" start="0" end="24" deletable="false">
+                    <time-line-segment start="8" end="10" label="可编辑" editable="true" color="#27ae60"></time-line-segment>
+                    <time-line-segment start="11" end="13" label="只读" editable="false" deletable="false" color="#95a5a6"></time-line-segment>
+                    <time-line-segment start="14" end="16" label="仅可删除" editable="false" deletable="true" color="#e74c3c"></time-line-segment>
+                    <time-line-segment start="17" end="19" label="可编辑+删除" editable="true" deletable="true" color="#2980b9"></time-line-segment>
+                  </time-line-track>
+                </time-line-container>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -201,7 +315,8 @@ const c1 = ref(null)
 const c2 = ref(null)
 const c3 = ref(null)   // 模式示例（stack，无单容器）
 const c4 = ref(null)   // Vue 3 集成
-const containers = computed(() => [c0.value, c1.value, c2.value, c3.value, c4.value])
+const c5 = ref(null)   // CRUD 权限沙盒
+const containers = computed(() => [c0.value, c1.value, c2.value, c3.value, c4.value, c5.value])
 
 /** 版本计数器：每次切到 HTML 源码视图时 +1，迫使 currentHtmlCode 从真实 DOM 重新序列化 */
 const htmlRev = ref(0)
@@ -271,6 +386,23 @@ function handleControlsReset(idx) {
         { start: '19', end: '23', label: '性能优化', color: '#16a085' },
       ]},
     ]
+  } else if (idx === 5) {
+    // Tab 5 CRUD 权限：重置沙盒容器属性到默认值（保留 Vue ref，不用 innerHTML）
+    const ct = containers.value[5]
+    if (ct) {
+      ct.removeAttribute('creatable')
+      ct.removeAttribute('editable')
+      ct.removeAttribute('deletable')
+      ct.querySelectorAll(':scope > time-line-track').forEach(t => {
+        t.removeAttribute('creatable')
+        t.removeAttribute('editable')
+        t.removeAttribute('deletable')
+      })
+      ct.querySelectorAll('time-line-segment').forEach(s => {
+        s.removeAttribute('editable')
+        s.removeAttribute('deletable')
+      })
+    }
   }
   // 刷新 HTML 源码视图
   if (demoView.value === 'html') htmlRev.value++
@@ -384,6 +516,68 @@ const TAB_INNER_HTML = [
       :color="s.color"
     ></time-line-segment>
   </time-line-track>`,
+  // Tab 5 — CRUD 权限（静态模板，各 demo case 的展示代码）
+  `  <!-- 🎮 交互沙盒 -->
+  <time-line-container style="height:170px">
+    <time-line-track label="轨道-A" start="0" end="24">
+      <time-line-segment start="8" end="12" label="段A" color="#3498db"></time-line-segment>
+      <time-line-segment start="14" end="17" label="段B" color="#2ecc71"></time-line-segment>
+    </time-line-track>
+    <time-line-track label="轨道-B" start="0" end="24">
+      <time-line-segment start="9" end="13" label="段C" color="#e67e22"></time-line-segment>
+      <time-line-segment start="15" end="18" label="段D" color="#9b59b6"></time-line-segment>
+    </time-line-track>
+  </time-line-container>
+
+  <!-- 🔒 完全只读 -->
+  <time-line-container creatable="false" editable="false" deletable="false">
+    <time-line-track label="只读轨道" start="0" end="24">
+      <time-line-segment start="8" end="12" label="不可操作" color="#95a5a6"></time-line-segment>
+    </time-line-track>
+  </time-line-container>
+
+  <!-- ➕ 仅创建 -->
+  <time-line-container creatable="true" editable="false" deletable="false">
+    <time-line-track label="可添加段" start="0" end="24">
+      <time-line-segment start="9" end="12" label="已有段" color="#27ae60"></time-line-segment>
+    </time-line-track>
+  </time-line-container>
+
+  <!-- ✏️ 仅编辑 -->
+  <time-line-container creatable="false" editable="true" deletable="false">
+    <time-line-track label="可编辑段" start="0" end="24">
+      <time-line-segment start="8" end="11" label="可移动/拉伸" color="#2980b9"></time-line-segment>
+      <time-line-segment start="13" end="16" label="可修改属性" color="#8e44ad"></time-line-segment>
+    </time-line-track>
+  </time-line-container>
+
+  <!-- 🗑️ 仅删除 -->
+  <time-line-container creatable="false" editable="false" deletable="true">
+    <time-line-track label="可删除段" start="0" end="24">
+      <time-line-segment start="10" end="14" label="可删除" color="#e74c3c"></time-line-segment>
+      <time-line-segment start="16" end="19" label="也可删除" color="#e67e22"></time-line-segment>
+    </time-line-track>
+  </time-line-container>
+
+  <!-- 🛤️ 轨道级覆盖 -->
+  <time-line-container style="height:160px">
+    <time-line-track label="普通轨道" start="0" end="24">
+      <time-line-segment start="8" end="12" label="全部可操作" color="#3498db"></time-line-segment>
+    </time-line-track>
+    <time-line-track label="只读轨道" start="0" end="24" creatable="false" editable="false" deletable="false">
+      <time-line-segment start="14" end="18" label="完全只读" color="#95a5a6"></time-line-segment>
+    </time-line-track>
+  </time-line-container>
+
+  <!-- 🧩 片段级覆盖 -->
+  <time-line-container>
+    <time-line-track label="混合控制" start="0" end="24" deletable="false">
+      <time-line-segment start="8" end="10" label="可编辑" editable="true" color="#27ae60"></time-line-segment>
+      <time-line-segment start="11" end="13" label="只读" editable="false" deletable="false" color="#95a5a6"></time-line-segment>
+      <time-line-segment start="14" end="16" label="仅可删除" editable="false" deletable="true" color="#e74c3c"></time-line-segment>
+      <time-line-segment start="17" end="19" label="可编辑+删除" editable="true" deletable="true" color="#2980b9"></time-line-segment>
+    </time-line-track>
+  </time-line-container>`,
 ]
 
 // ── JavaScript 生成代码（按标签页，无则为 null） ──
@@ -463,6 +657,8 @@ function addTrack(label) {
   })
 }`,
 
+  null,  // Tab 5 — CRUD 权限
+
 ]
 
 /**
@@ -471,9 +667,9 @@ function addTrack(label) {
  */
 const CUSTOM_TAGS = new Set(['time-line-container', 'time-line-track', 'time-line-segment'])
 const ATTR_ALLOW = {
-  'time-line-container': ['direction', 'axis-mode', 'shared-start', 'shared-end', 'shared-clip-range', 'label-h', 'label-v', 'tooltip-pos', 'type', 'unit'],
-  'time-line-track': ['label', 'start', 'end', 'step', 'max-segments'],
-  'time-line-segment': ['start', 'end', 'label', 'color', 'tooltip'],
+  'time-line-container': ['direction', 'axis-mode', 'shared-start', 'shared-end', 'shared-clip-range', 'label-h', 'label-v', 'tooltip-pos', 'type', 'unit', 'creatable', 'editable', 'deletable'],
+  'time-line-track': ['label', 'start', 'end', 'step', 'max-segments', 'creatable', 'editable', 'deletable'],
+  'time-line-segment': ['start', 'end', 'label', 'color', 'tooltip', 'editable', 'deletable'],
 }
 
 function serializeCustomElement(el, indent = 0) {
@@ -526,6 +722,14 @@ function getHtmlSource(idx) {
   // Tab 3（模式示例）/ Tab 4（Vue 集成）使用静态模板
   if (idx === 3 || idx === 4) return TAB_INNER_HTML[idx]
 
+  // Tab 5（CRUD 权限）从真实 DOM 序列化，让控制台修改能反映到源码视图
+  if (idx === 5) {
+    const pane = document.querySelector('.tab-pane--stack.active')
+    if (!pane) return TAB_INNER_HTML[idx]
+    const containers_ = pane.querySelectorAll(':scope > .mode-example > time-line-container')
+    return Array.from(containers_).map(c => serializeCustomElement(c)).join('\n\n')
+  }
+
   const container = containers.value[idx]
   if (!container) return ''
   return serializeCustomElement(container)
@@ -574,8 +778,8 @@ function switchTab(idx) {
 
   // 容器切换后刷新网格和段定位
   nextTick(() => {
-    // Tab 3 使用多个独立容器（stack 布局），需特殊处理
-    if (idx === 3) {
+    // Tab 3 / Tab 5 使用多个独立容器（stack 布局），需特殊处理
+    if (idx === 3 || idx === 5) {
       const containers3 = document.querySelectorAll('.tab-pane--stack.active time-line-container')
       requestAnimationFrame(() => {
         containers3.forEach(c => {

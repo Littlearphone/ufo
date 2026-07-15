@@ -57,6 +57,41 @@ export class TimeTrack extends HTMLElement {
   }
   set maxSegments(v) { this.setAttribute('max-segments', v) }
 
+  /* ---- 可编辑/可删除（继承自容器） ---- */
+
+  /** 是否允许编辑（拖拽创建/移动/调整/修改属性），默认继承容器值或 true */
+  get editable() {
+    if (this.hasAttribute('editable')) return this.getAttribute('editable') !== 'false'
+    const c = this.closest('time-line-container')
+    return c ? c.editable : true
+  }
+  set editable(v) {
+    if (v == null || v === true || v === 'true') this.removeAttribute('editable')
+    else this.setAttribute('editable', 'false')
+  }
+
+  /** 是否允许删除（删除轨道/清空时间段/段删除按钮和菜单），默认继承容器值或 true */
+  get deletable() {
+    if (this.hasAttribute('deletable')) return this.getAttribute('deletable') !== 'false'
+    const c = this.closest('time-line-container')
+    return c ? c.deletable : true
+  }
+  set deletable(v) {
+    if (v == null || v === true || v === 'true') this.removeAttribute('deletable')
+    else this.setAttribute('deletable', 'false')
+  }
+
+  /** 是否允许创建新段（拖拽创建），默认继承容器值或 true */
+  get creatable() {
+    if (this.hasAttribute('creatable')) return this.getAttribute('creatable') !== 'false'
+    const c = this.closest('time-line-container')
+    return c ? c.creatable : true
+  }
+  set creatable(v) {
+    if (v == null || v === true || v === 'true') this.removeAttribute('creatable')
+    else this.setAttribute('creatable', 'false')
+  }
+
   get isVertical() {
     const c = this.closest('time-line-container')
     if (!c) return false
@@ -177,7 +212,7 @@ export class TimeTrack extends HTMLElement {
     if (this._winResizeHandler) window.removeEventListener('resize', this._winResizeHandler)
   }
 
-  static get observedAttributes() { return ['label', 'start', 'end', 'step', 'min-duration', 'max-segments'] }
+  static get observedAttributes() { return ['label', 'start', 'end', 'step', 'min-duration', 'max-segments', 'editable', 'deletable', 'creatable'] }
 
   attributeChangedCallback(name, _ov, nv) {
     if (!this._init) return
@@ -188,6 +223,11 @@ export class TimeTrack extends HTMLElement {
         const txt = this.label || loc.unnamed
         el.textContent = txt; el.title = txt
       }
+    } else if (name === 'editable' || name === 'deletable' || name === 'creatable') {
+      // 通知子 segments 刷新 DOM（删除按钮/手柄可见性）
+      this.querySelectorAll('time-line-segment').forEach(seg => {
+        if (seg._buildDOM) seg._buildDOM()
+      })
     } else {
       requestAnimationFrame(() => { this._drawGrid(); this._refreshPositions() })
     }
@@ -236,17 +276,21 @@ export class TimeTrack extends HTMLElement {
       e.preventDefault()
       const l = resolveLocale(this)
       const trackLabel = this.label || l.unnamed
-      showContextMenu([
+      const menuItems = [
         { type: 'header', label: l.trackMenuHeader.replace('{name}', trackLabel) },
-        { label: l.modifyProps, action: () => showTrackEditDialog(this) },
-        { label: l.clearSegments, action: () => {
+      ]
+      if (this.editable) {
+        menuItems.push({ label: l.modifyProps, action: () => showTrackEditDialog(this) })
+      }
+      if (this.deletable) {
+        menuItems.push({ label: l.clearSegments, action: () => {
           showDeleteConfirm(
             l.confirmClearSegments.replace('{name}', trackLabel),
             () => this.clearAllSegments(),
             this
           )
-        } },
-        { label: l.deleteTrack, danger: true, action: () => {
+        } })
+        menuItems.push({ label: l.deleteTrack, danger: true, action: () => {
           showDeleteConfirm(
             l.confirmDeleteTrack
               .replace('{name}', trackLabel)
@@ -254,8 +298,12 @@ export class TimeTrack extends HTMLElement {
             () => { this._deleteTrack() },
             this
           )
-        }}
-      ], e.clientX, e.clientY)
+        }})
+      }
+      // 至少 header + 一个有效菜单项才显示
+      if (menuItems.length > 1) {
+        showContextMenu(menuItems, e.clientX, e.clientY)
+      }
     })
 
     // ResizeObserver 监听尺寸变化
@@ -363,6 +411,13 @@ export class TimeTrack extends HTMLElement {
     requestAnimationFrame(() => { this._drawGrid(); this._refreshPositions() })
   }
 
+  /** 容器 editable/deletable 属性变更时的响应：刷新子段 DOM */
+  _onEditableChange() {
+    this.querySelectorAll('time-line-segment').forEach(seg => {
+      if (seg._buildDOM) seg._buildDOM()
+    })
+  }
+
   /** 容器 locale 属性变更时的响应：刷新头部标签文字 */
   _onLocaleChange() {
     const el = this.querySelector(':scope > .tlt-row > .tlt-head > .tlt-head-label')
@@ -382,6 +437,8 @@ export class TimeTrack extends HTMLElement {
   /* ---- 拖拽创建 ---- */
   _bodyDown(e) {
     if (e.button !== 0) return
+    // 轨道不可创建时禁止拖拽创建新段
+    if (!this.creatable) return
     // 是否点在了已有 segment 上？
     const path = e.composedPath()
     if (path.some(el => el.tagName === 'TIME-LINE-SEGMENT')) return

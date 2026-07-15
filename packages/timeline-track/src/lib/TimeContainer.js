@@ -41,6 +41,7 @@ export class TimeContainer extends HTMLElement {
       'tooltip-pos', 'max-segments',
       'type', 'unit', 'step',
       'zoom-start', 'zoom-end',
+      'editable', 'deletable', 'creatable',
       ...LOCALE_ATTRS
     ]
   }
@@ -55,6 +56,13 @@ export class TimeContainer extends HTMLElement {
       return
     }
     if (name === 'tooltip-pos' || name === 'step') return // 仅运行时读取
+    if (name === 'editable' || name === 'deletable' || name === 'creatable') {
+      // 通知所有轨道刷新子段 DOM（删除按钮/手柄/拖拽创建可见性）
+      this.querySelectorAll('time-line-track').forEach(t => {
+        if (t._onEditableChange) t._onEditableChange()
+      })
+      return
+    }
     // type / unit 变更 → 重建 formatter 并刷新所有轨道
     if (name === 'type' || name === 'unit') {
       this._formatter = createFormatter(this.type, this.unit)
@@ -172,6 +180,29 @@ export class TimeContainer extends HTMLElement {
     else this.setAttribute('step', String(v))
   }
 
+  /* ---- 可编辑/可删除（各轨道可单独覆盖） ---- */
+
+  /** 是否允许编辑（拖拽创建/移动/调整/修改属性），默认 true */
+  get editable() { return this.getAttribute('editable') !== 'false' }
+  set editable(v) {
+    if (v == null || v === true || v === 'true') this.removeAttribute('editable')
+    else this.setAttribute('editable', 'false')
+  }
+
+  /** 是否允许删除（删除按钮/菜单项），默认 true */
+  get deletable() { return this.getAttribute('deletable') !== 'false' }
+  set deletable(v) {
+    if (v == null || v === true || v === 'true') this.removeAttribute('deletable')
+    else this.setAttribute('deletable', 'false')
+  }
+
+  /** 是否允许创建新内容（拖拽创建新段），默认 true */
+  get creatable() { return this.getAttribute('creatable') !== 'false' }
+  set creatable(v) {
+    if (v == null || v === true || v === 'true') this.removeAttribute('creatable')
+    else this.setAttribute('creatable', 'false')
+  }
+
   /* ---- 缩放（视图范围） ---- */
 
   /** 视图起始（缩小范围 = 放大；null = 禁用缩放，使用默认范围） */
@@ -246,6 +277,9 @@ export class TimeContainer extends HTMLElement {
     if (opts.step)         t.setAttribute('step',         String(opts.step))
     if (opts.minDuration)  t.setAttribute('min-duration',  String(opts.minDuration))
     if (opts.maxSegments)  t.setAttribute('max-segments', String(opts.maxSegments))
+    if (opts.editable != null)  t.toggleAttribute('editable',  String(opts.editable) === 'false')
+    if (opts.deletable != null) t.toggleAttribute('deletable', String(opts.deletable) === 'false')
+    if (opts.creatable != null) t.toggleAttribute('creatable', String(opts.creatable) === 'false')
     this.appendChild(t)
     return t
   }

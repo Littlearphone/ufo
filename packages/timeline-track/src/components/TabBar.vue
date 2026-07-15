@@ -17,6 +17,6 @@ defineProps({
 })
 defineEmits(['select'])
 
-const tabs = ['基础操作', '密集数据', 'API 调用', '模式示例', 'Vue 3 集成']
-const icons = ['📋', '📊', '🔌', '🎯', '⚡']
+const tabs = ['基础操作', '密集数据', 'API 调用', '模式示例', 'Vue 3 集成', 'CRUD 权限']
+const icons = ['📋', '📊', '🔌', '🎯', '⚡', '🔐']
 </script>
