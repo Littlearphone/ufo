@@ -41,7 +41,7 @@ export class TimeContainer extends HTMLElement {
       'tooltip-pos', 'max-segments',
       'type', 'unit', 'step',
       'zoom-start', 'zoom-end',
-      'editable', 'deletable', 'creatable',
+      'editable', 'deletable', 'creatable', 'clearable',
       ...LOCALE_ATTRS
     ]
   }
@@ -56,7 +56,7 @@ export class TimeContainer extends HTMLElement {
       return
     }
     if (name === 'tooltip-pos' || name === 'step') return // 仅运行时读取
-    if (name === 'editable' || name === 'deletable' || name === 'creatable') {
+    if (name === 'editable' || name === 'deletable' || name === 'creatable' || name === 'clearable') {
       // 通知所有轨道刷新子段 DOM（删除按钮/手柄/拖拽创建可见性）
       this.querySelectorAll('time-line-track').forEach(t => {
         if (t._onEditableChange) t._onEditableChange()
@@ -196,6 +196,13 @@ export class TimeContainer extends HTMLElement {
     else this.setAttribute('deletable', 'false')
   }
 
+  /** 是否允许清空段（右键菜单"清空时间段"），默认 true */
+  get clearable() { return this.getAttribute('clearable') !== 'false' }
+  set clearable(v) {
+    if (v == null || v === true || v === 'true') this.removeAttribute('clearable')
+    else this.setAttribute('clearable', 'false')
+  }
+
   /** 是否允许创建新内容（拖拽创建新段），默认 true */
   get creatable() { return this.getAttribute('creatable') !== 'false' }
   set creatable(v) {
@@ -279,6 +286,7 @@ export class TimeContainer extends HTMLElement {
     if (opts.maxSegments)  t.setAttribute('max-segments', String(opts.maxSegments))
     if (opts.editable != null)  t.toggleAttribute('editable',  String(opts.editable) === 'false')
     if (opts.deletable != null) t.toggleAttribute('deletable', String(opts.deletable) === 'false')
+    if (opts.clearable != null) t.toggleAttribute('clearable', String(opts.clearable) === 'false')
     if (opts.creatable != null) t.toggleAttribute('creatable', String(opts.creatable) === 'false')
     this.appendChild(t)
     return t

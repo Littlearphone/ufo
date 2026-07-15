@@ -70,7 +70,7 @@ export class TimeTrack extends HTMLElement {
     else this.setAttribute('editable', 'false')
   }
 
-  /** 是否允许删除（删除轨道/清空时间段/段删除按钮和菜单），默认继承容器值或 true */
+  /** 是否允许删除（删除轨道/段删除按钮和菜单），默认继承容器值或 true */
   get deletable() {
     if (this.hasAttribute('deletable')) return this.getAttribute('deletable') !== 'false'
     const c = this.closest('time-line-container')
@@ -79,6 +79,17 @@ export class TimeTrack extends HTMLElement {
   set deletable(v) {
     if (v == null || v === true || v === 'true') this.removeAttribute('deletable')
     else this.setAttribute('deletable', 'false')
+  }
+
+  /** 是否允许清空本轨道所有段（右键菜单"清空时间段"），默认继承容器值或 true */
+  get clearable() {
+    if (this.hasAttribute('clearable')) return this.getAttribute('clearable') !== 'false'
+    const c = this.closest('time-line-container')
+    return c ? c.clearable : true
+  }
+  set clearable(v) {
+    if (v == null || v === true || v === 'true') this.removeAttribute('clearable')
+    else this.setAttribute('clearable', 'false')
   }
 
   /** 是否允许创建新段（拖拽创建），默认继承容器值或 true */
@@ -212,7 +223,7 @@ export class TimeTrack extends HTMLElement {
     if (this._winResizeHandler) window.removeEventListener('resize', this._winResizeHandler)
   }
 
-  static get observedAttributes() { return ['label', 'start', 'end', 'step', 'min-duration', 'max-segments', 'editable', 'deletable', 'creatable'] }
+  static get observedAttributes() { return ['label', 'start', 'end', 'step', 'min-duration', 'max-segments', 'editable', 'deletable', 'creatable', 'clearable'] }
 
   attributeChangedCallback(name, _ov, nv) {
     if (!this._init) return
@@ -282,7 +293,7 @@ export class TimeTrack extends HTMLElement {
       if (this.editable) {
         menuItems.push({ label: l.modifyProps, action: () => showTrackEditDialog(this) })
       }
-      if (this.deletable) {
+      if (this.clearable) {
         menuItems.push({ label: l.clearSegments, action: () => {
           showDeleteConfirm(
             l.confirmClearSegments.replace('{name}', trackLabel),
@@ -290,6 +301,8 @@ export class TimeTrack extends HTMLElement {
             this
           )
         } })
+      }
+      if (this.deletable) {
         menuItems.push({ label: l.deleteTrack, danger: true, action: () => {
           showDeleteConfirm(
             l.confirmDeleteTrack

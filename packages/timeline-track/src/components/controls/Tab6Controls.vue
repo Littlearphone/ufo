@@ -6,7 +6,8 @@
         <div style="font-size:10px;line-height:1.8;color:#5f6b7a;">
           <div>☑ <strong>creatable</strong> — 可拖拽空白区域<strong>创建新段</strong></div>
           <div>☑ <strong>editable</strong> — 可<strong>拖拽移动/调整</strong>已有段、右键<strong>修改属性</strong></div>
-          <div>☑ <strong>deletable</strong> — 可删除段（×按钮/右键菜单）、<strong>清空轨道/删除轨道</strong></div>
+          <div>☑ <strong>deletable</strong> — 可删除段（×按钮/右键菜单）<strong>或删除轨道</strong></div>
+          <div>☑ <strong>clearable</strong> — 右键菜单<strong>"清空时间段"</strong>（移除全部段但保留轨道）</div>
           <div style="margin-top:4px;color:#90a4ae;font-size:9px;">下层未设属性时<strong>继承</strong>上层值。勾选 = 允许，不勾 = 禁止。</div>
         </div>
       </div>
@@ -26,6 +27,9 @@
           <label><span class="ctrl-label">deletable</span>
             <input type="checkbox" :checked="c.deletable" @change="setContainer('deletable', $event.target.checked)">
           </label>
+          <label><span class="ctrl-label">clearable</span>
+            <input type="checkbox" :checked="c.clearable" @change="setContainer('clearable', $event.target.checked)">
+          </label>
         </div>
       </div>
     </div>
@@ -43,6 +47,9 @@
           </label>
           <label><span class="ctrl-label">deletable</span>
             <input type="checkbox" :checked="t.deletable" @change="setTrack(i, 'deletable', $event.target.checked)">
+          </label>
+          <label><span class="ctrl-label">clearable</span>
+            <input type="checkbox" :checked="t.clearable" @change="setTrack(i, 'clearable', $event.target.checked)">
           </label>
         </div>
       </div>
@@ -72,7 +79,7 @@ const props = defineProps({
   container: { type: Object, default: null }
 })
 
-const c = ref({ creatable: true, editable: true, deletable: true })
+const c = ref({ creatable: true, editable: true, deletable: true, clearable: true })
 const trackStates = ref([])
 const segStates = ref([])
 
@@ -85,6 +92,7 @@ function syncFromDOM() {
     creatable: ct.getAttribute('creatable') !== 'false',
     editable: ct.getAttribute('editable') !== 'false',
     deletable: ct.getAttribute('deletable') !== 'false',
+    clearable: ct.getAttribute('clearable') !== 'false',
   }
 
   const tracks = ct.querySelectorAll(':scope > time-line-track')
@@ -93,6 +101,7 @@ function syncFromDOM() {
     creatable: t.hasAttribute('creatable') ? t.getAttribute('creatable') !== 'false' : null,
     editable: t.hasAttribute('editable') ? t.getAttribute('editable') !== 'false' : null,
     deletable: t.hasAttribute('deletable') ? t.getAttribute('deletable') !== 'false' : null,
+    clearable: t.hasAttribute('clearable') ? t.getAttribute('clearable') !== 'false' : null,
   }))
 
   // 片段 label 加上父轨道前缀

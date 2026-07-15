@@ -298,9 +298,9 @@ c().step = parseFloat(v) || 0
 c().setAttribute('step', '0.5')
 ```
 
-## CRUD 权限控制系统（creatable / editable / deletable）
+## CRUD 权限控制系统（creatable / editable / deletable / clearable）
 
-三级布尔属性，控制每个元素是否可创建、可编辑、可删除。所有属性默认 `true`（不设置 = 全部允许），完全向后兼容。
+四级布尔属性，控制每个元素是否可创建、可编辑、可删除、可清空。所有属性默认 `true`（不设置 = 全部允许），完全向后兼容。
 
 ### 属性概览
 
@@ -308,7 +308,8 @@ c().setAttribute('step', '0.5')
 |---|---|---|---|---|
 | `creatable` | 可创建新内容 | 为轨道提供默认值 | 拖拽创建新段 | —（段无子内容） |
 | `editable` | 可修改已有内容 | 为轨道提供默认值 | 移动/调整段、编辑属性 | 拖拽移动/调整、编辑属性 |
-| `deletable` | 可删除内容 | 为轨道提供默认值 | 删除轨道、清空段 | 删除按钮、删除菜单 |
+| `deletable` | 可删除内容 | 为轨道提供默认值 | 删除轨道 | 删除按钮、删除菜单 |
+| `clearable` | 可清空段 | 为轨道提供默认值 | 右键菜单"清空时间段" | —（轨道级操作） |
 
 ### 继承链
 
@@ -318,6 +319,7 @@ c().setAttribute('step', '0.5')
 container.creatable  → track.creatable  (段无 creatable)
 container.editable   → track.editable   → segment.editable
 container.deletable  → track.deletable  → segment.deletable
+container.clearable  → track.clearable  (段无 clearable)
 ```
 
 ### 各操作归属表
@@ -339,25 +341,29 @@ container.deletable  → track.deletable  → segment.deletable
 | 操作 | 守卫层级 | 守卫属性 |
 |---|---|---|
 | 段上 × 按钮 | Segment | `segment.deletable` |
-| 右键菜单「删除」 | Segment | `segment.deletable` |
-| 右键菜单「清空时间段」 | Track | `track.deletable` |
+| 右键菜单「删除」段 | Segment | `segment.deletable` |
 | 右键菜单「删除轨道」 | Track | `track.deletable` |
+
+**Clear — `clearable`：**
+| 操作 | 守卫层级 | 守卫属性 |
+|---|---|---|
+| 右键菜单「清空时间段」 | Track | `track.clearable` |
 
 ### 使用示例
 
 ```html
 <!-- 全局只读 -->
-<time-line-container creatable="false" editable="false" deletable="false">
+<time-line-container creatable="false" editable="false" deletable="false" clearable="false">
   <time-line-track label="只读轨道" start="0" end="24">
     <time-line-segment start="8" end="12" label="不可操作"></time-line-segment>
   </time-line-track>
 </time-line-container>
 
 <!-- 精细化控制：轨道级覆盖 + 片段级覆盖 -->
-<time-line-container editable="true" deletable="true">
-  <!-- 此轨道只可添加新段，不可编辑/删除已有段 -->
+<time-line-container editable="true" deletable="true" clearable="true">
+  <!-- 此轨道只可添加新段，不可编辑/删除已有段，也不可清空 -->
   <time-line-track label="投稿区" start="0" end="24"
-    creatable="true" editable="false" deletable="false">
+    creatable="true" editable="false" deletable="false" clearable="false">
     <time-line-segment start="8" end="12" label="已有段"></time-line-segment>
   </time-line-track>
   <!-- 此轨道普通，但其中一段设为只读 -->
@@ -372,7 +378,8 @@ container.deletable  → track.deletable  → segment.deletable
   container.addTrack('动态轨道', 0, 24, {
     creatable: false,  // 不可拖拽创建新段
     editable: true,    // 可移动/调整已有段
-    deletable: false   // 不可删除
+    deletable: false,  // 不可删除
+    clearable: false   // 不可清空段
   })
 </script>
 ```
@@ -380,7 +387,8 @@ container.deletable  → track.deletable  → segment.deletable
 ### 视觉效果
 
 - `editable="false"` 的段：拖拽手柄不渲染、`×` 删除按钮不渲染（若同时 `deletable="false"`）
-- `deletable="false"` 的轨道：右键菜单隐藏"删除轨道"和"清空时间段"项
+- `deletable="false"` 的轨道：右键菜单隐藏"删除轨道"项
+- `clearable="false"` 的轨道：右键菜单隐藏"清空时间段"项
 - `creatable="false"` 的轨道：拖拽创建被扼制，指针无响应
 
 ## 共享轴轴尺标签自定义

@@ -178,10 +178,10 @@
               <div class="mode-example">
                 <div class="mode-example-header">
                   <strong>🔒 完全只读</strong>
-                  <code>creatable="false" editable="false" deletable="false"</code>
-                  <span class="mode-desc">拖拽、编辑、删除全部禁止</span>
+                  <code>creatable="false" editable="false" deletable="false" clearable="false"</code>
+                  <span class="mode-desc">拖拽、编辑、删除、清空全部禁止</span>
                 </div>
-                <time-line-container class="mode-example-body" creatable="false" editable="false" deletable="false">
+                <time-line-container class="mode-example-body" creatable="false" editable="false" deletable="false" clearable="false">
                   <time-line-track label="只读轨道" start="0" end="24">
                     <time-line-segment start="8" end="12" label="不可操作" color="#95a5a6"></time-line-segment>
                   </time-line-track>
@@ -192,10 +192,10 @@
               <div class="mode-example">
                 <div class="mode-example-header">
                   <strong>➕ 仅创建</strong>
-                  <code>creatable="true" editable="false" deletable="false"</code>
-                  <span class="mode-desc">可拖拽添加新段，但不可编辑或删除已有段</span>
+                  <code>creatable="true" editable="false" deletable="false" clearable="false"</code>
+                  <span class="mode-desc">可拖拽添加新段，但不可编辑、删除或清空已有段</span>
                 </div>
-                <time-line-container class="mode-example-body" creatable="true" editable="false" deletable="false">
+                <time-line-container class="mode-example-body" creatable="true" editable="false" deletable="false" clearable="false">
                   <time-line-track label="可添加段" start="0" end="24">
                     <time-line-segment start="9" end="12" label="已有段" color="#27ae60"></time-line-segment>
                   </time-line-track>
@@ -206,10 +206,10 @@
               <div class="mode-example">
                 <div class="mode-example-header">
                   <strong>✏️ 仅编辑</strong>
-                  <code>creatable="false" editable="true" deletable="false"</code>
-                  <span class="mode-desc">可拖拽移动/调整/修改属性，不可添加或删除</span>
+                  <code>creatable="false" editable="true" deletable="false" clearable="false"</code>
+                  <span class="mode-desc">可拖拽移动/调整/修改属性，不可添加、删除或清空</span>
                 </div>
-                <time-line-container class="mode-example-body" creatable="false" editable="true" deletable="false">
+                <time-line-container class="mode-example-body" creatable="false" editable="true" deletable="false" clearable="false">
                   <time-line-track label="可编辑段" start="0" end="24">
                     <time-line-segment start="8" end="11" label="可移动/拉伸" color="#2980b9"></time-line-segment>
                     <time-line-segment start="13" end="16" label="可修改属性" color="#8e44ad"></time-line-segment>
@@ -222,7 +222,7 @@
                 <div class="mode-example-header">
                   <strong>🗑️ 仅删除</strong>
                   <code>creatable="false" editable="false" deletable="true"</code>
-                  <span class="mode-desc">仅可删除段、清空轨道，不可添加或编辑</span>
+                  <span class="mode-desc">仅可删除段/轨道、清空轨道，不可添加或编辑</span>
                 </div>
                 <time-line-container class="mode-example-body" creatable="false" editable="false" deletable="true">
                   <time-line-track label="可删除段" start="0" end="24">
@@ -236,14 +236,14 @@
               <div class="mode-example">
                 <div class="mode-example-header">
                   <strong>🛤️ 轨道级覆盖</strong>
-                  <code>轨道各自设置 creatable / editable / deletable</code>
+                  <code>轨道各自设置 creatable / editable / deletable / clearable</code>
                   <span class="mode-desc">同一容器内各轨道权限独立</span>
                 </div>
                 <time-line-container class="mode-example-body" style="height:160px">
                   <time-line-track label="普通轨道" start="0" end="24">
                     <time-line-segment start="8" end="12" label="全部可操作" color="#3498db"></time-line-segment>
                   </time-line-track>
-                  <time-line-track label="只读轨道" start="0" end="24" creatable="false" editable="false" deletable="false">
+                  <time-line-track label="只读轨道" start="0" end="24" creatable="false" editable="false" deletable="false" clearable="false">
                     <time-line-segment start="14" end="18" label="完全只读" color="#95a5a6"></time-line-segment>
                   </time-line-track>
                 </time-line-container>
@@ -253,11 +253,11 @@
               <div class="mode-example">
                 <div class="mode-example-header">
                   <strong>🧩 片段级覆盖</strong>
-                  <code>各 segment 单独控制 editable / deletable</code>
+                  <code>各 segment 单独控制 editable / deletable，轨道禁用 clearable</code>
                   <span class="mode-desc">同一轨道内各段权限独立</span>
                 </div>
                 <time-line-container class="mode-example-body">
-                  <time-line-track label="混合控制" start="0" end="24" deletable="false">
+                  <time-line-track label="混合控制" start="0" end="24" deletable="false" clearable="false">
                     <time-line-segment start="8" end="10" label="可编辑" editable="true" color="#27ae60"></time-line-segment>
                     <time-line-segment start="11" end="13" label="只读" editable="false" deletable="false" color="#95a5a6"></time-line-segment>
                     <time-line-segment start="14" end="16" label="仅可删除" editable="false" deletable="true" color="#e74c3c"></time-line-segment>
@@ -393,10 +393,12 @@ function handleControlsReset(idx) {
       ct.removeAttribute('creatable')
       ct.removeAttribute('editable')
       ct.removeAttribute('deletable')
+      ct.removeAttribute('clearable')
       ct.querySelectorAll(':scope > time-line-track').forEach(t => {
         t.removeAttribute('creatable')
         t.removeAttribute('editable')
         t.removeAttribute('deletable')
+        t.removeAttribute('clearable')
       })
       ct.querySelectorAll('time-line-segment').forEach(s => {
         s.removeAttribute('editable')
@@ -530,21 +532,21 @@ const TAB_INNER_HTML = [
   </time-line-container>
 
   <!-- 🔒 完全只读 -->
-  <time-line-container creatable="false" editable="false" deletable="false">
+  <time-line-container creatable="false" editable="false" deletable="false" clearable="false">
     <time-line-track label="只读轨道" start="0" end="24">
       <time-line-segment start="8" end="12" label="不可操作" color="#95a5a6"></time-line-segment>
     </time-line-track>
   </time-line-container>
 
   <!-- ➕ 仅创建 -->
-  <time-line-container creatable="true" editable="false" deletable="false">
+  <time-line-container creatable="true" editable="false" deletable="false" clearable="false">
     <time-line-track label="可添加段" start="0" end="24">
       <time-line-segment start="9" end="12" label="已有段" color="#27ae60"></time-line-segment>
     </time-line-track>
   </time-line-container>
 
   <!-- ✏️ 仅编辑 -->
-  <time-line-container creatable="false" editable="true" deletable="false">
+  <time-line-container creatable="false" editable="true" deletable="false" clearable="false">
     <time-line-track label="可编辑段" start="0" end="24">
       <time-line-segment start="8" end="11" label="可移动/拉伸" color="#2980b9"></time-line-segment>
       <time-line-segment start="13" end="16" label="可修改属性" color="#8e44ad"></time-line-segment>
@@ -564,14 +566,14 @@ const TAB_INNER_HTML = [
     <time-line-track label="普通轨道" start="0" end="24">
       <time-line-segment start="8" end="12" label="全部可操作" color="#3498db"></time-line-segment>
     </time-line-track>
-    <time-line-track label="只读轨道" start="0" end="24" creatable="false" editable="false" deletable="false">
+    <time-line-track label="只读轨道" start="0" end="24" creatable="false" editable="false" deletable="false" clearable="false">
       <time-line-segment start="14" end="18" label="完全只读" color="#95a5a6"></time-line-segment>
     </time-line-track>
   </time-line-container>
 
   <!-- 🧩 片段级覆盖 -->
   <time-line-container>
-    <time-line-track label="混合控制" start="0" end="24" deletable="false">
+    <time-line-track label="混合控制" start="0" end="24" deletable="false" clearable="false">
       <time-line-segment start="8" end="10" label="可编辑" editable="true" color="#27ae60"></time-line-segment>
       <time-line-segment start="11" end="13" label="只读" editable="false" deletable="false" color="#95a5a6"></time-line-segment>
       <time-line-segment start="14" end="16" label="仅可删除" editable="false" deletable="true" color="#e74c3c"></time-line-segment>
@@ -667,8 +669,8 @@ function addTrack(label) {
  */
 const CUSTOM_TAGS = new Set(['time-line-container', 'time-line-track', 'time-line-segment'])
 const ATTR_ALLOW = {
-  'time-line-container': ['direction', 'axis-mode', 'shared-start', 'shared-end', 'shared-clip-range', 'label-h', 'label-v', 'tooltip-pos', 'type', 'unit', 'creatable', 'editable', 'deletable'],
-  'time-line-track': ['label', 'start', 'end', 'step', 'max-segments', 'creatable', 'editable', 'deletable'],
+  'time-line-container': ['direction', 'axis-mode', 'shared-start', 'shared-end', 'shared-clip-range', 'label-h', 'label-v', 'tooltip-pos', 'type', 'unit', 'creatable', 'editable', 'deletable', 'clearable'],
+  'time-line-track': ['label', 'start', 'end', 'step', 'max-segments', 'creatable', 'editable', 'deletable', 'clearable'],
   'time-line-segment': ['start', 'end', 'label', 'color', 'tooltip', 'editable', 'deletable'],
 }
 
