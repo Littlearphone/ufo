@@ -42,7 +42,7 @@ export class TimeContainer extends HTMLElement {
       'type', 'unit', 'step',
       'default-color', 'borderless', 'axis-label',
       'zoom-start', 'zoom-end',
-      'editable', 'deletable', 'creatable', 'clearable', 'copyable',
+      'editable', 'deletable', 'creatable', 'clearable', 'copyable', 'selection-mode',
       ...LOCALE_ATTRS
     ]
   }
@@ -67,6 +67,13 @@ export class TimeContainer extends HTMLElement {
       this.querySelectorAll('time-line-track').forEach(t => {
         if (t._onEditableChange) t._onEditableChange()
       })
+      return
+    }
+    if (name === 'selection-mode') {
+      // 关闭选中模式时清除所有段的选中状态
+      if (nv == null) {
+        this.querySelectorAll('time-line-segment.tls-active').forEach(s => s.classList.remove('tls-active'))
+      }
       return
     }
     // type / unit 变更 → 重建 formatter 并刷新所有轨道
@@ -222,6 +229,10 @@ export class TimeContainer extends HTMLElement {
     if (v == null || v === true || v === 'true') this.removeAttribute('creatable')
     else this.setAttribute('creatable', 'false')
   }
+
+  /** 选中模式：点击段切换选中状态而非拖拽，默认关闭 */
+  get selectionMode() { return this.hasAttribute('selection-mode') }
+  set selectionMode(v) { this.toggleAttribute('selection-mode', !!v) }
 
   /* ---- 缩放（视图范围） ---- */
 

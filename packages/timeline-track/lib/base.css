@@ -275,6 +275,30 @@ time-line-segment.tls-del-hidden .tls-del { display: none; }
 time-line-segment.tls-text-hidden .tls-inner { visibility: hidden; }
 time-line-segment.tls-selected .tls-bar { box-shadow: inset 0 0 0 2px rgba(255,255,255,.65); }
 
+/* ── 选中模式：段表面扫光动画 ── */
+/* 斜向亮条快速掠过段表面，模拟流水般的动态感 */
+@keyframes tls-bar-shine {
+  0%   { transform: translateX(-120%) skewX(-15deg); }
+  100% { transform: translateX(320%) skewX(-15deg); }
+}
+time-line-segment.tls-active .tls-bar::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255,255,255,.2) 35%,
+    rgba(255,255,255,.45) 50%,
+    rgba(255,255,255,.2) 65%,
+    transparent
+  );
+  transform: translateX(-120%) skewX(-15deg);
+  animation: tls-bar-shine 1.2s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 1;
+}
+
 .tls-global-tip {
   position: fixed;
   z-index: 99999;

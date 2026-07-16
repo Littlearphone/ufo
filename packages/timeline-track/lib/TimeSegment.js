@@ -96,6 +96,12 @@ export class TimeSegment extends HTMLElement {
     return null
   }
 
+  /** 容器是否启用了选中模式（点击选中而非拖拽） */
+  get _containerSelectionMode() {
+    const c = this.closest('time-line-container')
+    return c ? c.selectionMode : false
+  }
+
   /* ---- 数据关联 ---- */
 
   /**
@@ -268,6 +274,20 @@ export class TimeSegment extends HTMLElement {
     this._updateTextVisibility()
   }
 
+  /** 切换选中状态（选中模式用），单选：选中当前段，取消同一容器内其他段的选中 */
+  _toggleActive() {
+    const wasActive = this.classList.contains('tls-active')
+    // 单选：先清除同一容器内所有段的选中状态
+    const c = this.closest('time-line-container')
+    if (c) {
+      c.querySelectorAll('time-line-segment.tls-active').forEach(s => s.classList.remove('tls-active'))
+    }
+    // 之前未选中才设为选中（已选中的段点击 = 取消选中）
+    if (!wasActive) {
+      this.classList.add('tls-active')
+    }
+  }
+
   /** 刷新文字可见性 */
   _updateTextVisibility() {
     cancelAnimationFrame(this._tvRaf)
@@ -321,6 +341,13 @@ export class TimeSegment extends HTMLElement {
     // 段不可编辑时禁止拖拽移动/调整
     if (!this.editable) return
     hideContextMenu() // 左键点击段时关闭可能存在的右键菜单
+
+    // 选中模式：点击段切换选中状态，不进入拖拽
+    if (this._containerSelectionMode) {
+      this._toggleActive()
+      return
+    }
+
     this.classList.add('tls-selected')
 
     const hdl = e.target.closest('[data-role]')

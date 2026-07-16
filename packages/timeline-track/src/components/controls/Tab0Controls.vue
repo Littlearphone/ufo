@@ -46,6 +46,12 @@
             <input type="text" v-model="axisLabelVal" @input="setAxisLabel" placeholder="例如：我的日程" style="flex:1;min-width:0" />
           </label>
         </div>
+        <div class="ctrl-row">
+          <label style="cursor:pointer;gap:4px">
+            <span style="font-size:11px;color:#555">选中模式（点击选中段，流动边框）</span>
+            <input type="checkbox" :checked="selectionMode" @change="toggleSelectionMode" />
+          </label>
+        </div>
       </div>
     </div>
 
@@ -242,6 +248,11 @@ const isBorderless = computed(() => {
   return c() && c().hasAttribute('borderless')
 })
 
+const selectionMode = computed(() => {
+  _attrRev.value
+  return c() && c().selectionMode
+})
+
 // ── 缩放 ──
 const zoomLevel = computed(() => {
   _attrRev.value
@@ -279,6 +290,14 @@ function toggleBorderless() {
   c().toggleAttribute('borderless', next)
   bumpAttr()
   addLog('borderless', next)
+}
+
+function toggleSelectionMode() {
+  if (!c()) return
+  const next = !c().selectionMode
+  c().selectionMode = next
+  bumpAttr()
+  addLog('selection-mode', next)
 }
 
 function setDefaultColor() {
@@ -455,6 +474,7 @@ function reset() {
   c().removeAttribute('default-color')
   c().style.removeProperty('--tlc-axis-bg')
   c().removeAttribute('borderless')
+  c().removeAttribute('selection-mode')
   c().removeAttribute('axis-label')
   c().allTracks().forEach(t => {
     t.style.removeProperty('--tls-height')
