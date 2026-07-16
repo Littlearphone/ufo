@@ -28,6 +28,15 @@ export function fmtTime(th, showMin, invalidStr) {
 }
 
 /** HTML 转义 */
+/**
+ * 唯一 ID 生成器（自动分配 key 用）
+ * 生成格式：_k<计数器36进制>_<时间戳36进制>
+ */
+let _uidCounter = 0
+export function nextKey() {
+  return `_k${(++_uidCounter).toString(36)}_${Date.now().toString(36)}`
+}
+
 export function esc(s) {
   const d = document.createElement('div')
   d.textContent = s != null ? String(s) : ''

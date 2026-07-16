@@ -99,6 +99,7 @@
 | `min-duration` | number | 范围的 0.5% | 段最小持续时间 |
 | `max-segments` | number | 继承容器 | 段数量上限 |
 | `default-color` | string | 继承容器 | 新建段的默认颜色 |
+| `key` | `string|number` | — | 用户自定义标识符，事件 detail 中直接携带此值（见下方「数据关联」） |
 | `editable` | `false` | 继承容器 | 是否允许编辑 |
 | `deletable` | `false` | 继承容器 | 是否允许删除 |
 | `creatable` | `false` | 继承容器 | 是否允许创建新段 |
@@ -110,22 +111,37 @@
 
 ### 方法
 
-| 方法 | 说明 |
-|---|---|
-| `addSegment(start, end, opts?)` | 添加时间段，返回 `<time-line-segment>` |
-| `sortedSegs()` | 按 start 排序的段数组 |
-| `clearAllSegments()` | 清空本轨道所有段 |
-| `px2Time(px)` | 像素值 → 值空间 |
-| `time2Px(t)` | 值空间 → 像素值 |
+| 方法 | 对应右键菜单 | 说明 |
+|---|---|---|
+| `addSegment(start, end, opts?)` | — | 添加时间段，返回 `<time-line-segment>` |
+| `sortedSegs()` | — | 按 start 排序的段数组 |
+| `clearAllSegments()` | 清空时间段 | 清空本轨道所有段 |
+| `px2Time(px)` | — | 像素值 → 值空间 |
+| `time2Px(t)` | — | 值空间 → 像素值 |
+| `editTrack()` | 修改属性 | 打开轨道属性编辑弹窗 |
+| `deleteTrack()` | 删除轨道 | 直接删除本轨道（发送可取消 `track-before-delete` 事件） |
+| `copyTrack()` | 复制轨道 | 复制本轨道所有段到内部剪贴板 |
+| `pasteSegment(data, clientX?, clientY?)` | 粘贴段 | 在指定坐标位置粘贴段，缺省坐标使用段区域中心 |
+| `pasteNewTrack(data)` | 粘贴为新轨道 | 从剪贴板数据创建新轨道（粘贴到当前轨道之后） |
+| `pasteOverwrite(data)` | 覆盖粘贴到本轨道 | 用剪贴板数据覆盖本轨道所有段 |
 
 ---
 
 ## `<time-line-segment>` — 时间段
 
+### 方法
+
+| 方法 | 对应右键菜单 | 说明 |
+|---|---|---|
+| `editSegment()` | 修改属性 | 打开段属性编辑弹窗 |
+| `copySegment()` | 复制段 | 复制本段到内部剪贴板 |
+| `deleteSegment()` | 删除 | 直接删除本段（发送可取消 `segment-before-delete` 事件） |
+
 ### 属性
 
 | 属性 | 类型 | 默认值 | 说明 |
 |---|---|---|---|
+| `key` | `string|number` | — | 用户自定义标识符，事件 detail 中直接携带此值（见下方「数据关联」） |
 | `start` | number | — | 起始值 |
 | `end` | number | — | 结束值 |
 | `label` | string | — | 显示名称 |
@@ -160,15 +176,149 @@
 
 | 事件名 | 冒泡 | 可取消 | 说明 |
 |---|---|---|---|
-| `segment-created` | ✅ | — | 创建时间段 `detail: { segment }` |
-| `segment-change` | ✅ | — | 拖拽移动/调整中（频繁触发） |
-| `segment-changed` | ✅ | — | 拖拽完成 `detail: { segment, oldStart, oldEnd, oldTrack? }` |
-| `segment-before-delete` | ✅ | ✅ | 段删除前（可阻止） `detail: { segment }` |
-| `segment-deleted` | ✅ | — | 段已删除 `detail: { segment }` |
-| `segment-limit-reached` | ✅ | — | 段数已达上限 `detail: { track, current, max }` |
-| `segment-copy-error` | ✅ | — | Ctrl+拖拽复制失败 `detail: { message }` |
-| `track-before-delete` | ✅ | ✅ | 轨道删除前（可阻止） `detail: { track }` |
-| `track-deleted` | ✅ | — | 轨道已删除 `detail: { track }` |
+| `segment-created` | ✅ | — | 创建时间段 `detail: { segment, key }` |
+| `segment-change` | ✅ | — | 拖拽移动/调整中（频繁触发） `detail: { segment, key, start, end }` |
+| `segment-changed` | ✅ | — | 拖拽完成 `detail: { segment, key, start, end }` |
+| `segment-before-delete` | ✅ | ✅ | 段删除前（可阻止） `detail: { segment, key }` |
+| `segment-deleted` | ✅ | — | 段已删除 `detail: { segment, key }` |
+| `segment-limit-reached` | ✅ | — | 段数已达上限 `detail: { track, key, current, max }` |
+| `segment-copy-error` | ✅ | — | Ctrl+拖拽复制失败 `detail: { source, key, targetTrack, reason, start, end }` |
+| `track-before-delete` | ✅ | ✅ | 轨道删除前（可阻止） `detail: { track, key }` |
+| `track-deleted` | ✅ | — | 轨道已删除 `detail: { track, key }` |
+
+---
+
+## 数据关联（Key Binding）
+
+通过 `key` 属性将轨道/段元素与你的响应式数据关联。所有事件的 `detail` 中**直接携带 `key` 值**，无需操作 DOM。
+
+### 核心原理
+
+每个 `<time-line-track>` 和 `<time-line-segment>` 都有一个 `key` 属性。所有事件的 `detail` 中**直接附带 `key` 值**，你只需在创建元素时设一次 `key`，事件中即可按 ID 查找。
+
+```js
+// ─── 创建时设置 key ───
+const track = container.addTrack('摄像头-A', 0, 24)
+track.key = 'cam-a'                          // ← 设一次
+
+const seg = track.addSegment(6, 9, { label: '早班' })
+seg.key = 's1'                               // ← 设一次
+
+// ─── 事件中直接拿到 key ───
+document.addEventListener('segment-changed', e => {
+  const { key: segKey, start, end } = e.detail  // ← 直接拿到 's1'
+  // 用 segKey 在你的 Vue reactive 数组里查找
+  const item = myDataArray.find(d => d.id === segKey)
+  item.start = start
+  item.end   = end
+})
+```
+
+### Vue 完整示例
+
+```js
+// stores/timeline.js
+import { ref } from 'vue'
+
+const tracks = ref([
+  { key: 'cam-a', name: '摄像头-A', segments: [
+    { key: 's1', start: 6, end: 9, label: '早班' },
+  ]},
+])
+
+const container = ref(null)
+
+// 从数据 → DOM 的同步
+function syncToDOM() {
+  tracks.value.forEach(td => {
+    const track = container.value.addTrack(td.name, 0, 24)
+    track.key = td.key            // ← 关键：key 与数据关联
+    td.segments.forEach(sd => {
+      const seg = track.addSegment(sd.start, sd.end, { label: sd.label })
+      seg.key = sd.key            // ← 同上
+    })
+  })
+}
+
+// 从事件 → 数据的同步（无需碰 DOM）
+function onSegmentChanged({ key, start, end }) {
+  for (const td of tracks.value) {
+    const seg = td.segments.find(s => s.key === key)
+    if (seg) { seg.start = start; seg.end = end; break }
+  }
+}
+
+function onSegmentDeleted({ key }) {
+  for (const td of tracks.value) {
+    const idx = td.segments.findIndex(s => s.key === key)
+    if (idx >= 0) { td.segments.splice(idx, 1); break }
+  }
+}
+
+function onTrackDeleted({ key }) {
+  const idx = tracks.value.findIndex(t => t.key === key)
+  if (idx >= 0) tracks.value.splice(idx, 1)
+}
+
+export { tracks, container, syncToDOM, onSegmentChanged, onSegmentDeleted, onTrackDeleted }
+```
+
+```vue
+<!-- App.vue -->
+<script setup>
+import { onMounted } from 'vue'
+import { tracks, container, syncToDOM, onSegmentChanged, onSegmentDeleted, onTrackDeleted } from './stores/timeline.js'
+
+onMounted(() => {
+  syncToDOM()
+
+  document.addEventListener('segment-changed', e => onSegmentChanged(e.detail))
+  document.addEventListener('segment-deleted',  e => onSegmentDeleted(e.detail))
+  document.addEventListener('track-deleted',    e => onTrackDeleted(e.detail))
+})
+</script>
+
+<template>
+  <time-line-container ref="container">
+    <time-line-track
+      v-for="td in tracks"
+      :key="td.key"
+      :label="td.name"
+      start="0"
+      end="24"
+    >
+      <time-line-segment
+        v-for="sd in td.segments"
+        :key="sd.key"
+        :start="sd.start"
+        :end="sd.end"
+        :label="sd.label"
+      ></time-line-segment>
+    </time-line-track>
+  </time-line-container>
+</template>
+```
+
+### 通过方法调用右键菜单操作
+
+```js
+// 在自定义 UI 中直接触发操作
+const track = container.querySelector('time-line-track')
+const seg  = track.querySelector('time-line-segment')
+
+// 打开编辑弹窗
+track.editTrack()
+seg.editSegment()
+
+// 删除（带确认弹窗和可取消事件）
+seg.deleteSegment()  // 先派发 segment-before-delete，可阻止
+
+// 复制/粘贴
+track.copyTrack()
+track.pasteNewTrack(clipboardData)
+track.pasteOverwrite(clipboardData)
+track.pasteSegment(segmentData, 300, 400)  // 在 (300,400) 坐标位置粘贴
+```
 
 ---
 

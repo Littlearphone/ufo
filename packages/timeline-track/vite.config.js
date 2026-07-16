@@ -5,18 +5,35 @@ import { resolve } from 'path'
 
 export default defineConfig(({ mode }) => {
   if (mode === 'lib') {
-    // ─── 库模式：输出 TimelineTrack.js（UMD）───
+    // ─── 库模式 ───
+    //   默认 → dist/TimelineTrack.js（压缩）
+    //   TIMELINE_FORMAT=dev → dist/TimelineTrack.dev.js（保留注释 + 格式化）
+    const isDev = process.env.TIMELINE_FORMAT === 'dev'
     return {
       build: {
         lib: {
           entry: resolve(__dirname, 'lib/index.js'),
           name: 'TimelineTrack',
-          fileName: () => 'TimelineTrack.js',
+          fileName: () => isDev ? 'TimelineTrack.dev.js' : 'TimelineTrack.js',
           formats: ['umd']
         },
         cssCodeSplit: true,  // 触发 UMD 格式的 CSS 内联注入
         outDir: 'dist',
-        emptyOutDir: false, // 保留上次 demo build 产出的 index.html
+        emptyOutDir: false,
+        minify: isDev ? false : 'esbuild',
+        // dev 版本保留注释和可读性
+        rollupOptions: isDev ? {
+          output: {
+            // 保留注释、不压缩变量名
+            compact: false,
+            generatedCode: { constBindings: true },
+          }
+        } : undefined,
+        esbuild: {
+          legalComments: isDev ? 'inline' : 'none',
+          minifyIdentifiers: !isDev,
+          keepNames: isDev,
+        }
       },
       esbuild: { target: 'es2020', charset: 'utf8' }
     }

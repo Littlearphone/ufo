@@ -4,7 +4,7 @@
  * @module TimeSegment
  */
 
-import { clamp, h, snap } from '../shared/utils.js'
+import { clamp, h, snap, nextKey } from '../shared/utils.js'
 import { createFormatter } from '../shared/formatter.js'
 import { hideGlobalTip, showGlobalTip } from './tooltip.js'
 import { hideContextMenu, showContextMenu, showDeleteConfirm, showSegmentEditDialog } from './contextmenu.js'
@@ -96,6 +96,20 @@ export class TimeSegment extends HTMLElement {
     return null
   }
 
+  /* ---- 数据关联 ---- */
+
+  /**
+   * 用户自定义标识符
+   * 事件回调的 detail 中直接携带此值，便于在 Vue/React 等响应式数据中按 ID 查找
+   * 设置方式：segment.key = 'my-seg-id'
+   * @type {string|number}
+   */
+  get key() {
+    if (this._segKey === undefined) this._segKey = nextKey()
+    return this._segKey
+  }
+  set key(v) { this._segKey = v }
+
   /* ---- 生命周期 ---- */
   connectedCallback() {
     if (this._init) return
@@ -164,7 +178,7 @@ export class TimeSegment extends HTMLElement {
           loc.confirmDeleteSegment
             .replace('{name}', name)
             .replace('{range}', segRange),
-          () => this._deleteSegment(),
+          () => this.deleteSegment(),
           this
         )
       }
@@ -202,20 +216,11 @@ export class TimeSegment extends HTMLElement {
         { type: 'header', label: headerLabel },
       ]
       if (this.editable) {
-        menuItems.push({ label: l.modifyProps, action: () => showSegmentEditDialog(this) })
+        menuItems.push({ label: l.modifyProps, action: () => this.editSegment() })
       }
       // ---- 复制 ----
       if (this.copyable) {
-        menuItems.push({ label: l.copySegment, action: () => {
-          clearClipboard() // 覆写前清空旧数据
-          copyToClipboard('segment', {
-            label: this.label,
-            color: this.color,
-            start: this.start,
-            end: this.end,
-          })
-          this._pulseCopy()
-        } })
+        menuItems.push({ label: l.copySegment, action: () => this.copySegment() })
       }
       if (this.deletable) {
         menuItems.push({ label: l.deleteBtnTitle, danger: true, action: () => {
@@ -223,7 +228,7 @@ export class TimeSegment extends HTMLElement {
             l.confirmDeleteSegment
               .replace('{name}', name)
               .replace('{range}', this._formatter.formatRange(this.start, this.end, 'axis')),
-            () => this._deleteSegment(),
+            () => this.deleteSegment(),
             this
           )
         }})
@@ -460,7 +465,7 @@ export class TimeSegment extends HTMLElement {
           this._updateCrossGhost()
         }
         this.dispatchEvent(new CustomEvent('segment-change', {
-          bubbles: true, detail: { segment: this, start: this.start, end: this.end }
+          bubbles: true, detail: { segment: this, key: this.key, start: this.start, end: this.end }
         }))
         return
       }
@@ -470,7 +475,7 @@ export class TimeSegment extends HTMLElement {
         if (!this._tgtTrack.editable) {
           this._exitCrossTrack()
           this.dispatchEvent(new CustomEvent('segment-change', {
-            bubbles: true, detail: { segment: this, start: this.start, end: this.end }
+            bubbles: true, detail: { segment: this, key: this.key, start: this.start, end: this.end }
           }))
           return
         }
@@ -481,7 +486,7 @@ export class TimeSegment extends HTMLElement {
           this._exitCrossTrack()
         }
         this.dispatchEvent(new CustomEvent('segment-change', {
-          bubbles: true, detail: { segment: this, start: this.start, end: this.end }
+          bubbles: true, detail: { segment: this, key: this.key, start: this.start, end: this.end }
         }))
         return
       }
@@ -512,7 +517,7 @@ export class TimeSegment extends HTMLElement {
     this._refreshTooltip()
 
     this.dispatchEvent(new CustomEvent('segment-change', {
-      bubbles: true, detail: { segment: this, start: this.start, end: this.end }
+      bubbles: true, detail: { segment: this, key: this.key, start: this.start, end: this.end }
     }))
   }
 
@@ -560,7 +565,7 @@ export class TimeSegment extends HTMLElement {
     }
 
     this.dispatchEvent(new CustomEvent('segment-changed', {
-      bubbles: true, detail: { segment: this, start: this.start, end: this.end }
+      bubbles: true, detail: { segment: this, key: this.key, start: this.start, end: this.end }
     }))
   }
 
@@ -669,7 +674,7 @@ export class TimeSegment extends HTMLElement {
       // 复制失败时派发事件，允许外部监听（如 toast 提示）
       this.dispatchEvent(new CustomEvent('segment-copy-error', {
         bubbles: true,
-        detail: { source: this, targetTrack: t, reason: copyError, start: s, end: eTime }
+        detail: { source: this, key: this.key, targetTrack: t, reason: copyError, start: s, end: eTime }
       }))
     }
 
@@ -883,7 +888,7 @@ export class TimeSegment extends HTMLElement {
       src._drawGrid()
     })
     this.dispatchEvent(new CustomEvent('segment-changed', {
-      bubbles: true, detail: { segment: this, start: this.start, end: this.end }
+      bubbles: true, detail: { segment: this, key: this.key, start: this.start, end: this.end }
     }))
   }
 
@@ -912,16 +917,42 @@ export class TimeSegment extends HTMLElement {
     setTimeout(() => this.classList.remove('tls-copy-pulse'), 1200)
   }
 
-  /** 程序化删除（无事件参数，供右键菜单调用） */
-  _deleteSegment() {
+  /**
+   * 程序化删除本段（发送可取消事件）
+   * 对应右键菜单「删除」
+   */
+  deleteSegment() {
     const ok = this.dispatchEvent(new CustomEvent('segment-before-delete', {
-      bubbles: true, cancelable: true, detail: { segment: this }
+      bubbles: true, cancelable: true, detail: { segment: this, key: this.key }
     }))
     if (!ok) return
     this.remove()
     this.dispatchEvent(new CustomEvent('segment-deleted', {
-      bubbles: true, detail: { segment: this }
+      bubbles: true, detail: { segment: this, key: this.key }
     }))
+  }
+
+  /**
+   * 打开段属性编辑弹窗
+   * 对应右键菜单「修改属性」
+   */
+  editSegment() {
+    showSegmentEditDialog(this)
+  }
+
+  /**
+   * 复制本段到内部剪贴板
+   * 对应右键菜单「复制段」
+   */
+  copySegment() {
+    clearClipboard()
+    copyToClipboard('segment', {
+      label: this.label,
+      color: this.color,
+      start: this.start,
+      end: this.end,
+    })
+    this._pulseCopy()
   }
 
   /** 颜色加深 */

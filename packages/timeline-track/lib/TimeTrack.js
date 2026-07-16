@@ -5,7 +5,7 @@
  */
 
 import { ensureCSS } from './css.js'
-import { clamp, h, snap } from '../shared/utils.js'
+import { clamp, h, snap, nextKey } from '../shared/utils.js'
 import { showContextMenu, showCopyToTracksDialog, showDeleteConfirm, showTrackEditDialog } from './contextmenu.js'
 import { resolveLocale } from '../shared/locale.js'
 import { clearClipboard, copyToClipboard, getClipboard } from './clipboard.js'
@@ -145,6 +145,20 @@ export class TimeTrack extends HTMLElement {
   /** 纵向模式轴标签位置：从容器读取 */
   get labelV() { const c = this.closest('time-line-container'); return c ? c.labelV : 'right' }
 
+  /* ---- 数据关联 ---- */
+
+  /**
+   * 用户自定义标识符
+   * 事件回调的 detail 中直接携带此值，便于在 Vue/React 等响应式数据中按 ID 查找
+   * 设置方式：track.key = 'my-track-id'
+   * @type {string|number}
+   */
+  get key() {
+    if (this._trackKey === undefined) this._trackKey = nextKey()
+    return this._trackKey
+  }
+  set key(v) { this._trackKey = v }
+
   /* ---- 公共 API ---- */
 
   /** 按时间排序所有段 */
@@ -210,7 +224,7 @@ export class TimeTrack extends HTMLElement {
       this._drawGrid()
     })
     this.dispatchEvent(new CustomEvent('segment-created', {
-      bubbles: true, detail: { segment: seg }
+      bubbles: true, detail: { segment: seg, key: seg.key }
     }))
     return seg
   }
@@ -220,22 +234,36 @@ export class TimeTrack extends HTMLElement {
     this.sortedSegs().forEach(s => s.remove())
   }
 
-  /** 程序化删除本轨道（发送可取消事件，供右键菜单调用） */
-  _deleteTrack() {
+  /**
+   * 程序化删除本轨道（发送可取消事件）
+   * 对应右键菜单「删除轨道」
+   */
+  deleteTrack() {
     const ok = this.dispatchEvent(new CustomEvent('track-before-delete', {
-      bubbles: true, cancelable: true, detail: { track: this }
+      bubbles: true, cancelable: true, detail: { track: this, key: this.key }
     }))
     if (!ok) return
     this.remove()
     this.dispatchEvent(new CustomEvent('track-deleted', {
-      bubbles: true, detail: { track: this }
+      bubbles: true, detail: { track: this, key: this.key }
     }))
+  }
+
+  /**
+   * 打开轨道属性编辑弹窗
+   * 对应右键菜单「修改属性」
+   */
+  editTrack() {
+    showTrackEditDialog(this)
   }
 
   /* ---- 复制/粘贴 ---- */
 
-  /** 复制本轨道全部段到剪贴板（覆写已有剪贴板内容） */
-  _copyTrack() {
+  /**
+   * 复制本轨道全部段到剪贴板（覆写已有剪贴板内容）
+   * 对应右键菜单「复制轨道」
+   */
+  copyTrack() {
     // 先清空旧剪贴板数据，避免残留的粘贴选项干扰菜单
     clearClipboard()
     const segs = this.sortedSegs().map(s => ({
@@ -253,13 +281,23 @@ export class TimeTrack extends HTMLElement {
     this._pulseCopy()
   }
 
-  /** 从右键点击位置粘贴段（仅段数据到本轨道） */
-  _pasteSegment(e, data) {
-    // 计算点击位置的时间值
+  /**
+   * 在指定坐标位置粘贴段（段数据放到指针所在时间位置）
+   * 对应右键菜单「粘贴段」
+   * @param {object} data - 段数据 { label, color, start, end }
+   * @param {number} [clientX] - 屏幕 X 坐标，缺省时使用段区域中心
+   * @param {number} [clientY] - 屏幕 Y 坐标，缺省时使用段区域中心
+   */
+  pasteSegment(data, clientX, clientY) {
     const rect = this._segRect()
     if (!rect) return
+    // 缺省坐标时使用段区域中心
+    if (clientX == null || clientY == null) {
+      clientX = rect.left + rect.width / 2
+      clientY = rect.top + rect.height / 2
+    }
     const v = this.isVertical
-    const cp = v ? e.clientY : e.clientX
+    const cp = v ? clientY : clientX
     const orig = v ? rect.top : rect.left
     const dim = v ? rect.height : rect.width
     if (!dim) return
@@ -283,8 +321,11 @@ export class TimeTrack extends HTMLElement {
     } catch (_) { /* 重叠等错误静默忽略 */ }
   }
 
-  /** 从剪贴板轨道数据创建新轨道 */
-  _pasteNewTrack(data) {
+  /**
+   * 从剪贴板轨道数据创建新轨道
+   * 对应右键菜单「粘贴为新轨道」
+   */
+  pasteNewTrack(data) {
     const container = this.closest('time-line-container')
     if (!container) return
     const label = data.label ? data.label + '（副本）' : ''
@@ -298,8 +339,11 @@ export class TimeTrack extends HTMLElement {
     track._pulseCopy()
   }
 
-  /** 用剪贴板轨道数据覆盖本轨道所有段 */
-  _pasteOverwrite(data) {
+  /**
+   * 用剪贴板轨道数据覆盖本轨道所有段
+   * 对应右键菜单「覆盖粘贴到本轨道」
+   */
+  pasteOverwrite(data) {
     this.clearAllSegments()
     for (const sd of data.segments) {
       try {
@@ -403,12 +447,12 @@ export class TimeTrack extends HTMLElement {
         { type: 'header', label: l.trackMenuHeader.replace('{name}', trackLabel) },
       ]
       if (this.editable) {
-        menuItems.push({ label: l.modifyProps, action: () => showTrackEditDialog(this) })
+        menuItems.push({ label: l.modifyProps, action: () => this.editTrack() })
       }
       // ---- 粘贴（从剪贴板） ----
       if (clip && clip.type === 'segment' && this.creatable) {
         menuItems.push({ label: l.pasteSegment, action: () => {
-          this._pasteSegment(e, clip.data)
+          this.pasteSegment(clip.data, e.clientX, e.clientY)
         } })
       }
       if (clip && clip.type === 'track' && this.creatable) {
@@ -416,19 +460,19 @@ export class TimeTrack extends HTMLElement {
         const container = this.closest('time-line-container')
         if (container && container.creatable) {
           menuItems.push({ label: l.pasteNewTrack, action: () => {
-            this._pasteNewTrack(clip.data)
+            this.pasteNewTrack(clip.data)
           } })
         }
       }
       if (clip && clip.type === 'track' && this.deletable) {
         menuItems.push({ label: l.pasteOverwrite, action: () => {
-          this._pasteOverwrite(clip.data)
+          this.pasteOverwrite(clip.data)
         } })
       }
       // ---- 复制 ----
       if (this.copyable) {
         menuItems.push({ label: l.copyTrack, action: () => {
-          this._copyTrack()
+          this.copyTrack()
         } })
         menuItems.push({ label: l.copyToTracks, action: () => {
           showCopyToTracksDialog(this)
@@ -449,7 +493,7 @@ export class TimeTrack extends HTMLElement {
             l.confirmDeleteTrack
               .replace('{name}', trackLabel)
               .replace('{range}', this._formatter.formatRange(this.tStart, this.tEnd, 'axis')),
-            () => { this._deleteTrack() },
+            () => { this.deleteTrack() },
             this
           )
         }})
@@ -727,7 +771,7 @@ export class TimeTrack extends HTMLElement {
     // 已超限：派发通知事件（fire-and-forget），始终阻止创建
     this.dispatchEvent(new CustomEvent('segment-limit-reached', {
       bubbles: true,
-      detail: { track: this, current, max }
+      detail: { track: this, key: this.key, current, max }
     }))
     return false
   }
