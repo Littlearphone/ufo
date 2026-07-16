@@ -58,6 +58,18 @@ export class TimeTrack extends HTMLElement {
   }
   set maxSegments(v) { this.setAttribute('max-segments', v) }
 
+  /** 获取默认段颜色（track属性 > container属性 > #5c9ce6） */
+  get defaultColor() {
+    if (this.hasAttribute('default-color')) return this.getAttribute('default-color')
+    const c = this.closest('time-line-container')
+    if (c && c.hasAttribute('default-color')) return c.getAttribute('default-color')
+    return '#5c9ce6'
+  }
+  set defaultColor(v) {
+    if (v == null || v === '#5c9ce6') this.removeAttribute('default-color')
+    else this.setAttribute('default-color', v)
+  }
+
   /* ---- 可编辑/可删除（继承自容器） ---- */
 
   /** 是否允许编辑（拖拽创建/移动/调整/修改属性），默认继承容器值或 true */
@@ -190,7 +202,7 @@ export class TimeTrack extends HTMLElement {
     seg.start = start
     seg.end   = end
     if (opts.label)  seg.label  = opts.label
-    if (opts.color)  seg.color  = opts.color
+    seg.color  = opts.color || this.defaultColor
     if (opts.radius) seg.radius = opts.radius
     this._segArea().appendChild(seg)
     requestAnimationFrame(() => {
@@ -601,10 +613,13 @@ export class TimeTrack extends HTMLElement {
     if (this._crS < dbS || this._crS > dbE) { this._creating = false; return }
     this._crP0 = cp
 
-    // 创建半透明预览条
+    // 创建半透明预览条（含时间范围标签）
     this._ghost = document.createElement('div')
     this._ghost.className = 'tlt-ghost'
+    this._ghost.innerHTML = '<span class="tlt-ghost-label"></span>'
     this._segArea().appendChild(this._ghost)
+    this._ghostLabel = this._ghost.querySelector('.tlt-ghost-label')
+    if (this._ghostLabel) this._ghostLabel.textContent = this._formatter.format(this._crS, 'tooltip')
     if (v) {
       const y = this.time2Px(this._crS)
       this._ghost.style.cssText = `left:0;right:0;top:${y}px;height:2px;`
@@ -638,6 +653,11 @@ export class TimeTrack extends HTMLElement {
     const lo = Math.min(t1, t2), hi = Math.max(t1, t2)
     const p1 = this.time2Px(lo), p2 = this.time2Px(hi)
 
+    // 更新拖拽预览标签，显示当前时间段范围
+    if (this._ghostLabel) {
+      this._ghostLabel.textContent = this._formatter.formatRange(lo, hi, 'tooltip')
+    }
+
     if (v) {
       this._ghost.style.top    = p1 + 'px'
       this._ghost.style.height = Math.max(3, p2 - p1) + 'px'
@@ -653,6 +673,7 @@ export class TimeTrack extends HTMLElement {
     this.removeEventListener('pointerup', onU)
     this.removeEventListener('pointercancel', onU)
     if (this._ghost) { this._ghost.remove(); this._ghost = null }
+    this._ghostLabel = null
 
     const v = this.isVertical
     const cp = v ? e.clientY : e.clientX
@@ -693,7 +714,7 @@ export class TimeTrack extends HTMLElement {
     if (hi - lo >= this.minDur) {
       // 检查段数上限（拖拽创建）
       if (!this._checkSegmentLimit()) return
-      this.addSegment(lo, hi)
+      this.addSegment(lo, hi, { color: this.defaultColor })
     }
   }
 
@@ -868,6 +889,12 @@ export class TimeTrack extends HTMLElement {
     if (!range) return
     const v = this.isVertical
     const dim = bulkDim ?? (v ? r.height : r.width)
+    const cs = getComputedStyle(this)
+    // 读取段尺寸变量：横轴模式段高（--tls-height），纵轴模式段宽（--tls-width）
+    const segSizeVar = v ? cs.getPropertyValue('--tls-width').trim() : cs.getPropertyValue('--tls-height').trim()
+    // 仅在设为具体数值（非 auto/100%/空）时启用自定义尺寸
+    const useCustomSize = segSizeVar && segSizeVar !== 'auto' && segSizeVar !== '100%'
+
     let p1  = ((seg.start - ts) / range) * dim
     let p2  = ((seg.end   - ts) / range) * dim
     // 安全防护：防止越界段溢出轨道区域（如共享轴拖拽后回退独立轴）
@@ -908,15 +935,17 @@ export class TimeTrack extends HTMLElement {
       seg.style.left   = '0'
       seg.style.right  = '0'
       seg.style.height = segW + 'px'
-      seg.style.width  = ''
+      seg.style.width  = useCustomSize ? segSizeVar : ''
       seg.style.bottom = ''
+      seg.style.margin = useCustomSize ? '0 auto' : ''
     } else {
       seg.style.left   = p1 + 'px'
       seg.style.top    = '0'
       seg.style.bottom = '0'
       seg.style.width  = segW + 'px'
-      seg.style.height = ''
+      seg.style.height = useCustomSize ? segSizeVar : ''
       seg.style.right  = ''
+      seg.style.margin = useCustomSize ? 'auto 0' : ''
     }
 
     // 太窄的段自动隐藏 × 删除按钮（右键菜单及 tooltip 仍可用）
@@ -938,6 +967,9 @@ export class TimeTrack extends HTMLElement {
     if (!range) return
     const v = this.isVertical
     const dim = v ? r.height : r.width
+    const cs = getComputedStyle(this)
+    const segSizeVar = v ? cs.getPropertyValue('--tls-width').trim() : cs.getPropertyValue('--tls-height').trim()
+    const useCustomSize = segSizeVar && segSizeVar !== 'auto' && segSizeVar !== '100%'
 
     // 单次计算所有段的 p1（左边界），用于约束相邻段
     const lefts = segs.map(s => ((s.start - ts) / range) * dim)
@@ -972,15 +1004,17 @@ export class TimeTrack extends HTMLElement {
         seg.style.left   = '0'
         seg.style.right  = '0'
         seg.style.height = segW + 'px'
-        seg.style.width  = ''
+        seg.style.width  = useCustomSize ? segSizeVar : ''
         seg.style.bottom = ''
+        seg.style.margin = useCustomSize ? '0 auto' : ''
       } else {
         seg.style.left   = p1 + 'px'
         seg.style.top    = '0'
         seg.style.bottom = '0'
         seg.style.width  = segW + 'px'
-        seg.style.height = ''
+        seg.style.height = useCustomSize ? segSizeVar : ''
         seg.style.right  = ''
+        seg.style.margin = useCustomSize ? 'auto 0' : ''
       }
 
       // 太窄的段自动隐藏 × 删除按钮（右键菜单仍可用）

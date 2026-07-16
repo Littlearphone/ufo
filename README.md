@@ -101,8 +101,11 @@ ufo/
 │       └── generate-root-index.mjs  # Pages 根索引生成
 ├── packages/
 │   └── timeline-track/          # 时间线轨道组件
-│       ├── src/lib/             #   Custom Elements 源码
-│       ├── src/components/      #   Vue 3 演示组件
+│       ├── lib/                 #   Custom Elements 源码（框架无关）
+│       ├── vue/                 #   Vue 3 包装组件
+│       ├── shared/              #   共享逻辑（formatter/locale/utils）
+│       ├── src/                 #   Vue 3 演示应用
+│       ├── DESIGN.md            #   设计文档（通用范围标尺抽象方案）
 │       ├── index.html           #   唯一入口（开发/构建共用）
 │       ├── vite.config.js       #   构建配置
 │       ├── package.json         #   @ufo/timeline-track

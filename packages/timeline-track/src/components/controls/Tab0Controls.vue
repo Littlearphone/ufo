@@ -36,6 +36,15 @@
             <span style="font-size:11px;color:#555">范围裁剪</span>
             <input type="checkbox" :checked="sharedClip" @change="toggleClip" />
           </label>
+          <label v-show="isShared" style="cursor:pointer;gap:4px">
+            <span style="font-size:11px;color:#555">无边框</span>
+            <input type="checkbox" :checked="isBorderless" @change="toggleBorderless" />
+          </label>
+        </div>
+        <div class="ctrl-row">
+          <label v-show="isShared"><span class="ctrl-label">轴标签</span>
+            <input type="text" v-model="axisLabelVal" @input="setAxisLabel" placeholder="例如：我的日程" style="flex:1;min-width:0" />
+          </label>
         </div>
       </div>
     </div>
@@ -64,6 +73,31 @@
           </label>
           <label><span class="ctrl-label">高</span> <input type="text" v-model="heightVal" @input="setSize" placeholder="auto"></label>
           <label><span class="ctrl-label">宽</span> <input type="text" v-model="widthVal" @input="setSize" placeholder="auto"></label>
+        </div>
+        <div class="ctrl-row">
+          <label><span class="ctrl-label">默认颜色</span>
+            <input type="color" v-model="defaultColorVal" @change="setDefaultColor" style="width:100%;height:26px;padding:2px;border:1px solid #d0d4da;border-radius:3px;cursor:pointer;box-sizing:border-box" />
+          </label>
+          <label v-show="isShared"><span class="ctrl-label">轴尺背景</span>
+            <input type="color" v-model="axisBgVal" @change="setAxisBg" style="width:100%;height:26px;padding:2px;border:1px solid #d0d4da;border-radius:3px;cursor:pointer;box-sizing:border-box" />
+          </label>
+          <label v-show="!isVertical"><span class="ctrl-label">段高</span>
+            <input type="text" v-model="segHeightVal" @input="setSegSize" placeholder="100%" />
+          </label>
+          <label v-show="isVertical"><span class="ctrl-label">段宽</span>
+            <input type="text" v-model="segWidthVal" @input="setSegSize" placeholder="100%" />
+          </label>
+        </div>
+        <div class="ctrl-row">
+          <label v-show="!isVertical"><span class="ctrl-label">轨道高</span>
+            <input type="text" v-model="trackHeightVal" @input="setTrackSize" placeholder="70px" />
+          </label>
+          <label v-show="isVertical"><span class="ctrl-label">轨道宽</span>
+            <input type="text" v-model="trackWidthVal" @input="setTrackSize" placeholder="150px" />
+          </label>
+          <label v-show="isVertical"><span class="ctrl-label">轨道高</span>
+            <input type="text" v-model="trackMinHVal" @input="setTrackSize" placeholder="280px" />
+          </label>
         </div>
       </div>
     </div>
@@ -137,6 +171,14 @@ const labelHVal = ref('top')
 const labelVVal = ref('left')
 const heightVal = ref('')
 const widthVal = ref('')
+const segHeightVal = ref('')
+const segWidthVal = ref('')
+const trackHeightVal = ref('')
+const trackWidthVal = ref('')
+const trackMinHVal = ref('')
+const defaultColorVal = ref('#5c9ce6')
+const axisBgVal = ref('#f8f9fb')
+const axisLabelVal = ref('')
 const tipSide = ref('top')
 const tipAlign = ref('center')
 
@@ -195,6 +237,10 @@ const stepVal = computed({
 })
 
 const sharedClip = computed(() => c() && c().sharedClipRange)
+const isBorderless = computed(() => {
+  _attrRev.value
+  return c() && c().hasAttribute('borderless')
+})
 
 // ── 缩放 ──
 const zoomLevel = computed(() => {
@@ -225,6 +271,66 @@ function toggleClip() {
     c().sharedClipRange = !c().sharedClipRange
     addLog('shared-clip-range', c().sharedClipRange)
   }
+}
+
+function toggleBorderless() {
+  if (!c()) return
+  const next = !c().hasAttribute('borderless')
+  c().toggleAttribute('borderless', next)
+  bumpAttr()
+  addLog('borderless', next)
+}
+
+function setDefaultColor() {
+  if (!c()) return
+  c().setAttribute('default-color', defaultColorVal.value)
+  bumpAttr()
+  addLog('default-color', defaultColorVal.value)
+}
+
+function setAxisBg() {
+  if (!c()) return
+  const v = axisBgVal.value
+  c().style.setProperty('--tlc-axis-bg', v)
+  addLog('axis-bg', v)
+}
+
+function setAxisLabel() {
+  if (!c()) return
+  const v = axisLabelVal.value
+  if (v) {
+    c().setAttribute('axis-label', v)
+  } else {
+    c().removeAttribute('axis-label')
+  }
+  bumpAttr()
+  addLog('axis-label', v || '(default)')
+}
+
+function setSegSize() {
+  if (!c()) return
+  // 设置所有轨道的 CSS 变量
+  c().allTracks().forEach(t => {
+    t.style.setProperty('--tls-height', segHeightVal.value || '100%')
+    t.style.setProperty('--tls-width', segWidthVal.value || '100%')
+  })
+  // 触发重新定位
+  requestAnimationFrame(() => {
+    c().allTracks().forEach(t => {
+      if (t._refreshPositions) t._refreshPositions()
+    })
+  })
+  addLog('seg-size', 'h=' + (segHeightVal.value || '100%') + ' w=' + (segWidthVal.value || '100%'))
+}
+
+function setTrackSize() {
+  if (!c()) return
+  c().allTracks().forEach(t => {
+    t.style.setProperty('--tlt-row-h', trackHeightVal.value || '')
+    t.style.setProperty('--tlt-row-w', trackWidthVal.value || '')
+    t.style.setProperty('--tlt-row-min-h', trackMinHVal.value || '')
+  })
+  addLog('track-size', 'h=' + (trackHeightVal.value || 'default') + ' w=' + (trackWidthVal.value || 'default') + ' minh=' + (trackMinHVal.value || 'default'))
 }
 
 // ── 方法 ──
@@ -338,6 +444,25 @@ function reset() {
   labelVVal.value = 'left'
   heightVal.value = ''
   widthVal.value = ''
+  segHeightVal.value = ''
+  segWidthVal.value = ''
+  trackHeightVal.value = ''
+  trackWidthVal.value = ''
+  trackMinHVal.value = ''
+  defaultColorVal.value = '#5c9ce6'
+  axisBgVal.value = '#f8f9fb'
+  axisLabelVal.value = ''
+  c().removeAttribute('default-color')
+  c().style.removeProperty('--tlc-axis-bg')
+  c().removeAttribute('borderless')
+  c().removeAttribute('axis-label')
+  c().allTracks().forEach(t => {
+    t.style.removeProperty('--tls-height')
+    t.style.removeProperty('--tls-width')
+    t.style.removeProperty('--tlt-row-h')
+    t.style.removeProperty('--tlt-row-w')
+    t.style.removeProperty('--tlt-row-min-h')
+  })
   tipSide.value = 'top'
   tipAlign.value = 'center'
   c().innerHTML = `\

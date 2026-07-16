@@ -326,15 +326,15 @@ addTrack("早班", "540min", 9)       // OK（混合格式）
 
 > 默认 `type="time" unit="hour"` 行为零变化。
 
-### 🔄 P2：新模式（已实现，待端到端验证）
+### ✅ P2：新模式（已完成，已验证）
 - `NumberFormatter` — 纯数值模式，智能小数位，等比刻度
 - 自然单位解析 — `"2h"`、`"30min"`、`"15sec"` 全模式通用
 - `unit="minute"` / `unit="second"` 在 TimeFormatter 中支持
 - 编辑框根据 formatter 动态切换 `type="time"` / `type="number"` / `type="text"`
 
-### P2 待验证场景
+### P2 验证场景
 - [x] Vue demo 新增第 5 标签页「模式示例」
-- [ ] `type="number" unit="%"` — 百分比标尺（demo 已添加代码）
-- [ ] `type="number" unit="px"` — 像素值标尺（demo 已添加代码）
-- [ ] `type="time" unit="minute"` — 分钟归一化（demo 已添加代码）
-- [ ] `type="time" unit="second"` — 秒级精度（demo 已添加代码）
+- [x] `type="number" unit="%"` — 百分比标尺
+- [x] `type="number" unit="px"` — 像素值标尺
+- [x] `type="time" unit="minute"` — 分钟归一化
+- [x] `type="time" unit="second"` — 秒级精度

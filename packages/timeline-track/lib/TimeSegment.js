@@ -9,7 +9,7 @@ import { createFormatter } from '../shared/formatter.js'
 import { hideGlobalTip, showGlobalTip } from './tooltip.js'
 import { hideContextMenu, showContextMenu, showDeleteConfirm, showSegmentEditDialog } from './contextmenu.js'
 import { resolveLocale } from '../shared/locale.js'
-import { clearClipboard, copyToClipboard, getClipboard, hasClipboard } from './clipboard.js'
+import { clearClipboard, copyToClipboard } from './clipboard.js'
 
 export class TimeSegment extends HTMLElement {
   constructor() {
@@ -187,11 +187,13 @@ export class TimeSegment extends HTMLElement {
       e.stopPropagation()                       // 阻止冒泡到轨道
       const l = resolveLocale(this)
       const segRange = this._formatter.formatRange(this.start, this.end, 'axis')
-      // 无标签时使用时间范围替代"未命名"，避免无意义占位文字
-      const segName = this.label || segRange
+      // 无标签时标题只显示时间范围，不填充占位名称
       const name = this.label || segRange
+      const headerLabel = this.label
+        ? l.segmentMenuHeader.replace('{name}', this.label).replace('{range}', segRange)
+        : segRange
       const menuItems = [
-        { type: 'header', label: l.segmentMenuHeader.replace('{name}', segName).replace('{range}', segRange) },
+        { type: 'header', label: headerLabel },
       ]
       if (this.editable) {
         menuItems.push({ label: l.modifyProps, action: () => showSegmentEditDialog(this) })
@@ -208,16 +210,6 @@ export class TimeSegment extends HTMLElement {
           })
           this._pulseCopy()
         } })
-      }
-      // ---- 粘贴（剪贴板有段数据时） ----
-      if (hasClipboard('segment')) {
-        const t = this._track
-        if (t && t.creatable) {
-          const clip = getClipboard()
-          menuItems.push({ label: l.pasteSegment, action: () => {
-            t._pasteSegment(e, clip.data)
-          } })
-        }
       }
       if (this.deletable) {
         menuItems.push({ label: l.deleteBtnTitle, danger: true, action: () => {

@@ -130,6 +130,8 @@ pnpm -r run build:all
 
 > 页面上可通过 `<time-line-segment>` 元素上的 `tooltip` 属性值来区分当前使用的模式。未设置时默认 `auto`。
 
+> 此外，**拖拽创建新段时** ghost 虚线框上会实时显示当前拖拽范围（起止值），帮助精确定位。该 tooltip 与段 tooltip 共享同一全局 portal，样式一致。
+
 ## GitHub Release 策略
 
 每个组件包独立版本化：
@@ -222,6 +224,8 @@ pnpm -r run build:all
 | `--tlt-seg-top` | `18px` | 横向模式 | 段区域顶部留白（为轴刻度标签） |
 | `--tlt-seg-bottom` | `0px` | 横向模式 | 段区域底部留白 |
 | `--tlt-axis-gap` | `36px` | 纵向模式 | 纵向模式下段区域左右边距（为轴刻度标签） |
+| `--tls-height` | `100%` | 横向模式 | **段元素高度**（设为具体 px 值可控制段条厚度，配合 `auto 0` margin 自动垂直居中） |
+| `--tls-width` | `100%` | 纵向模式 | **段元素宽度**（设为具体 px 值可控制段条厚度，配合 `0 auto` margin 自动水平居中） |
 
 ### 容器通用变量（`:root` 或 `time-line-container`）
 
@@ -231,6 +235,7 @@ pnpm -r run build:all
 | `--tlc-padding` | `14px 16px` | 容器内边距 |
 | `--tlc-radius` | `0` | 容器圆角 |
 | `--tlc-bg` | `#f8f9fb` | 容器背景色 |
+| `--tlc-axis-bg` | `var(--tlc-bg)` | 共享轴尺行背景色 |
 | `--tlc-border` | `#dfe3e8` | 容器边框色 |
 | `--tlc-primary` | `#4285f4` | 主色调（段默认颜色） |
 | `--tlc-danger` | `#e53935` | 危险色（删除按钮） |
@@ -452,6 +457,68 @@ container.copyable   → track.copyable   → segment.copyable
 | `axisRange` | `loc-axis-range` | `{start} – {end}` | 轴尺标签模板，`{start}`/`{end}` 为格式化后的起止值 |
 
 该 locale 属性已包含在上面的 locale 配置表中，因其专门针对共享轴模式，在此额外说明。
+
+### 共享轴无边框模式
+
+在共享轴模式下，轨道默认带有独立边框。通过添加 `borderless` 属性可移除轨道边框，呈现无缝连续的外观：
+
+```html
+<time-line-container axis-mode="shared" borderless>
+  <time-line-track label="轨道A" start="0" end="24"></time-line-track>
+  <time-line-track label="轨道B" start="0" end="24"></time-line-track>
+</time-line-container>
+```
+
+无边框模式下，各轨道之间以细分割线（`--tlc-border-light`）区分，最后一条轨道无底部/右侧分割线。
+
+### 共享轴轨道 hover 效果
+
+共享轴模式下，鼠标悬停轨道时显示蓝色左（上）边框高亮和浅色背景。hover 效果在轨道间连续过渡（过渡时长 0.18s），鼠标在不同轨道间移动时视觉连贯无跳变。
+
+```css
+/* 自定义 hover 背景色 */
+time-line-container[axis-mode="shared"] time-line-track:hover .tlt-row {
+  background: rgba(66,133,244,.08);
+}
+```
+
+## 段默认颜色
+
+新建段默认颜色为 `#5c9ce6`。可通过 `default-color` 属性在容器或轨道上自定义：
+
+```html
+<!-- 容器设置默认颜色，所有未显式设置 color 的子轨道继承 -->
+<time-line-container default-color="#e67e22">
+  <!-- 继承容器默认色 -->
+  <time-line-track label="轨道A" start="0" end="24"></time-line-track>
+  <!-- 自身 default-color 覆盖容器 -->
+  <time-line-track label="轨道B" start="0" end="24" default-color="#2ecc71"></time-line-track>
+</time-line-container>
+```
+
+| 层级 | 优先级 | 说明 |
+|---|---|---|
+| 段自身 `color` 属性 | 最高 | 显式设置在 `<time-line-segment>` 上的 `color` 属性 |
+| 轨道 `default-color` | 中 | 轨道上的 `default-color` 属性值 |
+| 容器 `default-color` | 低 | 容器上的 `default-color` 属性值 |
+| 内置默认值 | 最低 | `#5c9ce6` |
+
+## 段尺寸控制
+
+通过 CSS 变量控制段在横轴/纵轴模式下的厚度：
+
+| CSS 变量 | 默认值 | 作用域 | 说明 |
+|---|---|---|---|
+| `--tls-height` | `100%` | 横向模式 | 段元素高度，设为具体 px 值（如 `30px`）可控制段条厚度，自动垂直居中 |
+| `--tls-width` | `100%` | 纵向模式 | 段元素宽度，设为具体 px 值（如 `24px`）可控制段条厚度，自动水平居中 |
+
+```html
+<time-line-container style="--tls-height: 30px; --tls-width: 24px" direction="horizontal">
+```
+
+## 拖拽创建 tooltip
+
+在轨道空白区域拖拽创建新段时，鼠标指针旁会实时显示当前拖拽范围（起止值），帮助精确定位。该 tooltip 跟随 ghost 虚线框一同出现和消失，样式与全局 tooltip 一致。**无需额外配置**。
 
 ## 跨轨道拖拽
 

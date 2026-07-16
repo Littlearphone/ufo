@@ -40,6 +40,7 @@ export class TimeContainer extends HTMLElement {
       'shared-start', 'shared-end', 'shared-clip-range',
       'tooltip-pos', 'max-segments',
       'type', 'unit', 'step',
+      'default-color', 'borderless', 'axis-label',
       'zoom-start', 'zoom-end',
       'editable', 'deletable', 'creatable', 'clearable', 'copyable',
       ...LOCALE_ATTRS
@@ -48,14 +49,19 @@ export class TimeContainer extends HTMLElement {
 
   attributeChangedCallback(name, _ov, nv) {
     if (!this._init) return
-    // 本地化属性变更 → 通知所有子元素刷新文字
+    // 本地化属性变更 → 通知所有子元素刷新文字 + 重绘轴尺（轴尺标签读取 loc-axis-range）
     if (name.startsWith('loc-')) {
       this.querySelectorAll('time-line-track, time-line-segment').forEach(el => {
         if (el._onLocaleChange) el._onLocaleChange()
       })
+      if (this._axisRuler) this._drawAxisRuler()
       return
     }
     if (name === 'tooltip-pos' || name === 'step') return // 仅运行时读取
+    if (name === 'axis-label') {
+      if (this._axisRuler) this._drawAxisRuler() // 轴标签变更 → 重绘轴尺
+      return
+    }
     if (name === 'editable' || name === 'deletable' || name === 'creatable' || name === 'clearable' || name === 'copyable') {
       // 通知所有轨道刷新子段 DOM（删除按钮/手柄/拖拽创建可见性）
       this.querySelectorAll('time-line-track').forEach(t => {
@@ -291,11 +297,11 @@ export class TimeContainer extends HTMLElement {
     if (opts.step)         t.setAttribute('step',         String(opts.step))
     if (opts.minDuration)  t.setAttribute('min-duration',  String(opts.minDuration))
     if (opts.maxSegments)  t.setAttribute('max-segments', String(opts.maxSegments))
-    if (opts.editable != null)  t.toggleAttribute('editable',  String(opts.editable) === 'false')
-    if (opts.deletable != null) t.toggleAttribute('deletable', String(opts.deletable) === 'false')
-    if (opts.clearable != null) t.toggleAttribute('clearable', String(opts.clearable) === 'false')
-    if (opts.copyable != null)  t.toggleAttribute('copyable',  String(opts.copyable)  === 'false')
-    if (opts.creatable != null) t.toggleAttribute('creatable', String(opts.creatable) === 'false')
+    if (opts.editable != null)  t.editable = opts.editable
+    if (opts.deletable != null) t.deletable = opts.deletable
+    if (opts.clearable != null) t.clearable = opts.clearable
+    if (opts.copyable != null)  t.copyable  = opts.copyable
+    if (opts.creatable != null) t.creatable = opts.creatable
     this.appendChild(t)
     return t
   }
@@ -474,12 +480,49 @@ export class TimeContainer extends HTMLElement {
         this._cleanupRuler()
         this._createAxisRuler()
       }
+      // 创建 hover 浮动框（浅蓝高亮覆盖整行，跟随鼠标在轨道间移动）
+      if (!this._hoverFloat) {
+        this._hoverFloat = document.createElement('div')
+        this._hoverFloat.className = 'tlc-hover-float'
+        this.appendChild(this._hoverFloat)
+      }
+      this.style.position = 'relative'
+      if (!this._hoverTracked) {
+        this._hoverTracked = true
+        this.addEventListener('mouseenter', this._onContainerEnter = () => {
+          if (this._hoverFloat) this._hoverFloat.classList.add('visible')
+        }, { passive: true })
+        this.addEventListener('mouseleave', this._onContainerLeave = () => {
+          if (this._hoverFloat) this._hoverFloat.classList.remove('visible')
+        }, { passive: true })
+        // 委托 mouseover 追踪当前轨道，浮动框自动跟随
+        this._onTrackMouseOver = (e) => {
+          const track = e.target.closest('time-line-track')
+          if (track) this._updateHoverFloat(track)
+        }
+        this.addEventListener('mouseover', this._onTrackMouseOver, { passive: true })
+      }
       requestAnimationFrame(() => this._drawAxisRuler())
       this.style.setProperty('--tlc-gap', '0')
       this.style.setProperty('--tlc-padding', '0')
       this.style.overflowX = isVertical ? '' : 'hidden'
     } else {
       this._cleanupRuler()
+      // 清理 hover 浮动框与追踪
+      this.style.removeProperty('position')
+      if (this._hoverFloat) {
+        this._hoverFloat.remove()
+        this._hoverFloat = null
+      }
+      if (this._hoverTracked) {
+        this._hoverTracked = false
+        if (this._onContainerEnter) this.removeEventListener('mouseenter', this._onContainerEnter)
+        if (this._onContainerLeave) this.removeEventListener('mouseleave', this._onContainerLeave)
+        if (this._onTrackMouseOver) this.removeEventListener('mouseover', this._onTrackMouseOver)
+        this._onContainerEnter = null
+        this._onContainerLeave = null
+        this._onTrackMouseOver = null
+      }
       this.style.removeProperty('overflow-x')
       this.style.removeProperty('--tlc-gap')
       this.style.setProperty('--tlc-padding', '14px 16px')
@@ -515,11 +558,17 @@ export class TimeContainer extends HTMLElement {
     const { start: axisStart, end: axisEnd } = this._axisRange()
     const rangeEl = ruler.querySelector('.tlc-axis-range')
     if (rangeEl) {
-      const loc = resolveLocale(this)
-      const text = loc.axisRange
-        .replace('{start}', fmt.format(axisStart, 'axis'))
-        .replace('{end}', fmt.format(axisEnd, 'axis'))
-      rangeEl.textContent = text
+      // axis-label 属性优先，未设置时回退到 loc-axis-range 模板
+      const customLabel = this.getAttribute('axis-label')
+      if (customLabel != null) {
+        rangeEl.textContent = customLabel
+      } else {
+        const loc = resolveLocale(this)
+        const text = loc.axisRange
+          .replace('{start}', fmt.format(axisStart, 'axis'))
+          .replace('{end}', fmt.format(axisEnd, 'axis'))
+        rangeEl.textContent = text
+      }
     }
 
     const canvas = ruler.querySelector('.tlc-axis-canvas')
@@ -657,6 +706,25 @@ export class TimeContainer extends HTMLElement {
         }
       }
     }
+  }
+
+  /** 更新 hover 浮动框位置到当前鼠标所在轨道 */
+  _updateHoverFloat(track) {
+    const float = this._hoverFloat
+    if (!float) return
+    const isHorizontal = this.direction !== 'vertical'
+    const row = track.querySelector('.tlt-row')
+    if (!row) return
+    const conRect = this.getBoundingClientRect()
+    const rowRect = row.getBoundingClientRect()
+    if (isHorizontal) {
+      float.style.top = (rowRect.top - conRect.top) + 'px'
+      float.style.height = rowRect.height + 'px'
+    } else {
+      float.style.left = (rowRect.left - conRect.left) + 'px'
+      float.style.width = rowRect.width + 'px'
+    }
+    float.classList.add('visible')
   }
 
   /* ---- 内部 ---- */
