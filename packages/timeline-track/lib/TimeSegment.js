@@ -403,10 +403,10 @@ export class TimeSegment extends HTMLElement {
       let s = this._s0 + dt
       s = snap(s, effStep)
       // 根据拖拽方向自动判断边界：
-      // - 左柄向右拖（缩小段）：允许缩到零宽度（不超 end），触发交换后在新模式中恢复 minW
+      // - 左柄向右拖（缩小段）：允许缩到 end（零宽度），触发交换
       // - 左柄向左拖（扩大段）：受相邻段/轨道边界 _lo 约束
       if (s > this._s0) {
-        s = Math.min(s, this.end) // 允许缩到 end 触发零宽度交换
+        s = Math.min(s, this.end) // 零宽度，对齐光标
       } else {
         s = Math.max(s, this._lo)
       }
@@ -419,16 +419,16 @@ export class TimeSegment extends HTMLElement {
       let ev = this._e0 + dt
       ev = snap(ev, effStep)
       // 根据拖拽方向自动判断边界：
-      // - 右柄向左拖（缩小段）：钳制到 start+minW（防止缩过最小宽度），触发交换回来
+      // - 右柄向左拖（缩小段）：允许缩到 start（零宽度），触发交换
       // - 右柄向右拖（扩大段）：受相邻段/轨道边界 _hi 约束
       if (ev < this._e0) {
-        ev = Math.max(ev, this.start + minW) // 缩到最小宽度后触发交换回来
+        ev = Math.max(ev, this.start) // 零宽度，对齐光标
       } else {
         ev = Math.min(ev, this._hi)
       }
       this.end = ev
-      // 到达最小宽度后继续向左拖拽 → 交换为左柄模式
-      if (this.end <= this.start + minW && this._client(e) < this._ptr0) {
+      // 到达零宽度后继续向左拖拽 → 交换为左柄模式
+      if (this.end <= this.start && this._client(e) < this._ptr0) {
         this._swapToResizeLeft(e)
       }
     } else {
