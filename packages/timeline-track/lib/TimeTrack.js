@@ -897,6 +897,7 @@ export class TimeTrack extends HTMLElement {
 
     let p1  = ((seg.start - ts) / range) * dim
     let p2  = ((seg.end   - ts) / range) * dim
+    // 反转段（start > end）：保持 p1/p2 原始顺序，窄条跟随手柄移动
     // 安全防护：防止越界段溢出轨道区域（如共享轴拖拽后回退独立轴）
     if (p1 < 0) p1 = 0
     if (p2 > dim) p2 = dim

@@ -49,7 +49,11 @@ export function showGlobalTip(seg) {
   // 用数组 + filter(Boolean) 避免 append(null) 生成 "null" 文本
   tip.append(...[
     seg.label ? h('div', { class: 'tls-global-tip-label' }, seg.label) : null,
-    h('div', { class: 'tls-global-tip-time' }, fmt.formatRange(seg.start, seg.end, 'tooltip')),
+    h('div', { class: 'tls-global-tip-time' }, fmt.formatRange(
+      Math.min(seg.start, seg.end),
+      Math.max(seg.start, seg.end),
+      'tooltip'
+    )),
   ].filter(Boolean))
 
   // 重置样式和类

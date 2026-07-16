@@ -31,6 +31,7 @@ export class TimeSegment extends HTMLElement {
     this._copyMoved = false  // 复制模式中是否真正拖拽移动过
     this._ctrlOnDown = false // pointerdown 时是否按着 Ctrl
     this._copyGhost = null   // 复制浮层
+    this._swapGuard = false  // 抑制把手交换期间的回调
   }
 
   /* ---- 属性 ---- */
@@ -116,6 +117,7 @@ export class TimeSegment extends HTMLElement {
     }
     // radius 由容器 setGlobalRadius 统一控制
     if (name === 'start' || name === 'end') {
+      if (this._swapGuard) return // 交换期间由交换方法统一触发一次刷新
       this._buildDOM()
       const t = this._track
       if (t && t._positionOne) t._positionOne(this)
@@ -139,7 +141,11 @@ export class TimeSegment extends HTMLElement {
       h('div', { class: 'tls-bar', style: { background: col, border: `1px solid ${darker}`, borderRadius: r } }, [
         h('div', { class: 'tls-inner' }, [
           this.label ? h('span', { class: 'tls-label' }, this.label) : null,
-          h('span', { class: 'tls-time' }, this._formatter.formatRange(this.start, this.end, 'segment')),
+          h('span', { class: 'tls-time' }, this._formatter.formatRange(
+            Math.min(this.start, this.end),
+            Math.max(this.start, this.end),
+            'segment'
+          )),
         ]),
       ]),
       this.deletable ? h('button', { class: 'tls-del', 'data-role': 'del', title: loc.deleteBtnTitle, onClick: null }, '×') : null,
@@ -391,18 +397,40 @@ export class TimeSegment extends HTMLElement {
       axisStep = t._formatter.niceStep(visRange, dim)
     }
     const effStep = step > 0 ? Math.min(step, (axisStep || visRange * 0.05) / 2) : 0
-    const minW = t.minDur
+    const minW = Math.max(0, t.minDur)
 
     if (this._mode === 'resize-left') {
       let s = this._s0 + dt
       s = snap(s, effStep)
-      s = clamp(s, this._lo, this._e0 - minW)
+      // 根据拖拽方向自动判断边界：
+      // - 左柄向右拖（缩小段）：允许缩到零宽度（不超 end），触发交换后在新模式中恢复 minW
+      // - 左柄向左拖（扩大段）：受相邻段/轨道边界 _lo 约束
+      if (s > this._s0) {
+        s = Math.min(s, this.end) // 允许缩到 end 触发零宽度交换
+      } else {
+        s = Math.max(s, this._lo)
+      }
       this.start = s
+      // 到达零宽度后继续向右拖拽 → 交换为右柄模式
+      if (s >= this.end && this._client(e) > this._ptr0) {
+        this._swapToResizeRight(e)
+      }
     } else if (this._mode === 'resize-right') {
-      let e = this._e0 + dt
-      e = snap(e, effStep)
-      e = clamp(e, this._s0 + minW, this._hi)
-      this.end = e
+      let ev = this._e0 + dt
+      ev = snap(ev, effStep)
+      // 根据拖拽方向自动判断边界：
+      // - 右柄向左拖（缩小段）：钳制到 start+minW（防止缩过最小宽度），触发交换回来
+      // - 右柄向右拖（扩大段）：受相邻段/轨道边界 _hi 约束
+      if (ev < this._e0) {
+        ev = Math.max(ev, this.start + minW) // 缩到最小宽度后触发交换回来
+      } else {
+        ev = Math.min(ev, this._hi)
+      }
+      this.end = ev
+      // 到达最小宽度后继续向左拖拽 → 交换为左柄模式
+      if (this.end <= this.start + minW && this._client(e) < this._ptr0) {
+        this._swapToResizeLeft(e)
+      }
     } else {
       const w = this._e0 - this._s0
       // 跨轨道时用目标轨道范围约束，否则用源轨道相邻段边界
@@ -460,6 +488,22 @@ export class TimeSegment extends HTMLElement {
     }
 
     t._positionOne(this)
+    // 反转段：窄条定位到正在拖拽的那一端（_positionOne 仅按 start 定位，resize-right 不符）
+    if (this.start >= this.end) {
+      const r = t._segRect()
+      if (r) {
+        const { start: ts, end: te } = t._effRange()
+        const range = te - ts
+        if (range) {
+          const dim = t.isVertical ? r.height : r.width
+          const dragVal = this._mode === 'resize-left' ? this.start : this.end
+          const pos = ((dragVal - ts) / range) * dim
+          this.style.display = ''
+          if (t.isVertical) { this.style.top = pos + 'px' }
+          else { this.style.left = pos + 'px' }
+        }
+      }
+    }
     this._buildDOM()
     this._updateTextVisibility()
 
@@ -474,6 +518,7 @@ export class TimeSegment extends HTMLElement {
 
   _onUp_(e) {
     if (!this._ptrActive) return
+    const upMode = this._mode // 保存拖拽模式，后面用于反转修正
     this._ptrActive = false
     this._mode = null
     this.classList.remove('dragging', 'resizing', 'tls-selected')
@@ -494,6 +539,24 @@ export class TimeSegment extends HTMLElement {
     if (this._tgtTrack) {
       this._finishCrossTrack(e)
       return
+    }
+
+    // 关闭 tooltip（拖拽结束时清理，防止残留）
+    hideGlobalTip()
+
+    // 反转段（start > end）自动快照到零宽度：固定在拖拽端（光标位置）
+    if (this.start > this.end) {
+      if (upMode === 'resize-left') {
+        // 左柄被拖过右端 → start 是拖拽端
+        this.end = this.start
+      } else {
+        // 右柄被拖过左端 → end 是拖拽端
+        this.start = this.end
+      }
+      this.style.display = ''
+      this._buildDOM()
+      const t = this._track
+      if (t) { t._positionOne(this); t._refreshPositions() }
     }
 
     this.dispatchEvent(new CustomEvent('segment-changed', {
@@ -633,6 +696,31 @@ export class TimeSegment extends HTMLElement {
     const { start: ts, end: te } = t._dragBounds ? t._dragBounds() : (t._effRange ? t._effRange() : { start: t.tStart, end: t.tEnd })
     this._lo = idx > 0 ? segs[idx - 1].end : ts
     this._hi = idx < segs.length - 1 ? segs[idx + 1].start : te
+  }
+
+
+  /**
+   * 左柄缩小到最小宽度后 → 交换为右柄模式
+   * 不交换起止值，段保持当前最小宽度，之后拖拽将拉伸右端
+   */
+  _swapToResizeRight(e) {
+    this._mode = 'resize-right'
+    this._ptr0 = this._client(e)
+    this._s0 = this.start // 当前 start（最小宽度左边界）
+    this._e0 = this.end   // 当前 end（右侧拉伸端）
+    this._computeBounds()
+  }
+
+  /**
+   * 右柄缩小到最小宽度后 → 交换为左柄模式
+   * 不交换起止值，段保持当前最小宽度，之后拖拽将拉伸左端
+   */
+  _swapToResizeLeft(e) {
+    this._mode = 'resize-left'
+    this._ptr0 = this._client(e)
+    this._s0 = this.start // 当前 start（左侧拉伸端）
+    this._e0 = this.end   // 当前 end（最小宽度右边界）
+    this._computeBounds()
   }
 
   /** 获取指针位置（横/纵向自适应） */
