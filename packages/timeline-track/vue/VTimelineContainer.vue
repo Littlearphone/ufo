@@ -515,6 +515,7 @@ function onTrackContextMenu(e) {
     modalCtrl.show({
       type: 'edit-segment',
       title: loc.segmentEditTitle || '修改时间段属性',
+      originEl: e.originEl,  // 从段位置展开
       formFields: [
         { name: 'label', type: 'text', label: loc.labelField || '标签', value: seg.label || '' },
         { name: 'start', type: isTime ? 'time' : 'text', label: loc.startTime || '开始时间',
@@ -592,6 +593,7 @@ function onTrackContextMenu(e) {
     modalCtrl.show({
       type: 'copy-to-tracks',
       title: formatLocale(loc.copyToTracksTitle || '将「{name}」的段复制到：', { name: srcTrack.label || '' }),
+      originEl: e.originEl,  // 从轨道位置展开
       formFields: targets.map(t => ({
         name: `track_${t.id}`,
         type: 'checkbox',

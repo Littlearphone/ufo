@@ -22,6 +22,8 @@ const _state = reactive({
   formFields: [],
   // 删除确认用
   danger: false,
+  // 展开动效源元素（从该元素位置展开到窗口中央）
+  originEl: null,
 })
 
 export function useModal() {
@@ -39,10 +41,33 @@ export function useModal() {
     _state.formData = config.formData || {}
     _state.formFields = config.formFields || []
     _state.data = config.data || {}
+    _state.originEl = config.originEl || null
 
     nextTick(() => {
       const overlay = document.querySelector('.tlc-modal-overlay')
-      if (overlay) overlay.classList.add('show')
+      if (!overlay) return
+      // 清除前一次的 closing 状态（防止 animationend 回调误操作）
+      overlay.classList.remove('closing')
+
+      // 设为 CSS 自定义属性，@keyframes 中的 var() 会在动画启动时读取
+      const originEl = _state.originEl
+      if (originEl && typeof originEl.getBoundingClientRect === 'function') {
+        const modalEl = overlay.querySelector('.tlc-modal')
+        if (modalEl) {
+          const modalRect = modalEl.getBoundingClientRect()
+          const srcRect = originEl.getBoundingClientRect()
+          if (modalRect.width > 0 && modalRect.height > 0) {
+            const srcCx = srcRect.left + srcRect.width / 2
+            const srcCy = srcRect.top  + srcRect.height / 2
+            const modalCx = modalRect.left + modalRect.width / 2
+            const modalCy = modalRect.top  + modalRect.height / 2
+            modalEl.style.setProperty('--tlc-modal-tx', `${(srcCx - modalCx).toFixed(1)}px`)
+            modalEl.style.setProperty('--tlc-modal-ty', `${(srcCy - modalCy).toFixed(1)}px`)
+          }
+        }
+      }
+
+      overlay.classList.add('show')
     })
   }
 

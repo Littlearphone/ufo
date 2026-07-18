@@ -848,6 +848,7 @@ function onDeleteClick() {
     title: loc.confirmDeleteTitle || '确认删除',
     message: msg,
     danger: true,
+    originEl: wrapperRef.value,  // 从段位置展开
     onConfirm: () => {
       modalCtrl.hide()
       emit('delete', props.segment.id)
@@ -897,6 +898,7 @@ function onCtxMenu(e) {
           title: loc.confirmDeleteTitle || '确认删除',
           message: msg,
           danger: true,
+          originEl: wrapperRef.value,  // 从段位置展开
           onConfirm: () => {
             modalCtrl.hide()
             emit('delete', props.segment.id)
@@ -913,7 +915,7 @@ function onCtxMenu(e) {
 
 /* ---- 编辑段 ---- */
 function _editSegment() {
-  emit('context-menu', { action: 'edit-segment', segment: props.segment })
+  emit('context-menu', { action: 'edit-segment', segment: props.segment, originEl: wrapperRef.value })
 }
 
 /* ---- 复制段 ---- */

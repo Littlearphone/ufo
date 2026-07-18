@@ -627,7 +627,7 @@ function onSegCtxMenu(e) {
   }
   if (e.action === 'edit-segment') {
     // 段编辑属性：转发给 Container 打开编辑 Modal
-    emit('context-menu', { action: 'edit-segment', segment: e.segment, trackId: props.track.id })
+    emit('context-menu', { action: 'edit-segment', segment: e.segment, trackId: props.track.id, originEl: e.originEl })
     return
   }
 }
@@ -732,6 +732,7 @@ function _editTrack() {
   modalCtrl.show({
     type: 'edit-track',
     title: loc.trackEditTitle || '编辑轨道',
+    originEl: bodyRef.value,  // 从轨道位置展开
     formFields: [
       { name: 'label', type: 'text', label: loc.name || '名称', value: props.track.label || '' },
       { name: 'start', type: isTime ? 'time' : 'number', label: loc.rangeStart || '起始',
@@ -751,7 +752,7 @@ function _editTrack() {
 
 /** "复制到其他轨道…"对话框（向容器发送事件，由容器渲染多选 Modal） */
 function _showCopyToTracksDialog() {
-  emit('context-menu', { action: 'copy-to-tracks', trackId: props.track.id })
+  emit('context-menu', { action: 'copy-to-tracks', trackId: props.track.id, originEl: bodyRef.value })
 }
 
 function _copyTrack() {
@@ -837,6 +838,7 @@ function _showConfirm(message, onConfirm) {
     title: loc.confirmDeleteTitle || '确认删除',
     message,
     danger: true,
+    originEl: bodyRef.value,  // 从轨道位置展开
     onConfirm: () => {
       modalCtrl.hide()
       onConfirm()

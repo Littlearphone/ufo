@@ -17,6 +17,7 @@ let _modalEl = null
 let _closeHandler = null
 let _keyHandler = null
 let _menuClickHandler = null
+let _closeModalHandler = null
 
 /* ============================ CLOSE ALL ============================ */
 
@@ -185,13 +186,42 @@ function _getModal() {
   return _modalEl
 }
 
-/** 显示模态框 */
-function _showModal() {
+/** 显示模态框（从 originEl 位置展开到窗口中央） */
+function _showModal(originEl) {
   hideContextMenu()
   const overlay = _getOverlay()
   const modal = _getModal()
-  overlay.appendChild(modal)
-  // 触发过渡动画
+
+  // 取消前一次关闭时注册的 animationend 监听（防止其在新 modal 打开后误删元素）
+  if (_closeModalHandler) {
+    overlay.removeEventListener('animationend', _closeModalHandler)
+    _closeModalHandler = null
+  }
+  // 确保 overlay 无 closing 残留，modal 在 overlay 中
+  overlay.classList.remove('closing')
+  if (modal.parentNode !== overlay) overlay.appendChild(modal)
+
+  // 在 rAF 之前计算自定义属性值（此时布局已稳定），
+  // @keyframes 中的 var() 会在动画启动时读取这些值
+  if (originEl && typeof originEl.getBoundingClientRect === 'function') {
+    const modalRect = modal.getBoundingClientRect()
+    const srcRect = originEl.getBoundingClientRect()
+    if (modalRect.width > 0 && modalRect.height > 0) {
+      const srcCx = srcRect.left + srcRect.width / 2
+      const srcCy = srcRect.top  + srcRect.height / 2
+      const modalCx = modalRect.left + modalRect.width / 2
+      const modalCy = modalRect.top  + modalRect.height / 2
+      modal.style.setProperty('--tlc-modal-tx', `${(srcCx - modalCx).toFixed(1)}px`)
+      modal.style.setProperty('--tlc-modal-ty', `${(srcCy - modalCy).toFixed(1)}px`)
+    } else {
+      modal.style.setProperty('--tlc-modal-tx', '0px')
+      modal.style.setProperty('--tlc-modal-ty', '0px')
+    }
+  } else {
+    modal.style.setProperty('--tlc-modal-tx', '0px')
+    modal.style.setProperty('--tlc-modal-ty', '0px')
+  }
+
   requestAnimationFrame(() => {
     overlay.classList.add('show')
   })
@@ -209,15 +239,23 @@ export function closeModal() {
     if (_overlay.classList.contains('show')) {
       _overlay.classList.remove('show')
       _overlay.classList.add('closing')
-      // 动画结束后移除子元素 + 清理 closing
-      _overlay.addEventListener('animationend', () => {
+      // 清除旧 listener 再注册新 listener（确保不会重复）
+      if (_closeModalHandler) _overlay.removeEventListener('animationend', _closeModalHandler)
+      _closeModalHandler = () => {
+        _closeModalHandler = null
         _overlay.classList.remove('closing')
-        if (_modalEl && _modalEl.parentNode === _overlay) {
+        // 仅当 modal 未被重新打开时才移除（_showModal 会清除 listener）
+        if (_modalEl && _modalEl.parentNode === _overlay && !_overlay.classList.contains('show')) {
           _overlay.removeChild(_modalEl)
         }
-      }, { once: true })
+      }
+      _overlay.addEventListener('animationend', _closeModalHandler)
     } else {
       // 非 show 状态直接清理
+      if (_closeModalHandler) {
+        _overlay.removeEventListener('animationend', _closeModalHandler)
+        _closeModalHandler = null
+      }
       _overlay.classList.remove('closing')
       if (_modalEl && _modalEl.parentNode === _overlay) {
         _overlay.removeChild(_modalEl)
@@ -962,7 +1000,7 @@ function _scrollToFirstError(modal) {
  * @param {number} step
  * @param {import('./formatter.js').ValueFormatter} fmt
  */
-function _showEditDialog(modal, loc, title, bodyChildren, tStart, tEnd, step, fmt) {
+function _showEditDialog(modal, loc, title, bodyChildren, tStart, tEnd, step, fmt, originEl) {
   modal.innerHTML = ''
   modal.append(
     h('div', { class: 'tlc-modal-header' }, title),
@@ -972,7 +1010,7 @@ function _showEditDialog(modal, loc, title, bodyChildren, tStart, tEnd, step, fm
       h('button', { class: 'tlc-btn tlc-btn-primary', 'data-action': 'confirm' }, loc.confirm),
     ])
   )
-  _showModal()
+  _showModal(originEl)
   _setupRangeDataset(modal, tStart, tEnd, step)
   _initFormControls(modal, fmt)
 }
@@ -1004,7 +1042,7 @@ export function showSegmentEditDialog(segment) {
     _renderField(loc.color, _renderColorPicker('color', segment.color)),
   ]
   _showEditDialog(modal, loc, loc.segmentEditTitle, bodyChildren,
-    track ? track.tStart : 0, track ? track.tEnd : 24, step, fmt)
+    track ? track.tStart : 0, track ? track.tEnd : 24, step, fmt, segment)
 
   modal.querySelector('[data-action="confirm"]').addEventListener('click', () => {
     _clearErrors(modal)
@@ -1069,7 +1107,7 @@ export function showTrackEditDialog(track) {
       h('input', { class: 'tlc-field-input', name: 'maxSegments', type: 'text', inputmode: 'numeric', placeholder: loc.zeroUnlimited, value: track.maxSegments || '' }),
     ),
   ]
-  _showEditDialog(modal, loc, loc.trackEditTitle, bodyChildren, track.tStart, track.tEnd, step, fmt)
+  _showEditDialog(modal, loc, loc.trackEditTitle, bodyChildren, track.tStart, track.tEnd, step, fmt, track)
 
   modal.querySelector('[data-action="confirm"]').addEventListener('click', () => {
     _clearErrors(modal)
@@ -1129,7 +1167,7 @@ export function showDeleteConfirm(message, onConfirm, refEl) {
       h('button', { class: 'tlc-btn tlc-btn-danger', 'data-action': 'confirm', onClick: () => { closeModal(); if (onConfirm) onConfirm() } }, loc.confirm),
     ])
   )
-  _showModal()
+  _showModal(refEl)
 }
 
 /* ============================ COPY TO TRACKS DIALOG ============================ */
@@ -1216,5 +1254,5 @@ export function showCopyToTracksDialog(srcTrack) {
   ])
 
   modal.append(header, body, footer)
-  _showModal()
+  _showModal(srcTrack)
 }

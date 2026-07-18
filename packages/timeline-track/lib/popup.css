@@ -96,10 +96,10 @@
 .tlc-modal-overlay.show {
   opacity: 1;
   pointer-events: auto;
-  animation: tlc-overlay-in .15s ease-out;
+  animation: tlc-overlay-in .2s ease-out forwards;
 }
 .tlc-modal-overlay.closing {
-  animation: tlc-overlay-out .1s ease-in forwards;
+  animation: tlc-overlay-out .13s ease-in forwards;
 }
 
 /* ── Modal Card ── */
@@ -113,19 +113,24 @@
   font-family: var(--tlc-font);
   font-size: 13px;
   color: var(--tlc-text);
-  transform: scale(0.85);
 }
 .tlc-modal-overlay.show .tlc-modal {
-  animation: tlc-modal-in .15s cubic-bezier(.34, 1.4, .64, 1);
+  animation: tlc-modal-in .35s cubic-bezier(.34, 1.4, .64, 1) forwards;
 }
 .tlc-modal-overlay.closing .tlc-modal {
-  animation: tlc-modal-out .1s ease-in forwards;
+  animation: tlc-modal-out .16s ease-in forwards;
 }
 
 @keyframes tlc-overlay-in  { from { opacity: 0; } to { opacity: 1; } }
 @keyframes tlc-overlay-out { from { opacity: 1; } to { opacity: 0; } }
-@keyframes tlc-modal-in  { from { transform: scale(0.85); } to { transform: scale(1); } }
-@keyframes tlc-modal-out { from { transform: scale(1); } to { transform: scale(0.85); } }
+@keyframes tlc-modal-in {
+  from { transform: translate(var(--tlc-modal-tx, 0px), var(--tlc-modal-ty, 0px)) scale(0.35); }
+  to { transform: translate(0, 0) scale(1); }
+}
+@keyframes tlc-modal-out {
+  from { transform: translate(0, 0) scale(1); }
+  to { transform: translate(var(--tlc-modal-tx, 0px), var(--tlc-modal-ty, 0px)) scale(0.35); }
+}
 .tlc-modal-header {
   padding: 14px 18px 10px;
   font-size: 14px;

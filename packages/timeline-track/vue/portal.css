@@ -268,7 +268,7 @@
   align-items: center;
   justify-content: center;
   opacity: 0;
-  transition: opacity .18s ease;
+  transition: opacity .2s ease;
   pointer-events: none;
 }
 .tlc-modal-overlay.show {
@@ -284,14 +284,24 @@
   min-width: 300px;
   max-width: 420px;
   width: 90vw;
-  transform: scale(0.94) translateY(8px);
-  transition: transform .18s ease;
   font-family: var(--tlc-font);
   font-size: 13px;
   color: var(--tlc-text);
 }
 .tlc-modal-overlay.show .tlc-modal {
-  transform: scale(1) translateY(0);
+  animation: tlc-modal-in .35s cubic-bezier(.34, 1.4, .64, 1) forwards;
+}
+.tlc-modal-overlay.closing .tlc-modal {
+  animation: tlc-modal-out .16s ease-in forwards;
+}
+
+@keyframes tlc-modal-in {
+  from { transform: translate(var(--tlc-modal-tx, 0px), var(--tlc-modal-ty, 0px)) scale(0.35); }
+  to { transform: translate(0, 0) scale(1); }
+}
+@keyframes tlc-modal-out {
+  from { transform: translate(0, 0) scale(1); }
+  to { transform: translate(var(--tlc-modal-tx, 0px), var(--tlc-modal-ty, 0px)) scale(0.35); }
 }
 .tlc-modal-header {
   padding: 14px 18px 10px;
