@@ -268,7 +268,6 @@
   align-items: center;
   justify-content: center;
   opacity: 0;
-  transition: opacity .2s ease;
   pointer-events: none;
 }
 .tlc-modal-overlay.show {
@@ -287,21 +286,21 @@
   font-family: var(--tlc-font);
   font-size: 13px;
   color: var(--tlc-text);
+  transform-origin: 0 0;  /* 从左上角计算 transform，精确匹配源元素位置 */
 }
 .tlc-modal-overlay.show .tlc-modal {
-  animation: tlc-modal-in .35s cubic-bezier(.34, 1.4, .64, 1) forwards;
+  animation: tlc-modal-in .6s cubic-bezier(.34, 1.4, .64, 1) forwards;
 }
 .tlc-modal-overlay.closing .tlc-modal {
-  animation: tlc-modal-out .16s ease-in forwards;
+  animation: tlc-modal-out .2s ease-in forwards;
 }
-
 @keyframes tlc-modal-in {
-  from { transform: translate(var(--tlc-modal-tx, 0px), var(--tlc-modal-ty, 0px)) scale(0.35); }
-  to { transform: translate(0, 0) scale(1); }
+  from { transform: translate(var(--tlc-modal-tx), var(--tlc-modal-ty)) scale(var(--tlc-modal-sx, .35), var(--tlc-modal-sy, .35)); }
+  to { transform: translate(0, 0) scale(1, 1); }
 }
 @keyframes tlc-modal-out {
-  from { transform: translate(0, 0) scale(1); }
-  to { transform: translate(var(--tlc-modal-tx, 0px), var(--tlc-modal-ty, 0px)) scale(0.35); }
+  from { transform: translate(0, 0) scale(1, 1); }
+  to { transform: translate(var(--tlc-modal-tx), var(--tlc-modal-ty)) scale(var(--tlc-modal-sx, .35), var(--tlc-modal-sy, .35)); }
 }
 .tlc-modal-header {
   padding: 14px 18px 10px;

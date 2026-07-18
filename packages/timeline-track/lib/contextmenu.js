@@ -203,23 +203,27 @@ function _showModal(originEl) {
 
   // 在 rAF 之前计算自定义属性值（此时布局已稳定），
   // @keyframes 中的 var() 会在动画启动时读取这些值
+  // 计算从源元素（标签区）到弹窗的精确 transform（配合 transform-origin: 0 0），
+  // 使弹窗看起来从标签块放大展开
   if (originEl && typeof originEl.getBoundingClientRect === 'function') {
     const modalRect = modal.getBoundingClientRect()
     const srcRect = originEl.getBoundingClientRect()
-    if (modalRect.width > 0 && modalRect.height > 0) {
-      const srcCx = srcRect.left + srcRect.width / 2
-      const srcCy = srcRect.top  + srcRect.height / 2
-      const modalCx = modalRect.left + modalRect.width / 2
-      const modalCy = modalRect.top  + modalRect.height / 2
-      modal.style.setProperty('--tlc-modal-tx', `${(srcCx - modalCx).toFixed(1)}px`)
-      modal.style.setProperty('--tlc-modal-ty', `${(srcCy - modalCy).toFixed(1)}px`)
+    if (modalRect.width > 0 && modalRect.height > 0 && srcRect.width > 0 && srcRect.height > 0) {
+      modal.style.setProperty('--tlc-modal-tx', `${(srcRect.left - modalRect.left).toFixed(1)}px`)
+      modal.style.setProperty('--tlc-modal-ty', `${(srcRect.top - modalRect.top).toFixed(1)}px`)
+      modal.style.setProperty('--tlc-modal-sx', (srcRect.width / modalRect.width).toFixed(4))
+      modal.style.setProperty('--tlc-modal-sy', (srcRect.height / modalRect.height).toFixed(4))
     } else {
       modal.style.setProperty('--tlc-modal-tx', '0px')
       modal.style.setProperty('--tlc-modal-ty', '0px')
+      modal.style.setProperty('--tlc-modal-sx', '.35')
+      modal.style.setProperty('--tlc-modal-sy', '.35')
     }
   } else {
     modal.style.setProperty('--tlc-modal-tx', '0px')
     modal.style.setProperty('--tlc-modal-ty', '0px')
+    modal.style.setProperty('--tlc-modal-sx', '.35')
+    modal.style.setProperty('--tlc-modal-sy', '.35')
   }
 
   requestAnimationFrame(() => {

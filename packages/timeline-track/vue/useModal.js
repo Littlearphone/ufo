@@ -50,19 +50,19 @@ export function useModal() {
       overlay.classList.remove('closing')
 
       // 设为 CSS 自定义属性，@keyframes 中的 var() 会在动画启动时读取
+      // 计算从源元素到弹窗的精确 transform（配合 transform-origin: 0 0），
+      // 使弹窗看起来从标签块放大展开
       const originEl = _state.originEl
       if (originEl && typeof originEl.getBoundingClientRect === 'function') {
         const modalEl = overlay.querySelector('.tlc-modal')
         if (modalEl) {
           const modalRect = modalEl.getBoundingClientRect()
           const srcRect = originEl.getBoundingClientRect()
-          if (modalRect.width > 0 && modalRect.height > 0) {
-            const srcCx = srcRect.left + srcRect.width / 2
-            const srcCy = srcRect.top  + srcRect.height / 2
-            const modalCx = modalRect.left + modalRect.width / 2
-            const modalCy = modalRect.top  + modalRect.height / 2
-            modalEl.style.setProperty('--tlc-modal-tx', `${(srcCx - modalCx).toFixed(1)}px`)
-            modalEl.style.setProperty('--tlc-modal-ty', `${(srcCy - modalCy).toFixed(1)}px`)
+          if (modalRect.width > 0 && modalRect.height > 0 && srcRect.width > 0 && srcRect.height > 0) {
+            modalEl.style.setProperty('--tlc-modal-tx', `${(srcRect.left - modalRect.left).toFixed(1)}px`)
+            modalEl.style.setProperty('--tlc-modal-ty', `${(srcRect.top - modalRect.top).toFixed(1)}px`)
+            modalEl.style.setProperty('--tlc-modal-sx', (srcRect.width / modalRect.width).toFixed(4))
+            modalEl.style.setProperty('--tlc-modal-sy', (srcRect.height / modalRect.height).toFixed(4))
           }
         }
       }
