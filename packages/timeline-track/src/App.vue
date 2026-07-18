@@ -817,11 +817,113 @@ function serializeCustomElement(el, indent = 0) {
   return `${pad}<${tag}${attrStr}></${tag}>`
 }
 
+/**
+ * 驼峰 → kebab-case 转换
+ * @param {string} str - camelCase 字符串
+ * @returns {string} kebab-case 字符串
+ */
+function camelToKebab(str) {
+  return str.replace(/([A-Z])/g, '-$1').toLowerCase()
+}
+
+/**
+ * 根据当前 vueConfig/vueCssVars 动态生成 VTimelineContainer 模板代码
+ *（用于 Tab 4 HTML 源码视图，实时反映控制台参数）
+ * @returns {string} Vue 模板源码
+ */
+function generateVueTemplate() {
+  const lines = ['<VTimelineContainer']
+  lines.push('  v-model="tracks"')
+
+  const cfg = vueConfig
+  const css = vueCssVars
+
+  // 字符串 prop（仅当与默认值不同时显示，保持源码简洁）
+  const strProps = [
+    ['direction', 'horizontal'],
+    ['axisMode', 'per-track'],
+    ['type', 'time'],
+    ['unit', 'hour'],
+    ['tooltipPos', 'top-center'],
+    ['labelH', 'top'],
+    ['labelV', 'left'],
+    ['globalRadius', '0'],
+    ['defaultColor', '#5c9ce6'],
+    ['axisLabel'],
+  ]
+  for (const [key, def] of strProps) {
+    const val = cfg[key]
+    if (val == null || val === def) continue
+    lines.push(`  ${camelToKebab(key)}="${val}"`)
+  }
+
+  // 数值/步长 prop（undefined 时跳过，绑定动态值）
+  const numKeys = ['step', 'sharedStart', 'sharedEnd', 'zoomStart', 'zoomEnd']
+  for (const key of numKeys) {
+    const val = cfg[key]
+    if (val == null) continue
+    lines.push(`  :${camelToKebab(key)}="${val}"`)
+  }
+
+  // 布尔 prop（flase 时显式绑定，防止默认 true 误导）
+  if (cfg.sharedClipRange) lines.push('  shared-clip-range')
+  if (cfg.borderless) lines.push('  borderless')
+  if (cfg.selectionMode) lines.push('  selection-mode')
+  if (!cfg.editable) lines.push('  :editable="false"')
+  if (!cfg.deletable) lines.push('  :deletable="false"')
+  if (!cfg.creatable) lines.push('  :creatable="false"')
+  if (!cfg.clearable) lines.push('  :clearable="false"')
+  if (!cfg.copyable) lines.push('  :copyable="false"')
+
+  // CSS 变量 :style
+  const styleParts = []
+  if (css.segHeight) styleParts.push('--tls-height: ' + css.segHeight)
+  if (css.segWidth) styleParts.push('--tls-width: ' + css.segWidth)
+  if (css.trackHeight) styleParts.push('--tlt-row-h: ' + css.trackHeight)
+  if (css.trackWidth) styleParts.push('--tlt-row-w: ' + css.trackWidth)
+  if (css.axisBg) styleParts.push('--tlc-axis-bg: ' + css.axisBg)
+  if (css.containerHeight) styleParts.push('height: ' + css.containerHeight)
+  if (css.containerWidth) styleParts.push('width: ' + css.containerWidth)
+  if (styleParts.length) lines.push('  :style="{ ' + styleParts.join('; ') + ' }"')
+
+  lines.push('/>')
+  return lines.join('\n')
+}
+
+/**
+ * 根据当前 vueTracks 动态生成 JavaScript 源码
+ *（用于 Tab 4 JS 源码视图，实时反映轨道/段数据变化）
+ * @returns {string} JavaScript 源码
+ */
+function generateVueJsSource() {
+  // 将 UUID 简化为可读的序号 id，保持显示整洁
+  let ti = 0, si = 0
+  const simplified = vueTracks.value.map(t => ({
+    ...t,
+    id: 't' + (++ti),
+    segments: (t.segments || []).map(s => ({
+      ...s,
+      id: 's' + (++si),
+    }))
+  }))
+
+  const data = JSON.stringify(simplified, null, 2)
+  return [
+    '// 引入 Vue 原生组件（非 Custom Elements）',
+    'import { ref } from \'vue\'',
+    'import { VTimelineContainer } from \'@ufo/timeline-track/vue\'',
+    '',
+    'const tracks = ref(' + data + ')',
+    '',
+    '// 使用 v-model 双向绑定，数据驱动渲染',
+    '// 完全支持 v-for / @event 等 Vue 特性',
+  ].join('\n')
+}
+
 /** 获取当前标签页的 HTML 源码 */
 function getHtmlSource(idx) {
-  // Tab 3（模式示例）/ Tab 4（Vue 组件）/ Tab 5（CRUD）使用静态模板
-  if (idx === 3 || idx === 4 || idx === 5) {
-    // Tab 5 从真实 DOM 序列化，让控制台修改能反映到源码视图
+  // Tab 3（模式示例）/ Tab 5（CRUD）使用静态模板，Tab 5 从真实 DOM 序列化
+  if (idx === 3 || idx === 5) {
     if (idx === 5) {
       const pane = document.querySelector('.tab-pane--stack.active')
       if (!pane) return TAB_INNER_HTML[idx]
@@ -830,6 +932,8 @@ function getHtmlSource(idx) {
     }
     return TAB_INNER_HTML[idx]
   }
+  // Tab 4 — Vue 组件 — 从 vueConfig/vueCssVars 动态生成，实时响应控制台变化
+  if (idx === 4) return generateVueTemplate()
   const container = containers.value[idx]
   if (!container) return ''
   return serializeCustomElement(container)
@@ -837,6 +941,8 @@ function getHtmlSource(idx) {
 
 /** 获取当前标签页的 JavaScript 源码，无则返回 null */
 function getJsSource(idx) {
+  // Tab 4 — 从 vueTracks 动态生成，实时响应数据变化
+  if (idx === 4) return generateVueJsSource()
   return TAB_JS_SOURCE[idx]
 }
 

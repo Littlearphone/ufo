@@ -22,6 +22,24 @@
           </label>
         </div>
         <div class="ctrl-row">
+          <label><span class="ctrl-label">类型</span>
+            <select :value="typeVal" @change="setType">
+              <option value="time">time（时间）</option>
+              <option value="number">number（数值）</option>
+            </select>
+          </label>
+          <label><span class="ctrl-label">单位</span>
+            <select :value="unitVal" @change="setUnit">
+              <option value="hour">hour（小时）</option>
+              <option value="minute">minute（分钟）</option>
+              <option value="second">second（秒）</option>
+              <option value="%">%（百分比）</option>
+              <option value="px">px（像素）</option>
+              <option value="°C">°C（摄氏度）</option>
+            </select>
+          </label>
+        </div>
+        <div class="ctrl-row">
           <label><span class="ctrl-label">步长</span>
             <select :value="stepVal" @change="setStep">
               <option value="0">无</option>
@@ -153,6 +171,37 @@
       </div>
     </div>
 
+    <!-- ════ CRUD 权限 ════ -->
+    <div class="ctrl-group">
+      <div class="ctrl-header" :class="{ collapsed: !state[4] }" @click="toggle(4)">🔒 CRUD 权限</div>
+      <div class="ctrl-body" v-show="state[4]">
+        <div class="ctrl-row">
+          <label style="cursor:pointer;gap:4px">
+            <span style="font-size:11px;color:#555">creatable（可创建）</span>
+            <input type="checkbox" :checked="crudCreatable" @change="setCRUD('creatable', $event.target.checked)">
+          </label>
+          <label style="cursor:pointer;gap:4px">
+            <span style="font-size:11px;color:#555">editable（可编辑）</span>
+            <input type="checkbox" :checked="crudEditable" @change="setCRUD('editable', $event.target.checked)">
+          </label>
+          <label style="cursor:pointer;gap:4px">
+            <span style="font-size:11px;color:#555">deletable（可删除）</span>
+            <input type="checkbox" :checked="crudDeletable" @change="setCRUD('deletable', $event.target.checked)">
+          </label>
+        </div>
+        <div class="ctrl-row">
+          <label style="cursor:pointer;gap:4px">
+            <span style="font-size:11px;color:#555">clearable（可清空）</span>
+            <input type="checkbox" :checked="crudClearable" @change="setCRUD('clearable', $event.target.checked)">
+          </label>
+          <label style="cursor:pointer;gap:4px">
+            <span style="font-size:11px;color:#555">copyable（可复制）</span>
+            <input type="checkbox" :checked="crudCopyable" @change="setCRUD('copyable', $event.target.checked)">
+          </label>
+        </div>
+      </div>
+    </div>
+
   </div>
 </template>
 
@@ -170,7 +219,7 @@ import { computed } from 'vue'
 import { addLog } from '../../stores/eventLog.js'
 import { useAccordion } from '../../composables/useAccordion.js'
 
-const { state, toggle } = useAccordion(4, 0)
+const { state, toggle } = useAccordion(5, 0)
 
 const props = defineProps({
   config: { type: Object, default: null },
@@ -223,6 +272,21 @@ function setStep(e) {
   const v = e.target.value
   props.config.step = v
   addLog('step', v)
+}
+
+const typeVal = computed(() => props.config?.type ?? 'time')
+const unitVal = computed(() => props.config?.unit ?? 'hour')
+
+function setType(e) {
+  if (!props.config) return
+  props.config.type = e.target.value
+  addLog('type', e.target.value)
+}
+
+function setUnit(e) {
+  if (!props.config) return
+  props.config.unit = e.target.value
+  addLog('unit', e.target.value)
 }
 
 const sharedClipVal = computed(() => !!props.config?.sharedClipRange)
@@ -450,5 +514,19 @@ function zoomReset() {
   props.config.zoomStart = undefined
   props.config.zoomEnd = undefined
   addLog('zoom', 'reset')
+}
+
+/* =============================== CRUD 权限 =============================== */
+
+const crudCreatable = computed(() => props.config?.creatable !== false)
+const crudEditable = computed(() => props.config?.editable !== false)
+const crudDeletable = computed(() => props.config?.deletable !== false)
+const crudClearable = computed(() => props.config?.clearable !== false)
+const crudCopyable = computed(() => props.config?.copyable !== false)
+
+function setCRUD(key, val) {
+  if (!props.config) return
+  props.config[key] = val
+  addLog(key, val)
 }
 </script>

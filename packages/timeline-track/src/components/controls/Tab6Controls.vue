@@ -19,19 +19,19 @@
       <div class="ctrl-header">📦 沙盒容器<span class="badge badge-info">交互沙盒</span></div>
       <div class="ctrl-body">
         <div class="ctrl-row">
-          <label><span class="ctrl-label">creatable</span>
+          <label><span class="ctrl-label">creatable（可创建）</span>
             <input type="checkbox" :checked="c.creatable" @change="setContainer('creatable', $event.target.checked)">
           </label>
-          <label><span class="ctrl-label">editable</span>
+          <label><span class="ctrl-label">editable（可编辑）</span>
             <input type="checkbox" :checked="c.editable" @change="setContainer('editable', $event.target.checked)">
           </label>
-          <label><span class="ctrl-label">deletable</span>
+          <label><span class="ctrl-label">deletable（可删除）</span>
             <input type="checkbox" :checked="c.deletable" @change="setContainer('deletable', $event.target.checked)">
           </label>
-          <label><span class="ctrl-label">clearable</span>
+          <label><span class="ctrl-label">clearable（可清空）</span>
             <input type="checkbox" :checked="c.clearable" @change="setContainer('clearable', $event.target.checked)">
           </label>
-          <label><span class="ctrl-label">copyable</span>
+          <label><span class="ctrl-label">copyable（可复制）</span>
             <input type="checkbox" :checked="c.copyable" @change="setContainer('copyable', $event.target.checked)">
           </label>
         </div>
@@ -43,19 +43,19 @@
       <div class="ctrl-header">🛤️ {{ t.label }}<span class="badge badge-muted">轨道</span></div>
       <div class="ctrl-body">
         <div class="ctrl-row">
-          <label><span class="ctrl-label">creatable</span>
+          <label><span class="ctrl-label">creatable（可创建）</span>
             <input type="checkbox" :checked="t.creatable !== false" @change="setTrack(i, 'creatable', $event.target.checked)">
           </label>
-          <label><span class="ctrl-label">editable</span>
+          <label><span class="ctrl-label">editable（可编辑）</span>
             <input type="checkbox" :checked="t.editable !== false" @change="setTrack(i, 'editable', $event.target.checked)">
           </label>
-          <label><span class="ctrl-label">deletable</span>
+          <label><span class="ctrl-label">deletable（可删除）</span>
             <input type="checkbox" :checked="t.deletable !== false" @change="setTrack(i, 'deletable', $event.target.checked)">
           </label>
-          <label><span class="ctrl-label">clearable</span>
+          <label><span class="ctrl-label">clearable（可清空）</span>
             <input type="checkbox" :checked="t.clearable !== false" @change="setTrack(i, 'clearable', $event.target.checked)">
           </label>
-          <label><span class="ctrl-label">copyable</span>
+          <label><span class="ctrl-label">copyable（可复制）</span>
             <input type="checkbox" :checked="t.copyable !== false" @change="setTrack(i, 'copyable', $event.target.checked)">
           </label>
         </div>
@@ -67,13 +67,13 @@
       <div class="ctrl-header">🧩 {{ s.label }}<span class="badge badge-muted">片段</span></div>
       <div class="ctrl-body">
         <div class="ctrl-row">
-          <label><span class="ctrl-label">editable</span>
+          <label><span class="ctrl-label">editable（可编辑）</span>
             <input type="checkbox" :checked="s.editable !== false" @change="setSegment(i, 'editable', $event.target.checked)">
           </label>
-          <label><span class="ctrl-label">deletable</span>
+          <label><span class="ctrl-label">deletable（可删除）</span>
             <input type="checkbox" :checked="s.deletable !== false" @change="setSegment(i, 'deletable', $event.target.checked)">
           </label>
-          <label><span class="ctrl-label">copyable</span>
+          <label><span class="ctrl-label">copyable（可复制）</span>
             <input type="checkbox" :checked="s.copyable !== false" @change="setSegment(i, 'copyable', $event.target.checked)">
           </label>
         </div>
