@@ -511,6 +511,26 @@
   max-height: 220px;
   overflow-y: auto;
   min-width: 90px;
+  transform-origin: top center;
+}
+
+/* ── 下拉面板进场/退场动画 ── */
+@keyframes tlc-dropdown-in {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes tlc-dropdown-out {
+  from { opacity: 1; transform: translateY(0); }
+  to   { opacity: 0; transform: translateY(-6px); }
+}
+/* 进场（lib 通过 panel-enter 类触发） */
+.tlc-tf-dropdown-panel.panel-enter {
+  animation: tlc-dropdown-in .15s ease-out;
+}
+/* 退场（lib 通过 closing 类触发） */
+.tlc-tf-dropdown-panel.closing {
+  animation: tlc-dropdown-out .12s ease-in forwards;
+  pointer-events: none;
 }
 .tlc-tf-dropdown-item {
   padding: 5px 12px;

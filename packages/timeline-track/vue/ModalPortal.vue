@@ -140,22 +140,25 @@
       </div>
 
       <!-- 下拉面板（在 .tlc-modal 外，避免 CSS transform 导致 fixed 定位偏移） -->
-      <div v-if="_dropdownIndex >= 0 && _dropdownOpts.length" class="tlc-tf-dropdown-panel"
-        :class="{ 'tlc-time-dropdown-panel': _dropdownType === 'time' }"
-        :style="_dropdownPanelStyle">
-        <template v-if="_dropdownType === 'time'">
-          <div v-for="opt in _dropdownOpts" :key="opt"
-            class="tlc-tf-dropdown-item"
-            :class="{ active: _getTimePart(_fieldValues[_dropdownIndex], _dropdownPart) === opt }"
-            @pointerdown="onTimePartDropdownSelect(_dropdownIndex, opt)">{{ opt }}</div>
-        </template>
-        <template v-else>
-          <div v-for="opt in _dropdownOpts" :key="opt.value"
-            class="tlc-tf-dropdown-item"
-            :class="{ active: _fieldValues[_dropdownIndex] === opt.label }"
-            @pointerdown="onDropdownSelect(_dropdownIndex, opt.label)">{{ opt.label }}</div>
-        </template>
-      </div>
+      <!-- 使用 Transition 实现 fadeIn+slideDown 进场 / fadeOut+slideUp 退场 -->
+      <Transition name="tlc-dropdown">
+        <div v-if="_dropdownIndex >= 0 && _dropdownOpts.length" class="tlc-tf-dropdown-panel"
+          :class="{ 'tlc-time-dropdown-panel': _dropdownType === 'time' }"
+          :style="_dropdownPanelStyle">
+          <template v-if="_dropdownType === 'time'">
+            <div v-for="opt in _dropdownOpts" :key="opt"
+              class="tlc-tf-dropdown-item"
+              :class="{ active: _getTimePart(_fieldValues[_dropdownIndex], _dropdownPart) === opt }"
+              @pointerdown="onTimePartDropdownSelect(_dropdownIndex, opt)">{{ opt }}</div>
+          </template>
+          <template v-else>
+            <div v-for="opt in _dropdownOpts" :key="opt.value"
+              class="tlc-tf-dropdown-item"
+              :class="{ active: _fieldValues[_dropdownIndex] === opt.label }"
+              @pointerdown="onDropdownSelect(_dropdownIndex, opt.label)">{{ opt.label }}</div>
+          </template>
+        </div>
+      </Transition>
     </div>
   </Teleport>
 </template>
@@ -524,5 +527,13 @@ watch(() => props.state.visible, (v) => { if (!v) _closeDropdown() })
 .tlc-time-dropdown-panel .tlc-tf-dropdown-item {
   text-align: left;
   padding-left: 9px;
+}
+
+/* ── Vue Transition: 下拉面板 fadeIn+slideDown / fadeOut+slideUp ── */
+.tlc-dropdown-enter-active {
+  animation: tlc-dropdown-in .15s ease-out;
+}
+.tlc-dropdown-leave-active {
+  animation: tlc-dropdown-out .12s ease-in;
 }
 </style>

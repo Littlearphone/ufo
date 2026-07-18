@@ -663,21 +663,32 @@ function _buildDropdownOptions(fmt, min, max, step) {
   return opts
 }
 
-/** 关闭下拉面板 */
+/** 关闭下拉面板（触发 fadeOut+slideUp 动画后移除） */
 function _closeDropdown() {
-  if (_dropdownEl) {
+  // ── 动画关闭：添加 .closing 类，动画结束后移除 DOM ──
+  if (_dropdownEl && !_dropdownEl.classList.contains('closing')) {
+    const el = _dropdownEl
+    el.classList.add('closing')
+    // 解绑 blur 监听后再触发动画，避免 Tab 键时序问题
+    if (_ddBlurEl && _ddBlurHandler) {
+      _ddBlurEl.removeEventListener('blur', _ddBlurHandler)
+      _ddBlurEl = null
+      _ddBlurHandler = null
+    }
+    el.addEventListener('animationend', () => {
+      if (el.parentNode) el.parentNode.removeChild(el)
+      // 仅当 _dropdownEl 未被新面板替换时才置 null
+      if (_dropdownEl === el) _dropdownEl = null
+    }, { once: true })
+  } else if (_dropdownEl) {
+    // 已在关闭中，直接移除
     _dropdownEl.remove()
     _dropdownEl = null
   }
+  // ── 移除全局关闭监听器 ──
   if (_ddCloseHandler) {
     document.removeEventListener('pointerdown', _ddCloseHandler, true)
     _ddCloseHandler = null
-  }
-  // 移除输入框 blur 监听（Tab 键失焦关闭）
-  if (_ddBlurEl && _ddBlurHandler) {
-    _ddBlurEl.removeEventListener('blur', _ddBlurHandler)
-    _ddBlurEl = null
-    _ddBlurHandler = null
   }
 }
 
@@ -776,6 +787,8 @@ function _renderDropdownPanel(opts, anchor, onSelect, blurInput) {
   _dropdownEl.style.width = r.width + 'px'
   _dropdownEl.style.zIndex = '200000'
   document.body.appendChild(_dropdownEl)
+  // rAF 后添加 panel-enter 类触发 fadeIn+slideDown 动画
+  requestAnimationFrame(() => _dropdownEl.classList.add('panel-enter'))
 
   // 自动滚动到当前值位置
   if (blurInput) {
