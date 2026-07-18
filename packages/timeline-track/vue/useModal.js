@@ -8,18 +8,7 @@
  * @module vue/useModal
  */
 
-import { reactive } from 'vue'
-
-/**
- * @typedef {object} ModalConfig
- * @property {string} title - 弹窗标题
- * @property {'edit-segment'|'edit-track'|'delete-confirm'|'copy-to-tracks'|'custom'} type
- * @property {object} [data] - 额外数据
- * @property {string} [message] - 确认消息（delete-confirm 用）
- * @property {Function} [onConfirm] - 确认回调
- * @property {Function} [onCancel] - 取消回调
- * @property {Array<{label:string, value:string}>} [formFields] - 表单字段
- */
+import { nextTick, reactive } from 'vue'
 
 const _state = reactive({
   visible: false,
@@ -35,26 +24,45 @@ const _state = reactive({
   danger: false,
 })
 
-/**
- * 使用模态框
- */
 export function useModal() {
   function show(config) {
     hide()
     _state.visible = true
+
+    // 先设置状态（让 v-show 显示元素），nextTick 后加 .show 触发进场动画
     _state.type = config.type || 'custom'
     _state.title = config.title || ''
     _state.message = config.message || ''
     _state.onConfirm = config.onConfirm || null
-    _state.onCancel = config.onCancel || null
+    _state.onCancel = config.onCancel || hide
     _state.danger = config.danger || false
     _state.formData = config.formData || {}
     _state.formFields = config.formFields || []
     _state.data = config.data || {}
+
+    nextTick(() => {
+      const overlay = document.querySelector('.tlc-modal-overlay')
+      if (overlay) overlay.classList.add('show')
+    })
   }
 
   function hide() {
-    _state.visible = false
+    const overlay = document.querySelector('.tlc-modal-overlay')
+    if (overlay && _state.visible) {
+      // 已在退场动画中则不重复执行
+      if (overlay.classList.contains('closing')) return
+      overlay.classList.remove('show')
+      overlay.classList.add('closing')
+      overlay.addEventListener('animationend', () => {
+        overlay.classList.remove('closing')
+        // 检查 modal 是否已被重新展示（关闭 + 快速打开时）
+        if (!overlay.classList.contains('show')) {
+          _state.visible = false
+        }
+      }, { once: true })
+    } else {
+      _state.visible = false
+    }
   }
 
   return { state: _state, show, hide }

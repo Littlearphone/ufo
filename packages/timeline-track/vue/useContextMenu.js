@@ -9,59 +9,77 @@
 
 import { reactive } from 'vue'
 
-/**
- * @typedef {object} ContextMenuItem
- * @property {string} [label] - 显示文字
- * @property {'header'|'divider'} [type] - 特殊类型
- * @property {boolean} [danger] - 是否危险操作
- * @property {Function} [action] - 点击回调
- */
-
 const _state = reactive({
   visible: false,
   items: [],
   top: 0,
   left: 0,
+  /** 源元素中心 X（viewport 坐标），用于 transform-origin 计算 */
+  originX: 0,
+  /** 源元素中心 Y（viewport 坐标） */
+  originY: 0,
 })
 
 let _closeHandler = null
 let _keyHandler = null
 
-/**
- * 使用右键菜单
- */
 export function useContextMenu() {
-  function show(items, x, y) {
-    // 关闭已有的
+  /**
+   * @param {Array} items - 菜单项
+   * @param {number} x - 屏幕 X
+   * @param {number} y - 屏幕 Y
+   * @param {Element} [originEl] - 源元素，transform-origin 设在该元素中心
+   */
+  function show(items, x, y, originEl) {
     hide()
 
     _state.items = items
-    _state.visible = true
-
-    // 定位（由 portal 在 nextTick 后修正边界）
     _state.left = x
     _state.top = y
+
+    if (originEl) {
+      const r = originEl.getBoundingClientRect()
+      _state.originX = r.left + r.width / 2
+      _state.originY = r.top  + r.height / 2
+    } else {
+      _state.originX = x
+      _state.originY = y
+    }
+
+    _state.visible = true
 
     // 点击外部关闭
     _closeHandler = (e) => {
       const menuEl = document.querySelector('.tlc-context-menu')
-      if (menuEl && !menuEl.contains(e.target)) {
-        hide()
-      }
+      if (menuEl && !menuEl.contains(e.target)) hide()
     }
     requestAnimationFrame(() => {
       document.addEventListener('pointerdown', _closeHandler)
     })
-
-    // Escape 关闭
-    _keyHandler = (e) => {
-      if (e.key === 'Escape') hide()
-    }
+    _keyHandler = (e) => { if (e.key === 'Escape') hide() }
     document.addEventListener('keydown', _keyHandler)
   }
 
   function hide() {
-    _state.visible = false
+    const el = document.querySelector('.tlc-context-menu')
+    if (el && _state.visible) {
+      el.classList.remove('show')
+      el.classList.add('closing')
+      el.addEventListener('animationend', () => {
+        el.classList.remove('closing')
+        // 检查菜单是否已被重新展示（快速右键时 show() 可能已添加 .show）
+        // 如果有 .show 说明 show() 已接管，不修改 visible 避免覆盖新菜单的状态
+        if (!el.classList.contains('show')) {
+          _state.visible = false
+          _state.originX = 0
+          _state.originY = 0
+        }
+      }, { once: true })
+    } else {
+      _state.visible = false
+      _state.originX = 0
+      _state.originY = 0
+    }
     if (_closeHandler) {
       document.removeEventListener('pointerdown', _closeHandler)
       _closeHandler = null

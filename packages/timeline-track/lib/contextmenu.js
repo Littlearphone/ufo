@@ -36,8 +36,9 @@ export function closeAll() {
  * @param {Array<{label?:string, type?:string, danger?:boolean, action?:Function}>} items - 菜单项
  * @param {number} x - 屏幕 X 坐标
  * @param {number} y - 屏幕 Y 坐标
+ * @param {Element} [originEl] - 源元素，用于计算 transform-origin（段中心 / label 中心）
  */
-export function showContextMenu(items, x, y) {
+export function showContextMenu(items, x, y, originEl) {
   closeAll()
 
   if (!_menuEl) {
@@ -45,6 +46,9 @@ export function showContextMenu(items, x, y) {
     _menuEl.className = 'tlc-context-menu'
     document.body.appendChild(_menuEl)
   }
+
+  // 清除上次残留的 closing 状态
+  _menuEl.classList.remove('closing', 'show')
 
   // 渲染菜单项
   _menuEl.innerHTML = ''
@@ -85,6 +89,21 @@ export function showContextMenu(items, x, y) {
     const top  = Math.max(8, Math.min(y, vh - mh - 8))
     _menuEl.style.left = left + 'px'
     _menuEl.style.top  = top  + 'px'
+
+    // iOS 弹框效果：transform-origin 设在源元素中心（不钳制），动画纯 scale 放大
+    // 浏览器会自动从源点做缩放，无需 translate
+    if (originEl) {
+      const r = originEl.getBoundingClientRect()
+      const srcCx = r.left + r.width / 2
+      const srcCy = r.top  + r.height / 2
+      // 不钳制！即使原点在菜单外部，浏览器也能正确计算从该点的缩放
+      const ox = srcCx - left
+      const oy = srcCy - top
+      _menuEl.style.transformOrigin = `${ox}px ${oy}px`
+    } else {
+      _menuEl.style.transformOrigin = 'center'
+    }
+
     _menuEl.classList.add('show')
   })
 
@@ -107,11 +126,21 @@ export function showContextMenu(items, x, y) {
 }
 
 /**
- * 隐藏右键菜单
+ * 隐藏右键菜单（触发 fadeOut+scale 缩小动画）
  */
 export function hideContextMenu() {
   if (_menuEl) {
-    _menuEl.classList.remove('show')
+    if (_menuEl.classList.contains('show')) {
+      _menuEl.classList.remove('show')
+      _menuEl.classList.add('closing')
+      // 动画结束后移除 closing 类
+      _menuEl.addEventListener('animationend', () => {
+        _menuEl.classList.remove('closing')
+      }, { once: true })
+    } else {
+      // 非 show 状态也清理 closing
+      _menuEl.classList.remove('closing')
+    }
   }
   if (_closeHandler) {
     document.removeEventListener('pointerdown', _closeHandler)
@@ -172,14 +201,27 @@ function _showModal() {
 }
 
 /**
- * 关闭模态框
+ * 关闭模态框（触发 fadeOut + scale 缩小退场动画）
  */
 export function closeModal() {
   _closeDropdown()
   if (_overlay) {
-    _overlay.classList.remove('show')
-    if (_modalEl && _modalEl.parentNode === _overlay) {
-      _overlay.removeChild(_modalEl)
+    if (_overlay.classList.contains('show')) {
+      _overlay.classList.remove('show')
+      _overlay.classList.add('closing')
+      // 动画结束后移除子元素 + 清理 closing
+      _overlay.addEventListener('animationend', () => {
+        _overlay.classList.remove('closing')
+        if (_modalEl && _modalEl.parentNode === _overlay) {
+          _overlay.removeChild(_modalEl)
+        }
+      }, { once: true })
+    } else {
+      // 非 show 状态直接清理
+      _overlay.classList.remove('closing')
+      if (_modalEl && _modalEl.parentNode === _overlay) {
+        _overlay.removeChild(_modalEl)
+      }
     }
   }
 }

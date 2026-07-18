@@ -500,7 +500,8 @@ export class TimeTrack extends HTMLElement {
       }
       // 至少 header + 一个有效菜单项才显示
       if (menuItems.length > 1) {
-        showContextMenu(menuItems, e.clientX, e.clientY)
+        const labelEl = this.querySelector('.tlt-head-label')
+        showContextMenu(menuItems, e.clientX, e.clientY, labelEl)
       }
     })
 

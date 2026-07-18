@@ -1,6 +1,6 @@
 <template>
   <Teleport to="body">
-    <div v-show="state.visible" class="tlc-modal-overlay show" @pointerdown.self="onOverlayClick">
+    <div v-show="state.visible" class="tlc-modal-overlay" @pointerdown.self="onOverlayClick">
       <div class="tlc-modal" :class="{ 'tlc-modal-dropdown-open': _dropdownIndex >= 0 }"
         @keydown.esc="onCancel" @keydown.enter="onKeyEnter">
         <!-- 头部 -->
@@ -232,7 +232,6 @@ function onOverlayClick() { onCancel() }
 
 function onCancel() {
   if (props.state.onCancel) props.state.onCancel()
-  props.state.visible = false
   emit('cancel')
 }
 

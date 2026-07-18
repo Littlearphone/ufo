@@ -14,9 +14,6 @@
   padding: 4px 0;
   min-width: 148px;
   opacity: 0;
-  transform-origin: top left;
-  transform: scale(0.92);
-  transition: opacity .1s ease, transform .1s ease;
   pointer-events: none;
   font-family: var(--tlc-font);
   font-size: 12px;
@@ -24,8 +21,23 @@
 }
 .tlc-context-menu.show {
   opacity: 1;
-  transform: scale(1);
   pointer-events: auto;
+  animation: tlc-menu-in .18s cubic-bezier(.34, 1.4, .64, 1);
+}
+.tlc-context-menu.closing {
+  animation: tlc-menu-out .12s ease-in forwards;
+  pointer-events: none;
+}
+
+/* ── 右键菜单 Zoom Transition（类 iOS 启动 app 效果） ── */
+/* 以 transform-origin 为锚点（JS 设为源元素中心），纯 scale 缩放 */
+@keyframes tlc-menu-in {
+  from { opacity: 0; transform: scale(0.2); }
+  to   { opacity: 1; transform: scale(1); }
+}
+@keyframes tlc-menu-out {
+  from { opacity: 1; transform: scale(1); }
+  to   { opacity: 0; transform: scale(0.2); }
 }
 .tlc-context-item {
   padding: 7px 14px;
@@ -79,12 +91,15 @@
   align-items: center;
   justify-content: center;
   opacity: 0;
-  transition: opacity .18s ease;
   pointer-events: none;
 }
 .tlc-modal-overlay.show {
   opacity: 1;
   pointer-events: auto;
+  animation: tlc-overlay-in .15s ease-out;
+}
+.tlc-modal-overlay.closing {
+  animation: tlc-overlay-out .1s ease-in forwards;
 }
 
 /* ── Modal Card ── */
@@ -95,15 +110,22 @@
   min-width: 300px;
   max-width: 420px;
   width: 90vw;
-  transform: scale(0.94) translateY(8px);
-  transition: transform .18s ease;
   font-family: var(--tlc-font);
   font-size: 13px;
   color: var(--tlc-text);
+  transform: scale(0.85);
 }
 .tlc-modal-overlay.show .tlc-modal {
-  transform: scale(1) translateY(0);
+  animation: tlc-modal-in .15s cubic-bezier(.34, 1.4, .64, 1);
 }
+.tlc-modal-overlay.closing .tlc-modal {
+  animation: tlc-modal-out .1s ease-in forwards;
+}
+
+@keyframes tlc-overlay-in  { from { opacity: 0; } to { opacity: 1; } }
+@keyframes tlc-overlay-out { from { opacity: 1; } to { opacity: 0; } }
+@keyframes tlc-modal-in  { from { transform: scale(0.85); } to { transform: scale(1); } }
+@keyframes tlc-modal-out { from { transform: scale(1); } to { transform: scale(0.85); } }
 .tlc-modal-header {
   padding: 14px 18px 10px;
   font-size: 14px;

@@ -907,7 +907,7 @@ function onCtxMenu(e) {
   }
 
   if (items.length > 1) {
-    ctxMenuCtrl.show(items, e.clientX, e.clientY)
+    ctxMenuCtrl.show(items, e.clientX, e.clientY, wrapperRef.value)
   }
 }
 

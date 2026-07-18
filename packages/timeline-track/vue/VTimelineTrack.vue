@@ -716,7 +716,8 @@ function onTrackCtxMenu(e) {
   }
 
   if (items.length > 1) {
-    ctxMenuCtrl.show(items, e.clientX, e.clientY)
+    const labelEl = e.currentTarget.querySelector('.tlt-head-label')
+    ctxMenuCtrl.show(items, e.clientX, e.clientY, labelEl)
   }
 }
 

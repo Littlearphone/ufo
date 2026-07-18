@@ -2,7 +2,7 @@
   <Teleport to="body">
     <div
       v-show="state.visible"
-      class="tlc-context-menu show"
+      class="tlc-context-menu"
       :style="{ top: adjustedTop + 'px', left: adjustedLeft + 'px' }"
       ref="menuRef"
     >
@@ -58,6 +58,14 @@ watch(() => props.state.visible, (visible) => {
       if (t + rect.height > vh - 8) t = Math.max(8, vh - rect.height - 8)
       adjustedLeft.value = l
       adjustedTop.value = t
+
+      // iOS 弹框效果：transform-origin 设在源元素中心（不钳制），纯 scale 缩放
+      const ox = props.state.originX - l
+      const oy = props.state.originY - t
+      el.style.transformOrigin = `${ox}px ${oy}px`
+
+      // 添加 .show 触发进场动画
+      el.classList.add('show')
     })
   }
 })
