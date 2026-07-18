@@ -138,8 +138,10 @@
             <div class="tab-pane vue-tab4" :class="{ active: activeTab === 4 }">
               <VTimelineContainer
                 v-model="vueTracks"
-                direction="horizontal"
-                :step="0.5"
+                v-bind="vueConfig"
+                :style="vueContainerStyle"
+                @update:zoom-start="vueConfig.zoomStart = $event"
+                @update:zoom-end="vueConfig.zoomEnd = $event"
               />
             </div>
 
@@ -277,14 +279,14 @@
 
     <!-- 右栏：控制台 + 日志 -->
     <div class="col-right">
-      <ControlsPanel :activeTab="activeTab" :containers="containers" @add-track="addVueTrack" @reset="handleControlsReset" />
+      <ControlsPanel :activeTab="activeTab" :containers="containers" :vue-config="vueConfig" :vue-css-vars="vueCssVars" @add-track="addVueTrack" @reset="handleControlsReset" />
       <EventLog />
     </div>
   </div>
 </template>
 
 <script setup>
-import { computed, nextTick, onMounted, onUnmounted, ref, shallowRef } from 'vue'
+import { computed, nextTick, onMounted, onUnmounted, reactive, ref, shallowRef } from 'vue'
 import { TAB_DESCS, TAB_NAMES } from './composables/constants.js'
 import { TAB_ROUTE_NAMES } from './router.js'
 import { addLog } from './stores/eventLog.js'
@@ -339,15 +341,102 @@ const _domObserver = new MutationObserver(() => {
 
 // ── Tab 4（Vue 原生组件）演示数据 ──
 const vueTracks = shallowRef([
-  { id: 'vt1', label: '功能开发', start: '0', end: '24', segments: [
-    { id: 'vs1', start: 8, end: 12, label: '前端', color: '#3498db' },
-    { id: 'vs2', start: 13, end: 17, label: '后端', color: '#2ecc71' },
-  ]},
-  { id: 'vt2', label: '设计工作', start: '0', end: '24', segments: [
-    { id: 'vs3', start: 9, end: 12, label: 'UI 设计', color: '#e67e22' },
-    { id: 'vs4', start: 14, end: 16, label: '评审', color: '#9b59b6' },
-  ]},
+  {
+    id: 'vt1', label: '功能开发', start: '0', end: '24',
+    segments: [
+      { id: 'vs1', start: 8, end: 12, label: '前端开发', color: '#3498db' },
+      { id: 'vs2', start: 13, end: 17, label: '后端开发', color: '#2ecc71' },
+      { id: 'vs3', start: 18, end: 21, label: '联调测试', color: '#e67e22' },
+    ],
+  },
+  {
+    id: 'vt2', label: '设计工作', start: '0', end: '24',
+    segments: [
+      { id: 'vs4', start: 9, end: 12, label: 'UI 设计', color: '#e67e22' },
+      { id: 'vs5', start: 13, end: 14, label: '评审', color: '#9b59b6' },
+      { id: 'vs6', start: 14, end: 16, label: '切图标注', color: '#1abc9c' },
+    ],
+  },
+  {
+    id: 'vt3', label: '服务器部署', start: '0', end: '24', step: '0.5',
+    segments: [
+      { id: 'vs7', start: 2, end: 5, label: '数据库迁移', color: '#c0392b' },
+      { id: 'vs8', start: 10, end: 12, label: '负载测试', color: '#2980b9' },
+    ],
+  },
+  {
+    id: 'vt4', label: '安全巡检（短范围）', start: '8', end: '22',
+    maxSegments: 5,
+    segments: [
+      { id: 'vs9', start: 9, end: 11, label: '日志审计', color: '#16a085' },
+      { id: 'vs10', start: 14, end: 16, label: '漏洞扫描', color: '#e74c3c' },
+      { id: 'vs11', start: 20, end: 21.5, label: '夜巡', color: '#f39c12' },
+    ],
+  },
+  {
+    id: 'vt5', label: '会议室预订', start: '0', end: '24',
+    segments: [
+      { id: 'vs12', start: 8, end: 10, label: '晨会', color: '#3498db' },
+      { id: 'vs13', start: 10, end: 12, label: '项目评审', color: '#9b59b6' },
+      { id: 'vs14', start: 14, end: 16, label: '客户演示', color: '#1abc9c' },
+      { id: 'vs15', start: 16, end: 17.5, label: '复盘', color: '#2c3e50' },
+    ],
+  },
 ])
+
+/**
+ * Vue 容器响应式配置 — 直接绑定到 VTimelineContainer 的 props
+ * 控制面板通过修改此对象的属性实时驱动组件更新
+ */
+const vueConfig = reactive({
+  direction: 'horizontal',
+  step: 0.5,
+  axisMode: 'per-track',
+  sharedStart: undefined,
+  sharedEnd: undefined,
+  sharedClipRange: false,
+  borderless: false,
+  selectionMode: false,
+  labelH: 'top',
+  labelV: 'left',
+  tooltipPos: 'top-center',
+  globalRadius: '0',
+  defaultColor: '#5c9ce6',
+  axisLabel: undefined,
+  zoomStart: undefined,
+  zoomEnd: undefined,
+  editable: true,
+  deletable: true,
+  creatable: true,
+  clearable: true,
+  copyable: true,
+  type: 'time',
+  unit: 'hour',
+})
+
+/** CSS 变量覆盖 — 通过 :style 注入到 VTimelineContainer，自动级联到子轨道/段 */
+const vueCssVars = reactive({
+  segHeight: '',
+  segWidth: '',
+  trackHeight: '',
+  trackWidth: '',
+  axisBg: '',
+  containerHeight: '',  // 容器 height（CSS，非 prop）
+  containerWidth: '',   // 容器 width（CSS，非 prop）
+})
+
+/** 合并为容器 :style 对象 */
+const vueContainerStyle = computed(() => {
+  const s = {}
+  if (vueCssVars.segHeight) s['--tls-height'] = vueCssVars.segHeight
+  if (vueCssVars.segWidth) s['--tls-width'] = vueCssVars.segWidth
+  if (vueCssVars.trackHeight) s['--tlt-row-h'] = vueCssVars.trackHeight
+  if (vueCssVars.trackWidth) s['--tlt-row-w'] = vueCssVars.trackWidth
+  if (vueCssVars.axisBg) s['--tlc-axis-bg'] = vueCssVars.axisBg
+  if (vueCssVars.containerHeight) s.height = vueCssVars.containerHeight
+  if (vueCssVars.containerWidth) s.width = vueCssVars.containerWidth
+  return s
+})
 
 function addVueTrack(label) {
   const n = vueTracks.value.length + 1
@@ -379,6 +468,61 @@ function handleControlsReset(idx) {
   } else if (idx === 3) {
     const pane = document.querySelector('.tab-pane--stack')
     if (pane) pane.innerHTML = TAB_INNER_HTML[3]
+  } else if (idx === 4) {
+    // Vue 模式重置：恢复 config 和 cssVars 到初始值
+    vueConfig.direction = 'horizontal'
+    vueConfig.step = 0.5
+    vueConfig.axisMode = 'per-track'
+    vueConfig.sharedStart = undefined
+    vueConfig.sharedEnd = undefined
+    vueConfig.sharedClipRange = false
+    vueConfig.borderless = false
+    vueConfig.selectionMode = false
+    vueConfig.labelH = 'top'
+    vueConfig.labelV = 'left'
+    vueConfig.tooltipPos = 'top-center'
+    vueConfig.globalRadius = '0'
+    vueConfig.defaultColor = '#5c9ce6'
+    vueConfig.axisLabel = undefined
+    vueConfig.zoomStart = undefined
+    vueConfig.zoomEnd = undefined
+    vueConfig.editable = true
+    vueConfig.deletable = true
+    vueConfig.creatable = true
+    vueConfig.clearable = true
+    vueConfig.copyable = true
+    vueConfig.type = 'time'
+    vueConfig.unit = 'hour'
+    Object.assign(vueCssVars, {
+      segHeight: '', segWidth: '', trackHeight: '', trackWidth: '', axisBg: '', containerHeight: '', containerWidth: '',
+    })
+    vueTracks.value = [
+      { id: 'vt1', label: '功能开发', start: '0', end: '24', segments: [
+        { id: 'vs1', start: 8, end: 12, label: '前端开发', color: '#3498db' },
+        { id: 'vs2', start: 13, end: 17, label: '后端开发', color: '#2ecc71' },
+        { id: 'vs3', start: 18, end: 21, label: '联调测试', color: '#e67e22' },
+      ]},
+      { id: 'vt2', label: '设计工作', start: '0', end: '24', segments: [
+        { id: 'vs4', start: 9, end: 12, label: 'UI 设计', color: '#e67e22' },
+        { id: 'vs5', start: 13, end: 14, label: '评审', color: '#9b59b6' },
+        { id: 'vs6', start: 14, end: 16, label: '切图标注', color: '#1abc9c' },
+      ]},
+      { id: 'vt3', label: '服务器部署', start: '0', end: '24', step: '0.5', segments: [
+        { id: 'vs7', start: 2, end: 5, label: '数据库迁移', color: '#c0392b' },
+        { id: 'vs8', start: 10, end: 12, label: '负载测试', color: '#2980b9' },
+      ]},
+      { id: 'vt4', label: '安全巡检（短范围）', start: '8', end: '22', maxSegments: 5, segments: [
+        { id: 'vs9', start: 9, end: 11, label: '日志审计', color: '#16a085' },
+        { id: 'vs10', start: 14, end: 16, label: '漏洞扫描', color: '#e74c3c' },
+        { id: 'vs11', start: 20, end: 21.5, label: '夜巡', color: '#f39c12' },
+      ]},
+      { id: 'vt5', label: '会议室预订', start: '0', end: '24', segments: [
+        { id: 'vs12', start: 8, end: 10, label: '晨会', color: '#3498db' },
+        { id: 'vs13', start: 10, end: 12, label: '项目评审', color: '#9b59b6' },
+        { id: 'vs14', start: 14, end: 16, label: '客户演示', color: '#1abc9c' },
+        { id: 'vs15', start: 16, end: 17.5, label: '复盘', color: '#2c3e50' },
+      ]},
+    ]
   } else if (idx === 5) {
     const ct = containers.value[5]
     if (ct) {

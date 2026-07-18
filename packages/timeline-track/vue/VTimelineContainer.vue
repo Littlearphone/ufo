@@ -294,18 +294,11 @@ const axisRangeLabel = computed(() => {
 /* =============================== 轨道范围解析 =============================== */
 
 function getTrackStart(track) {
-  if (props.zoomStart != null && props.zoomEnd != null) {
-    return formatter.value.parse(props.zoomStart, 0)
-  }
-  if (props.axisMode === 'shared') return sharedRange.value.start
+  // 始终返回轨道自身范围：拖拽边界和裁剪遮罩依赖 track 自身的 rangeStart/rangeEnd
   return formatter.value.parse(track.start, 0)
 }
 
 function getTrackEnd(track) {
-  if (props.zoomStart != null && props.zoomEnd != null) {
-    return formatter.value.parse(props.zoomEnd, 24)
-  }
-  if (props.axisMode === 'shared') return sharedRange.value.end
   return formatter.value.parse(track.end, 24)
 }
 

@@ -213,11 +213,11 @@ export class TimeSegment extends HTMLElement {
       e.stopPropagation()                       // 阻止冒泡到轨道
       const l = resolveLocale(this)
       const segRange = this._formatter.formatRange(this.start, this.end, 'axis')
-      // 无标签时标题只显示时间范围，不填充占位名称
+      // 无标签时也使用 locale 模板（保留 🔖 图标），{name} 传入空字符串
       const name = this.label || segRange
-      const headerLabel = this.label
-        ? l.segmentMenuHeader.replace('{name}', this.label).replace('{range}', segRange)
-        : segRange
+      const headerLabel = l.segmentMenuHeader
+        .replace('{name}', this.label || '')
+        .replace('{range}', segRange)
       const menuItems = [
         { type: 'header', label: headerLabel },
       ]

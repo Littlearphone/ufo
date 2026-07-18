@@ -9,6 +9,7 @@
         'tls-del-hidden': segWidth < 28,
         'tls-text-hidden': _textHidden,
         'tls-copy-pulse': _pulsing,
+        vertical: vertical,
       }"
       :style="wrapperStyle"
       @pointerdown.prevent="onDown"
@@ -93,7 +94,7 @@
  *
  * @module vue/VTimelineSegment
  */
-import { computed, nextTick, onMounted, ref, watch } from 'vue'
+import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import { clamp, snap } from '../shared/utils.js'
 import { formatLocale, useLocale } from './useLocale.js'
 import { useTooltip } from './useTooltip.js'
@@ -130,6 +131,9 @@ const props = defineProps({
   nextSegStart: { type: Number, default: null },
   /** 段数上限（0=无限制），与 CE maxSegments 继承链一致 */
   maxSegments: { type: Number, default: 0 },
+  /** 有效视觉范围（缩放/共享轴用，像素↔值转换依赖此范围而非 rangeStart/rangeEnd） */
+  effRangeStart: { type: Number, default: 0 },
+  effRangeEnd: { type: Number, default: 24 },
 })
 
 const emit = defineEmits([
@@ -299,8 +303,29 @@ function _isTruncated() {
   const inner = el.querySelector('.tls-inner')
   if (!inner) return false
   if (inner.scrollWidth > inner.clientWidth + 1) return true
-  // 垂直溢出检测（纵向模式或极小高度时文字被裁切）
-  if (inner.scrollHeight > inner.clientHeight + 1) return true
+
+  // 垂直溢出检测：从样式推算内容总高度，与 bar.clientHeight 比较
+  // 不依赖 scrollHeight（绝对定位 + overflow:hidden 的 flex 容器 scrollHeight 不准确）
+  const children = inner.children
+  if (children.length) {
+    let contentH = 0
+    for (const child of children) {
+      const cs = getComputedStyle(child)
+      const fs = parseFloat(cs.fontSize) || 11
+      // lineHeight 可能为 'normal'（≈1.2），计算实际像素值
+      const lh = cs.lineHeight === 'normal' ? fs * 1.2 : parseFloat(cs.lineHeight) || fs * 1.2
+      contentH += lh
+    }
+    // flex-column 的 gap 也占用高度空间
+    const gap = getComputedStyle(inner).gap
+    if (gap && children.length > 1) {
+      const gp = parseFloat(gap) || 0
+      contentH += gp * (children.length - 1)
+    }
+    const bar = inner.parentElement  // .tls-bar
+    if (bar && contentH > bar.clientHeight + 1) return true
+  }
+
   return false
 }
 
@@ -320,10 +345,17 @@ onMounted(() => {
   const el = wrapperRef.value
   if (el) {
     el.addEventListener('tls-deactivate', () => { _active.value = false })
+    // ResizeObserver 检测 CSS 变量驱动的尺寸变化（如 --tls-height 调整后段高度变化）
+    _resizeObs = new ResizeObserver(() => _updateTextVisibility())
+    _resizeObs.observe(el)
   }
 })
 
-watch(() => [props.segment.label, props.segment.start, props.segment.end, props.pixelWidth], () => {
+onUnmounted(() => {
+  if (_resizeObs) _resizeObs.disconnect()
+})
+
+watch(() => [props.segment.label, props.segment.start, props.segment.end, props.pixelWidth, props.pixelHeight, props.vertical], () => {
   _updateTextVisibility()
 })
 
@@ -358,6 +390,8 @@ function _pulseCopy() {
 }
 
 /* =============================== 拖拽状态 =============================== */
+
+let _resizeObs = null  // ResizeObserver，检测 CSS 变量驱动的高度变化
 
 const _dragging = ref(false)
 const _resizing = ref(false)
@@ -408,7 +442,7 @@ function _client(e) {
 function _getResizeStep(trackStep) {
   if (!trackStep) return 0
   if (!props.formatter || !_segAreaRect) return trackStep
-  const range = props.rangeEnd - props.rangeStart
+  const range = props.effRangeEnd - props.effRangeStart
   if (!range) return trackStep
   const dim = props.vertical ? _segAreaRect.height : _segAreaRect.width
   const axisStep = props.formatter.niceStep(range, dim)
@@ -422,7 +456,7 @@ function _px2Val(dpx) {
   if (!rect) return 0
   const dim = props.vertical ? rect.height : rect.width
   if (!dim) return 0
-  const range = props.rangeEnd - props.rangeStart
+  const range = props.effRangeEnd - props.effRangeStart
   return (dpx / dim) * range
 }
 
@@ -538,6 +572,22 @@ function _updateDragDisplay(curStart, curEnd) {
   else {
     const inner = el.querySelector('.tls-inner')
     if (inner && inner.scrollWidth > inner.clientWidth + 1) hidden = true
+    // 垂直溢出检测：从样式推算内容总高度（与 _isTruncated 一致）
+    if (!hidden && inner && inner.children.length) {
+      let contentH = 0
+      for (const child of inner.children) {
+        const cs = getComputedStyle(child)
+        const fs = parseFloat(cs.fontSize) || 11
+        const lh = cs.lineHeight === 'normal' ? fs * 1.2 : parseFloat(cs.lineHeight) || fs * 1.2
+        contentH += lh
+      }
+      const gap = getComputedStyle(inner).gap
+      if (gap && inner.children.length > 1) {
+        contentH += (parseFloat(gap) || 0) * (inner.children.length - 1)
+      }
+      const bar = inner.parentElement
+      if (bar && contentH > bar.clientHeight + 1) hidden = true
+    }
   }
   _textHidden.value = hidden
   // 3. 更新 tooltip
@@ -609,7 +659,7 @@ function _onMove(e) {
 
   // 计算像素偏移（用于 wrapperStyle 直接驱动视觉位置，不依赖父组件 model 更新）
   const dim = _segAreaRect ? (props.vertical ? _segAreaRect.height : _segAreaRect.width) : 0
-  const range = props.rangeEnd - props.rangeStart
+  const range = props.effRangeEnd - props.effRangeStart
 
   if (_mode === 'resize-left') {
     let s = snap(_s0 + dt, effStep)
@@ -810,13 +860,12 @@ function onDeleteClick() {
 function onCtxMenu(e) {
   if (_ptrActive.value) return
   if (e.target.closest('[data-role="del"]')) return
+  e.stopPropagation()
 
   const loc = _locale.value
   const fmt = props.formatter
   const segRange = fmt ? fmt.formatRange(props.segment.start, props.segment.end, 'axis') : `${props.segment.start} – ${props.segment.end}`
-  const headerLabel = props.segment.label
-    ? formatLocale(loc.segmentMenuHeader || '🔖 {name}  {range}', { name: props.segment.label, range: segRange })
-    : segRange
+  const headerLabel = formatLocale(loc.segmentMenuHeader || '🔖 {name}  {range}', { name: props.segment.label || '', range: segRange })
 
   const items = [
     { type: 'header', label: headerLabel },
@@ -1135,11 +1184,11 @@ function _finishCopy(e) {
   } else {
     // 同轨道复制（原有逻辑）
     const dp = _client(e) - _ptrStart
-    const range = props.rangeEnd - props.rangeStart
+    const range = props.effRangeEnd - props.effRangeStart
     const dt = _segAreaRect ? (dp / (props.vertical ? _segAreaRect.height : _segAreaRect.width)) * range : 0
     w = _e0 - _s0
     s = snap(_s0 + dt, props.step || 0)
-    s = clamp(s, props.rangeStart, props.rangeEnd - w)
+    s = clamp(s, props.effRangeStart, props.effRangeEnd - w)
     eTime = s + w
     if (eTime > props.rangeEnd) { eTime = props.rangeEnd; s = eTime - w }
   }
@@ -1184,6 +1233,15 @@ defineExpose({
   user-select: none;
   touch-action: none;
   transition: box-shadow .12s;
+  /* --tls-height 控制横向模式段高度（如 30px），默认 auto 填满轨道 */
+  height: var(--tls-height);
+  margin: auto 0;
+}
+.tls-wrapper.vertical {
+  /* --tls-width 控制纵向模式段宽度（如 24px），默认 auto 填满轨道 */
+  width: var(--tls-width);
+  margin: 0 auto;
+  height: auto;
 }
 .tls-wrapper:hover { z-index: 4; }
 .tls-wrapper.dragging { z-index: 12; }

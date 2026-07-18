@@ -1,5 +1,6 @@
 <template>
   <div class="tlt-row" :class="{ vertical: vertical, 'tlt-shared': axisMode === 'shared' }"
+    @contextmenu.prevent="onTrackCtxMenu"
     :data-track-id="track.id"
     :data-editable="editable ? 'true' : 'false'"
     :data-eff-range-start="effRange.start"
@@ -19,7 +20,6 @@
         class="tlt-seg-area"
         ref="segAreaRef"
         @pointerdown.prevent="onAreaDown"
-        @contextmenu.prevent="onTrackCtxMenu"
       >
         <VTimelineSegment
           v-for="seg in positionedSegments"
@@ -39,6 +39,8 @@
           :vertical="vertical"
           :range-start="rangeStart"
           :range-end="rangeEnd"
+          :eff-range-start="effRange.start"
+          :eff-range-end="effRange.end"
           :formatter="formatter"
           :locale="locale"
           :tooltip-pos="tooltipPos"
@@ -50,18 +52,18 @@
           @segment-change="onSegmentChanging"
           @context-menu="onSegCtxMenu"
         />
+
+        <!-- 拖拽创建预览条（在 seg-area 内，与 CE 定位一致） -->
+        <div v-if="_creating" class="tlt-ghost" :style="ghostStyle">
+          <span class="tlt-ghost-label">{{ ghostLabel }}</span>
+        </div>
       </div>
 
-      <!-- 拖拽创建预览条（在 seg-area 内，与 CE 定位一致） -->
-      <div v-if="_creating" class="tlt-ghost" :style="ghostStyle">
-        <span class="tlt-ghost-label">{{ ghostLabel }}</span>
+      <!-- 共享轴裁剪模式遮罩（放在 .tlt-body 内，与 seg-area 共享坐标系统） -->
+      <div v-if="_clipOverlayVisible" class="tlt-clip-overlay">
+        <div class="tlt-clip-block tlt-clip-left" :style="clipLeftStyle"></div>
+        <div class="tlt-clip-block tlt-clip-right" :style="clipRightStyle"></div>
       </div>
-    </div>
-
-    <!-- 共享轴裁剪模式遮罩 -->
-    <div v-if="_clipOverlayVisible" class="tlt-clip-overlay">
-      <div class="tlt-clip-block tlt-clip-left" :style="clipLeftStyle"></div>
-      <div class="tlt-clip-block tlt-clip-right" :style="clipRightStyle"></div>
     </div>
   </div>
 </template>
@@ -227,8 +229,9 @@ const positionedSegments = computed(() => {
 
     return { ...seg, pxStart: p1, pxWidth: segW, pxHidden,
       // 段间阻隔边界（与 CE _computeBounds 对齐）：前一段的 end、后一段的 start
-      prevSegEnd: i > 0 ? segs[i - 1].end : props.rangeStart,
-      nextSegStart: i < segs.length - 1 ? segs[i + 1].start : props.rangeEnd,
+      // 首/末段使用 dragBounds（共享模式下自动切换共享/轨道范围）
+      prevSegEnd: i > 0 ? segs[i - 1].end : dragBounds.value.start,
+      nextSegStart: i < segs.length - 1 ? segs[i + 1].start : dragBounds.value.end,
     }
   })
 })
@@ -943,7 +946,6 @@ watch(() => [props.sharedClipRange, props.rangeStart, props.rangeEnd], () => {
 }
 .tlt-row.vertical {
   flex-direction: column;
-  flex: 1;
   width: var(--tlt-row-w, 150px);
   min-width: var(--tlt-row-w, 150px);
   min-height: var(--tlt-row-min-h, 280px);
@@ -1016,16 +1018,14 @@ watch(() => [props.sharedClipRange, props.rangeStart, props.rangeEnd], () => {
   inset: 0;
 }
 
-/* ghost — 拖拽创建预览条 */
+/* ghost — 拖拽创建预览条（与 CE base.css 完全对齐） */
 .tlt-ghost {
   position: absolute;
   z-index: 9;
   background: rgba(66,133,244,.18);
   border: 2px dashed var(--tlc-primary, #4285f4);
+  border-radius: var(--tlc-radius, 0);
   pointer-events: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 .tlt-ghost-label {
   position: absolute;

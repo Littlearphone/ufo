@@ -28,7 +28,7 @@
 
       <!-- ════ Tab 4: Vue 3 集成 ════ -->
       <div class="controls-content" :class="{ active: activeTab === 4 }">
-        <Tab5Controls @add-track="$emit('addTrack', $event)" />
+        <Tab5Controls :config="vueConfig" :css-vars="vueCssVars" @add-track="$emit('addTrack', $event)" />
       </div>
 
       <!-- ════ Tab 5: CRUD 权限 ════ -->
@@ -51,7 +51,9 @@ import Tab6Controls from './controls/Tab6Controls.vue'
 
 const props = defineProps({
   activeTab: { type: Number, required: true },
-  containers: { type: Array, required: true }
+  containers: { type: Array, required: true },
+  vueConfig: { type: Object, default: null },
+  vueCssVars: { type: Object, default: null },
 })
 const emit = defineEmits(['addTrack', 'reset'])
 

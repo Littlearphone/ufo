@@ -995,6 +995,8 @@ export class TimeTrack extends HTMLElement {
 
     // 太窄的段自动隐藏 × 删除按钮（右键菜单及 tooltip 仍可用）
     seg.classList.toggle('tls-del-hidden', segW < 28)
+    // 段尺寸（特别是 --tls-height 自定义高度）变更后刷新文字截断状态
+    seg._updateTextVisibility()
   }
 
   /**
