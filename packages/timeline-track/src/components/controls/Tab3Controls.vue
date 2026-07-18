@@ -12,15 +12,15 @@
           <label v-show="isShared">
             <span class="ctrl-label">共用范围</span>
             <span style="display:flex;align-items:center;gap:4px;width:100%">
-              <input type="text" v-model.number="sharedS" @input="setShared" style="flex:1;min-width:0">
+              <input type="text" :value="sharedS" @input="setSharedS" style="flex:1;min-width:0">
               <span style="flex-shrink:0">~</span>
-              <input type="text" v-model.number="sharedE" @input="setShared" style="flex:1;min-width:0">
+              <input type="text" :value="sharedE" @input="setSharedE" style="flex:1;min-width:0">
             </span>
           </label>
         </div>
         <div class="ctrl-row">
           <label><span class="ctrl-label">步长</span>
-            <select v-model="stepVal">
+            <select :value="stepVal" @change="setStep">
               <option value="0.25">0.25</option>
               <option value="0.5">0.5</option>
               <option value="1">1</option>
@@ -38,26 +38,26 @@
       <div class="ctrl-body" v-show="state[1]">
         <div class="ctrl-row">
           <label v-show="!isVertical"><span class="ctrl-label">横轴标签</span>
-            <select v-model="labelHVal" @change="setLabel('label-h', labelHVal)">
+            <select :value="labelHVal" @change="setLabelH">
               <option value="top">上</option>
               <option value="bottom">下</option>
             </select>
           </label>
           <label v-show="isVertical"><span class="ctrl-label">纵轴标签</span>
-            <select v-model="labelVVal" @change="setLabel('label-v', labelVVal)">
+            <select :value="labelVVal" @change="setLabelV">
               <option value="right">右</option>
               <option value="left">左</option>
             </select>
           </label>
           <label><span class="ctrl-label">圆角</span>
-            <select v-model="radiusVal" @change="setRadius">
+            <select :value="radiusVal" @change="setRadius">
               <option v-for="r in radiusOpts" :key="r" :value="r">{{ r || '0' }}</option>
             </select>
           </label>
         </div>
         <div class="ctrl-row">
-          <label><span class="ctrl-label">容器高</span> <input type="text" v-model="heightVal" @input="setSize" placeholder="auto"></label>
-          <label><span class="ctrl-label">容器宽</span> <input type="text" v-model="widthVal" @input="setSize" placeholder="auto"></label>
+          <label><span class="ctrl-label">容器高</span> <input type="text" :value="heightVal" @input="setHeight" placeholder="auto"></label>
+          <label><span class="ctrl-label">容器宽</span> <input type="text" :value="widthVal" @input="setWidth" placeholder="auto"></label>
         </div>
       </div>
     </div>
@@ -68,7 +68,7 @@
       <div class="ctrl-body" v-show="state[2]">
         <div class="ctrl-row">
           <label><span class="ctrl-label">弹出方向</span>
-            <select v-model="tipSide" @change="updateTip">
+            <select :value="tipSide" @change="setTipSide">
               <option value="top">上方 top</option>
               <option value="bottom">下方 bottom</option>
               <option value="left">左方 left</option>
@@ -76,7 +76,7 @@
             </select>
           </label>
           <label><span class="ctrl-label">对齐</span>
-            <select v-model="tipAlign" @change="updateTip">
+            <select :value="tipAlign" @change="setTipAlign">
               <option value="start">起始 start</option>
               <option value="center">居中 center</option>
               <option value="end">末尾 end</option>
@@ -90,6 +90,14 @@
 </template>
 
 <script setup>
+/**
+ * Tab3Controls.vue — 模式示例控制台
+ *
+ * Tab 3 包含 6 个独立 time-line-container（不同 type/unit 模式），
+ * 所有操作同时应用到面板内所有容器。
+ *
+ * @module controls/Tab3Controls
+ */
 import { computed, ref } from 'vue'
 import { addLog } from '../../stores/eventLog.js'
 import { useAccordion } from '../../composables/useAccordion.js'
@@ -100,11 +108,27 @@ const props = defineProps({
   container: { type: Object, default: null }
 })
 
-const c = () => props.container
-
 // DOM 属性版本计数器，让依赖 DOM 的 computed 重新求值
 const _attrRev = ref(0)
 function bumpAttr() { _attrRev.value++ }
+
+/**
+ * 获取当前活跃面板中的所有 time-line-container
+ *（Tab 3 有多个独立容器，操作需应用到全部）
+ */
+function getContainers() {
+  return document.querySelectorAll('.tab-pane--stack.active time-line-container') || []
+}
+
+/** 获取第一个容器用于读取属性值，无容器时返回 null */
+function getFirst() {
+  return getContainers()[0] || null
+}
+
+/** 对每个容器执行操作 */
+function each(fn) {
+  getContainers().forEach(c => fn(c))
+}
 
 const radiusOpts = ['0', '3px', '5px', '8px', '12px', '20px']
 const radiusVal = ref('0')
@@ -115,10 +139,11 @@ const widthVal = ref('')
 const stepVal = computed({
   get: () => {
     _attrRev.value
-    if (!c()) return '1'
-    const cs = c().getAttribute('step')
+    const fc = getFirst()
+    if (!fc) return '1'
+    const cs = fc.getAttribute('step')
     if (cs) return cs
-    const tracks = c().allTracks()
+    const tracks = fc.allTracks()
     if (tracks.length) {
       const s = tracks[0].getAttribute('step')
       if (s) return s
@@ -126,9 +151,7 @@ const stepVal = computed({
     return '1'
   },
   set: (v) => {
-    if (!c()) return
-    // 只设容器步长，不影响各轨道自身属性
-    c().step = parseFloat(v) || 0
+    each(c => { c.setAttribute('step', String(parseFloat(v) || 0)) })
     bumpAttr()
   }
 })
@@ -137,117 +160,127 @@ const tipAlign = ref('center')
 
 const dir = computed(() => {
   _attrRev.value
-  if (!c()) return 'horizontal'
-  const d = c().getAttribute('direction') || ''
+  const fc = getFirst()
+  if (!fc) return 'horizontal'
+  const d = fc.getAttribute('direction') || ''
   return d === 'vertical' ? 'vertical' : 'horizontal'
 })
 const isVertical = computed(() => dir.value === 'vertical')
 const isShared = computed(() => {
   _attrRev.value
-  return c() && c().axisMode === 'shared'
+  const fc = getFirst()
+  return fc && fc.axisMode === 'shared'
 })
 const btnDirText = computed(() => isVertical.value ? '切换为横向' : '切换为纵向')
 const btnAxisText = computed(() => isShared.value ? '切换为独立轴' : '切换为共享轴')
 
-const sharedS = computed({
-  get: () => {
-    _attrRev.value
-    return c() ? parseFloat(c().getAttribute('shared-start')) || 0 : 0
-  },
-  set: (v) => { if (c()) { c().setAttribute('shared-start', String(v)); bumpAttr() } }
+const sharedSVal = computed(() => {
+  _attrRev.value
+  const fc = getFirst()
+  return fc ? parseFloat(fc.getAttribute('shared-start')) || 0 : 0
 })
-const sharedE = computed({
-  get: () => {
-    _attrRev.value
-    return c() ? parseFloat(c().getAttribute('shared-end')) || 24 : 24
-  },
-  set: (v) => { if (c()) { c().setAttribute('shared-end', String(v)); bumpAttr() } }
+const sharedEVal = computed(() => {
+  _attrRev.value
+  const fc = getFirst()
+  return fc ? parseFloat(fc.getAttribute('shared-end')) || 24 : 24
 })
 
+function setSharedS(e) {
+  const v = parseFloat(e.target.value) || 0
+  each(c => c.setAttribute('shared-start', String(v)))
+  bumpAttr()
+}
+
+function setSharedE(e) {
+  const v = parseFloat(e.target.value) || 0
+  each(c => c.setAttribute('shared-end', String(v)))
+  bumpAttr()
+}
+
 function toggleDir() {
-  if (!c()) return
   const next = isVertical.value ? 'horizontal' : 'vertical'
-  c().setAttribute('direction', next)
+  each(c => c.setAttribute('direction', next))
   bumpAttr()
   addLog('dir', next)
 }
 
 function toggleAxis() {
-  if (!c()) return
-  const cur = c().axisMode
+  const fc = getFirst()
+  if (!fc) return
+  const cur = fc.axisMode
   const next = cur === 'shared' ? 'per-track' : 'shared'
-  c().setAttribute('axis-mode', next)
+  each(c => c.setAttribute('axis-mode', next))
   bumpAttr()
   addLog('axis-mode', next)
 }
 
-function setShared() {
-  // 校验：确保共用范围的 start < end
-  if (!c()) return
-  const s = parseFloat(c().getAttribute('shared-start')) || 0
-  const e = parseFloat(c().getAttribute('shared-end')) || 24
-  if (s >= e) {
-    c().setAttribute('shared-end', String(s + 1))
-  }
+function setStep(e) {
+  const v = e.target.value
+  each(c => c.setAttribute('step', v))
+  bumpAttr()
+  addLog('step', v)
+}
+
+function setLabelH(e) {
+  each(c => c.setAttribute('label-h', e.target.value))
   bumpAttr()
 }
 
-function setLabel(attr, val) {
-  if (c()) { c().setAttribute(attr, val); bumpAttr() }
+function setLabelV(e) {
+  each(c => c.setAttribute('label-v', e.target.value))
+  bumpAttr()
 }
 
 function setRadius() {
-  if (c()) c().setGlobalRadius(radiusVal.value)
+  each(c => { if (c.setGlobalRadius) c.setGlobalRadius(radiusVal.value) })
 }
 
-function setSize() {
-  if (!c()) return
-  c().style.height = heightVal.value || ''
-  c().style.width = widthVal.value || ''
+function setHeight(e) {
+  each(c => { c.style.height = e.target.value || '' })
 }
 
-function updateTip() {
-  if (!c()) return
-  c().tooltipPos = tipSide.value + '-' + tipAlign.value
-  addLog('api', 'tooltip-pos = ' + c().tooltipPos)
+function setWidth(e) {
+  each(c => { c.style.width = e.target.value || '' })
 }
 
-/** 重置当前标签页演示到初始状态（从控制台标题栏调用） */
+function setTipSide(e) {
+  each(c => { c.tooltipPos = e.target.value + '-' + tipAlign.value })
+  addLog('api', 'tooltip-pos = ' + e.target.value + '-' + tipAlign.value)
+}
+
+function setTipAlign(e) {
+  each(c => { c.tooltipPos = tipSide.value + '-' + e.target.value })
+  addLog('api', 'tooltip-pos = ' + tipSide.value + '-' + e.target.value)
+}
+
+/** 重置各容器属性到初始值（保持各自 type/unit 硬编码不变） */
 function reset() {
-  if (!c()) return
-  c().innerHTML = `\
-    <time-line-track label="早班段" start="0" end="12" step="0.5">\
-      <time-line-segment start="1"  end="5"  label="早高峰" color="#e67e22"></time-line-segment>\
-      <time-line-segment start="7"  end="10" label="上午时段" color="#f39c12"></time-line-segment>\
-    </time-line-track>\
-    <time-line-track label="中班段" start="6" end="20" step="0.5">\
-      <time-line-segment start="8"  end="12" label="核心时段" color="#2980b9"></time-line-segment>\
-      <time-line-segment start="14" end="18" label="下午班" color="#3498db"></time-line-segment>\
-    </time-line-track>\
-    <time-line-track label="全天段" start="0" end="24" step="0.5">\
-      <time-line-segment start="3"  end="7"  label="凌晨" color="#16a085"></time-line-segment>\
-      <time-line-segment start="12" end="14" label="午休" color="#1abc9c"></time-line-segment>\
-      <time-line-segment start="19" end="23" label="晚间" color="#27ae60"></time-line-segment>\
-    </time-line-track>`
-  c().setAttribute('direction', 'horizontal')
-  c().setAttribute('axis-mode', 'shared')
-  c().setAttribute('shared-start', '0')
-  c().setAttribute('shared-end', '24')
-  c().removeAttribute('label-h')
-  c().removeAttribute('label-v')
-  c().removeAttribute('tooltip-pos')
-  c().style.height = ''
-  c().style.width = ''
+  each(c => {
+    c.setAttribute('direction', 'horizontal')
+    c.setAttribute('axis-mode', 'shared')
+    c.setAttribute('shared-start', '0')
+    c.setAttribute('shared-end', '24')
+    c.removeAttribute('step')
+    c.removeAttribute('label-h')
+    c.removeAttribute('label-v')
+    c.removeAttribute('tooltip-pos')
+    c.style.height = ''
+    c.style.width = ''
+    requestAnimationFrame(() => {
+      if (c.allTracks) c.allTracks().forEach(t => {
+        if (t._drawGrid) t._drawGrid()
+        if (t._refreshPositions) t._refreshPositions()
+      })
+    })
+  })
   radiusVal.value = '0'
-  c().setGlobalRadius('0')
   labelHVal.value = 'top'
   labelVVal.value = 'left'
   heightVal.value = ''
   widthVal.value = ''
-  stepVal.value = '0.5'
+  stepVal.value = '1'
   tipSide.value = 'top'
   tipAlign.value = 'center'
-  bumpAttr()
   addLog('dir', 'horizontal (reset)')
 }
 

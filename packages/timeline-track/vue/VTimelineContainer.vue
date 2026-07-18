@@ -17,9 +17,10 @@
       <div class="tlc-axis-body">
         <canvas ref="rulerCanvasRef" class="tlc-axis-canvas" />
       </div>
-      <!-- hover 浮动框 -->
-      <div v-if="hoverFloatVisible" class="tlc-hover-float" :style="hoverFloatStyle"></div>
     </div>
+
+    <!-- hover 浮动框（放在容器直接子级，用 position:absolute 相对于容器定位） -->
+    <div v-show="hoverFloatVisible" class="tlc-hover-float" :class="{ visible: hoverFloatVisible }" :style="hoverFloatStyle"></div>
 
     <!-- 轨道列表 -->
     <VTimelineTrack
@@ -938,11 +939,15 @@ function onTrackMouseOver(e) {
     hoverFloatStyle.value = {
       top: (rowRect.top - conRect.top) + 'px',
       height: rowRect.height + 'px',
+      left: (rowRect.left - conRect.left) + 'px',
+      width: rowRect.width + 'px',
     }
   } else {
     hoverFloatStyle.value = {
       left: (rowRect.left - conRect.left) + 'px',
       width: rowRect.width + 'px',
+      top: (rowRect.top - conRect.top) + 'px',
+      height: rowRect.height + 'px',
     }
   }
   hoverFloatVisible.value = true

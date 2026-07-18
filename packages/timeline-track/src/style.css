@@ -202,9 +202,14 @@ h1 {
 }
 
 .mode-example-body {
-  height: 80px;
+  min-height: 72px;
   padding: 4px 10px !important;
   border-radius: 0 !important;
+}
+/* 共享轴模式下去掉 padding 并禁止滚动，让 hover 浮框紧贴轨道 */
+.mode-example-body[axis-mode="shared"] {
+  padding: 0 !important;
+  overflow: hidden !important;
 }
 
 .mode-example-body > time-line-track {
