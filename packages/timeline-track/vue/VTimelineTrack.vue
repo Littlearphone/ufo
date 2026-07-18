@@ -1,5 +1,11 @@
 <template>
-  <div class="tlt-row" :class="{ vertical: vertical, 'tlt-shared': axisMode === 'shared' }" :data-track-id="track.id">
+  <div class="tlt-row" :class="{ vertical: vertical, 'tlt-shared': axisMode === 'shared' }"
+    :data-track-id="track.id"
+    :data-editable="editable ? 'true' : 'false'"
+    :data-eff-range-start="effRange.start"
+    :data-eff-range-end="effRange.end"
+    :data-drag-bounds-start="dragBounds.start"
+    :data-drag-bounds-end="dragBounds.end">
     <!-- 轨道头部 -->
     <div class="tlt-head">
       <span class="tlt-head-label" :title="labelText">{{ labelText }}</span>
@@ -216,7 +222,7 @@ const positionedSegments = computed(() => {
       if (nStart >= p2) rightBound = nStart
     }
     const avail = rightBound - p1
-    const minW = Math.min(6, avail)
+    const minW = Math.min(2, avail)
     const segW = Math.min(Math.max(p2 - p1, minW), avail)
 
     return { ...seg, pxStart: p1, pxWidth: segW, pxHidden,
@@ -596,8 +602,8 @@ function _checkSegmentLimit() {
 
 /* =============================== 段事件 =============================== */
 
-function onSegChange({ id, start, end, copyFrom }) {
-  emit('seg-change', { trackId: props.track.id, id, start, end, copyFrom })
+function onSegChange({ id, start, end, copyFrom, targetTrackId }) {
+  emit('seg-change', { trackId: props.track.id, id, start, end, copyFrom, targetTrackId })
 }
 
 function onSegDelete(id) {
@@ -611,13 +617,9 @@ function onSegmentChanging({ id, start, end }) {
 /** 段无法自行处理的事件（跨轨道拖放、编辑段属性）转发给 Container */
 function onSegCtxMenu(e) {
   if (e.action === 'cross-track-drop') {
-    // 段跨轨道落位：携带目标轨道信息转发给 Container 完成数据迁移
-    emit('context-menu', {
-      action: 'cross-track-drop',
-      targetTrackId: props.track.id,
-      sourceTrackId: e.sourceTrackId,
-      segment: e.segment,
-    })
+    // 直接转发段发起的跨轨道事件（含 targetTrackId/start/end），
+    // 不再覆盖 targetTrackId，避免错误的设为源轨道 ID
+    emit('context-menu', e)
     return
   }
   if (e.action === 'edit-segment') {

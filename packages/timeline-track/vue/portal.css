@@ -65,7 +65,7 @@
   transform: scale(0.88);
   transition: opacity .12s ease, transform .12s ease;
 }
-.tlt-cross-ghost.show { opacity: 1; transform: scale(1); }
+.tlt-cross-ghost.show { opacity: 0.7; transform: scale(1); }
 .tlt-cross-ghost.hide {
   transform: scale(0.88);
   opacity: 0;

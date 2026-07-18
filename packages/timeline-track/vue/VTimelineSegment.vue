@@ -18,9 +18,9 @@
       @mousemove="onMove"
       ref="wrapperRef"
     >
-      <!-- 左手柄 -->
+      <!-- 左手柄（与 CE 一致：只受 editable 控制，不限宽度） -->
       <div
-        v-if="segmentEditable && segWidth >= 28"
+        v-if="segmentEditable"
         class="tls-hdl tls-hdl-left"
         data-role="hdl-left"
         @pointerdown.stop="onHandleDown('resize-left', $event)"
@@ -39,9 +39,9 @@
         </div>
       </div>
 
-      <!-- 右手柄 -->
+      <!-- 右手柄（与 CE 一致：只受 editable 控制，不限宽度） -->
       <div
-        v-if="segmentEditable && segWidth >= 28"
+        v-if="segmentEditable"
         class="tls-hdl tls-hdl-right"
         data-role="hdl-right"
         @pointerdown.stop="onHandleDown('resize-right', $event)"
@@ -181,18 +181,19 @@ const wrapperStyle = computed(() => {
       : { left: (props.pixelLeft + _dragDeltaPx.value) + 'px', top: '0', bottom: '0', width: props.pixelWidth + 'px' }
   }
 
-  // resize-left：左边缘移动，宽度同步缩小
+  // resize-left：左边缘移动，宽度同步缩小/扩大
+  // 基准 _resizeBaseLeft/_resizeBaseWidth 在把手交换后更新，确保连续视觉
   if (_resizing.value && _mode === 'resize-left') {
     return isV
-      ? { top: (props.pixelLeft + _resizeDeltaPx.value) + 'px', left: '0', right: '0', height: Math.max(2, props.pixelWidth - _resizeDeltaPx.value) + 'px' }
-      : { left: (props.pixelLeft + _resizeDeltaPx.value) + 'px', top: '0', bottom: '0', width: Math.max(2, props.pixelWidth - _resizeDeltaPx.value) + 'px' }
+      ? { top: (_resizeBaseLeft.value + _resizeDeltaPx.value) + 'px', left: '0', right: '0', height: Math.max(2, _resizeBaseWidth.value - _resizeDeltaPx.value) + 'px' }
+      : { left: (_resizeBaseLeft.value + _resizeDeltaPx.value) + 'px', top: '0', bottom: '0', width: Math.max(2, _resizeBaseWidth.value - _resizeDeltaPx.value) + 'px' }
   }
 
-  // resize-right：右边缘移动，左边缘固定
+  // resize-right：右边缘移动，左边缘固定（把手交换后左边缘改为零宽度点）
   if (_resizing.value && _mode === 'resize-right') {
     return isV
-      ? { top: props.pixelLeft + 'px', left: '0', right: '0', height: Math.max(2, props.pixelWidth + _resizeDeltaPx.value) + 'px' }
-      : { left: props.pixelLeft + 'px', top: '0', bottom: '0', width: Math.max(2, props.pixelWidth + _resizeDeltaPx.value) + 'px' }
+      ? { top: _resizeBaseLeft.value + 'px', left: '0', right: '0', height: Math.max(2, _resizeBaseWidth.value + _resizeDeltaPx.value) + 'px' }
+      : { left: _resizeBaseLeft.value + 'px', top: '0', bottom: '0', width: Math.max(2, _resizeBaseWidth.value + _resizeDeltaPx.value) + 'px' }
   }
 
   // 非拖拽状态：完全由父组件 pixelLeft/pixelWidth 驱动
@@ -219,6 +220,8 @@ const effectiveTooltipPos = computed(() => {
 })
 
 const timeRange = computed(() => {
+  // 拖拽中显示实时值（与 CE _onMove_ → _buildDOM 实时重建文字对齐）
+  if (_dragTimeText.value) return _dragTimeText.value
   const fmt = props.formatter
   if (!fmt) return `${props.segment.start} – ${props.segment.end}`
   return fmt.formatRange(
@@ -363,6 +366,8 @@ const _ptrActive = ref(false)
 // 像素级偏移 — 拖拽期间直接控制视觉位置，不依赖父组件 model 更新（与 CE 直接操作 DOM 一致）
 const _dragDeltaPx = ref(0)    // move 模式：沿轴的像素偏移
 const _resizeDeltaPx = ref(0)  // resize 模式：边缘像素变化量
+// 拖拽中实时时间文字（覆盖 timeRange computed，与 CE _buildDOM 实时重建文字对齐）
+const _dragTimeText = ref(null)
 
 let _mode = null // 'move' | 'resize-left' | 'resize-right'
 let _ptrStart = 0
@@ -371,6 +376,10 @@ let _e0 = 0
 let _segAreaRect = null
 let _lo = 0
 let _hi = 0
+
+// 把手交换后，resize 模式的基准左边缘和宽度会变化（如 resize-left→resize-right 后基准变为右边缘+0宽度）
+const _resizeBaseLeft = ref(0)
+const _resizeBaseWidth = ref(0)
 
 // 跨轨道拖拽状态
 let _srcTrackEl = null
@@ -428,14 +437,15 @@ function onDown(e) {
     return
   }
 
-  if (!props.editable) return
+  // 使用段级 editable（与 CE 一致：先查 segment.editable，再回退轨道/容器）
+  if (!segmentEditable.value) return
   ctxMenuCtrl.hide()
   _startDrag('move', e)
 }
 
 /* pointerdown — 手柄 */
 function onHandleDown(mode, e) {
-  if (!props.editable) return
+  if (!segmentEditable.value) return
   if (!e) return
   _startDrag(mode, e)
 }
@@ -463,6 +473,10 @@ function _startDrag(mode, e) {
   // 重置像素偏移（新一次拖拽从零开始）
   _dragDeltaPx.value = 0
   _resizeDeltaPx.value = 0
+
+  // 初始化 resize 基准位置（把手交换后会更新）
+  _resizeBaseLeft.value = props.pixelLeft
+  _resizeBaseWidth.value = props.pixelWidth
 
   // Ctrl+拖拽复制
   _copyMode = false
@@ -502,6 +516,43 @@ function _startDrag(mode, e) {
   document.addEventListener('pointercancel', onUp)
 }
 
+/**
+ * 拖拽中实时更新内部文字 + 截断检测 + tooltip（与 CE _onMove_ 末尾对齐）：
+ * CE: _buildDOM → _updateTextVisibility → void offsetHeight → _refreshTooltip
+ */
+function _updateDragDisplay(curStart, curEnd) {
+  if (!_ptrActive.value) return
+  // 1. 更新内部时间文字（覆盖 timeRange computed）
+  const fmt = props.formatter
+  _dragTimeText.value = fmt
+    ? fmt.formatRange(Math.min(curStart, curEnd), Math.max(curStart, curEnd), 'segment')
+    : `${curStart} – ${curEnd}`
+  const el = wrapperRef.value
+  if (!el) return
+  // 2. 同步截断检测（布局已由 wrapperStyle 更新 + getBoundingClientRect 强制重排）
+  const label = el.querySelector('.tls-label')
+  const time = el.querySelector('.tls-time')
+  let hidden = false
+  if (label && label.scrollWidth > label.clientWidth + 1) hidden = true
+  else if (time && time.scrollWidth > time.clientWidth + 1) hidden = true
+  else {
+    const inner = el.querySelector('.tls-inner')
+    if (inner && inner.scrollWidth > inner.clientWidth + 1) hidden = true
+  }
+  _textHidden.value = hidden
+  // 3. 更新 tooltip
+  const tipMode = props.segment.tooltip || 'auto'
+  if (tipMode !== 'none') {
+    const rect = el.getBoundingClientRect()
+    tooltipCtrl.show({
+      label: props.segment.label || '',
+      timeText: fmt ? fmt.formatRange(curStart, curEnd, 'tooltip') : `${curStart} – ${curEnd}`,
+      rect,
+      pos: effectiveTooltipPos.value,
+    })
+  }
+}
+
 function _onMove(e) {
   if (!_ptrActive.value) return
 
@@ -514,6 +565,18 @@ function _onMove(e) {
     }
   }
   if (_copyMode) {
+    // 复制模式中同样检测跨轨道目标（与 CE 一致）
+    if (_mode === 'move') {
+      const tgt = _detectTargetTrack(e)
+      if (tgt && tgt !== _targetTrackEl) {
+        if (_targetTrackEl) _targetTrackEl.classList.remove('tlt-drag-over')
+        _targetTrackEl = tgt
+        if (tgt) tgt.classList.add('tlt-drag-over')
+      } else if (!tgt && _targetTrackEl) {
+        _targetTrackEl.classList.remove('tlt-drag-over')
+        _targetTrackEl = null
+      }
+    }
     _updateCopyGhost(e)
     return
   }
@@ -541,39 +604,53 @@ function _onMove(e) {
   const dp = _client(e) - _ptrStart
   const dt = _px2Val(dp)
   const trackStep = props.step > 0 ? props.step : 0
-  // resize 模式的有效步长：min(trackStep, axisNiceStep/2)，确保放大后对齐轴刻度（与 CE 一致）
-  const resizeStep = _getResizeStep(trackStep)
+  // 有效步长：min(trackStep, axisNiceStep/2)，确保放大后对齐轴刻度（与 CE 一致）
+  const effStep = _getResizeStep(trackStep)
 
   // 计算像素偏移（用于 wrapperStyle 直接驱动视觉位置，不依赖父组件 model 更新）
   const dim = _segAreaRect ? (props.vertical ? _segAreaRect.height : _segAreaRect.width) : 0
   const range = props.rangeEnd - props.rangeStart
 
   if (_mode === 'resize-left') {
-    let s = snap(_s0 + dt, resizeStep)
-    // 向右拖（dt>0）：不超过原始右边缘 _e0；向左拖（dt<0）：不超过 _lo（前一段末尾）
-    s = dt > 0 ? Math.min(s, _e0) : Math.max(s, _lo)
+    let s = snap(_s0 + dt, effStep)
+    // 根据 snapped 值判断方向（与 CE 一致：使用最终值而非鼠标原始方向）
+    s = s > _s0 ? Math.min(s, _e0) : Math.max(s, _lo)
     // 将值变化转为像素偏移，直接应用到 wrapperStyle
-    _resizeDeltaPx.value = dim && range ? ((s - _s0) / range) * dim : dp
+    // 零宽点时强制 _resizeDeltaPx = _resizeBaseWidth，避免因 dim 与 pixelWidth
+    // 测量方式差异导致视觉残留数像素（getBoundingClientRect vs 父组件计算）
+    if (s >= _e0) {
+      _resizeDeltaPx.value = _resizeBaseWidth.value
+    } else {
+      _resizeDeltaPx.value = dim && range ? ((s - _s0) / range) * dim : dp
+    }
     // 把手交换：左边缘超过原始右边缘时切换为 resize-right（CE: s >= this.end && px > this._ptr0）
     if (s >= _e0 && _client(e) > _ptrStart) {
       _swapToResizeRight(e)
     }
+    _updateDragDisplay(Math.min(s, _e0), Math.max(s, _e0))
   } else if (_mode === 'resize-right') {
-    let ev = snap(_e0 + dt, resizeStep)
-    // 向左拖（dt<0）：不超过原始左边缘 _s0；向右拖（dt>0）：不超过 _hi（后一段开头）
-    ev = dt < 0 ? Math.max(ev, _s0) : Math.min(ev, _hi)
-    _resizeDeltaPx.value = dim && range ? ((ev - _e0) / range) * dim : dp
+    let ev = snap(_e0 + dt, effStep)
+    // 根据 snapped 值判断方向（与 CE 一致）
+    ev = ev < _e0 ? Math.max(ev, _s0) : Math.min(ev, _hi)
+    // 零宽点时强制 _resizeDeltaPx = -_resizeBaseWidth
+    if (ev <= _s0) {
+      _resizeDeltaPx.value = -_resizeBaseWidth.value
+    } else {
+      _resizeDeltaPx.value = dim && range ? ((ev - _e0) / range) * dim : dp
+    }
     // 把手交换：右边缘越过原始左边缘时切换为 resize-left
     if (ev <= _s0 && _client(e) < _ptrStart) {
       _swapToResizeLeft(e)
     }
+    _updateDragDisplay(Math.min(ev, _s0), Math.max(ev, _s0))
   } else if (_mode === 'move') {
     const w = _e0 - _s0
-    // move 模式使用轨道步长（不限制为轴刻度/2，允许更灵活的位置）
-    let s = snap(_s0 + dt, trackStep)
+    // move 使用与 resize 相同的有效步长（与 CE 一致：统一 effStep）
+    let s = snap(_s0 + dt, effStep)
     s = clamp(s, _lo, _hi - w)
     // 将 snap 后的值变化转为像素偏移
     _dragDeltaPx.value = dim && range ? ((s - _s0) / range) * dim : dp
+    _updateDragDisplay(s, s + w)
   }
 }
 
@@ -601,6 +678,7 @@ function _onUp(e) {
   _mode = null
   _dragDeltaPx.value = 0
   _resizeDeltaPx.value = 0
+  _dragTimeText.value = null
 
   tooltipCtrl.hide()
 
@@ -612,18 +690,18 @@ function _onUp(e) {
   const dp = _client(e) - _ptrStart
   const dt = _px2Val(dp)
   const trackStep = props.step > 0 ? props.step : 0
-  const resizeStep = _getResizeStep(trackStep)
+  const effStep = _getResizeStep(trackStep)
 
   let finalStart, finalEnd
   if (savedMode === 'move') {
     const w = _e0 - _s0
-    let s = snap(_s0 + dt, trackStep)
+    let s = snap(_s0 + dt, effStep)
     s = clamp(s, _lo, _hi - w)
     finalStart = s
     finalEnd = s + w
   } else if (savedMode === 'resize-left') {
-    let s = snap(_s0 + dt, resizeStep)
-    s = dt > 0 ? Math.min(s, _e0) : Math.max(s, _lo)
+    let s = snap(_s0 + dt, effStep)
+    s = s > _s0 ? Math.min(s, _e0) : Math.max(s, _lo)
     finalStart = s
     finalEnd = _e0
     // 最小宽度约束（与 CE minDur 一致）
@@ -631,13 +709,23 @@ function _onUp(e) {
       finalStart = finalEnd - props.minDuration
     }
   } else if (savedMode === 'resize-right') {
-    let ev = snap(_e0 + dt, resizeStep)
-    ev = dt < 0 ? Math.max(ev, _s0) : Math.min(ev, _hi)
+    let ev = snap(_e0 + dt, effStep)
+    ev = ev < _e0 ? Math.max(ev, _s0) : Math.min(ev, _hi)
     finalStart = _s0
     finalEnd = ev
     // 最小宽度约束
     if (props.minDuration > 0 && finalEnd - finalStart < props.minDuration) {
       finalEnd = finalStart + props.minDuration
+    }
+  }
+
+  // 零宽锚点（_s0 === _e0，即刚完成把手交换）释放时，dp < 5px 视为精确零宽
+  // 避免交换后鼠标微抖（2–5px 不可觉位移）产生的值偏移（如 08:53-09:00）
+  if (_s0 === _e0) {
+    const releaseDp = _client(e) - _ptrStart
+    if (Math.abs(releaseDp) < 5) {
+      finalStart = _s0
+      finalEnd = _s0
     }
   }
 
@@ -656,25 +744,39 @@ function _onUp(e) {
 /* =============================== 把手交换 =============================== */
 /** 左柄越过右边缘 → 切换为右柄模式，从零宽度位置开始向右拉伸 */
 function _swapToResizeRight(e) {
+  // ── 零宽点的像素位置：当前视觉左边缘 _resizeBaseLeft + _resizeDeltaPx
+  //   （初始交换：右边缘 pixelLeft+pixelWidth；swap-back：左边缘 pixelLeft）
+  // ── 零宽点的值：resize-left 的上界 _e0
+  //   （初始交换：14；swap-back：10，已由 _swapToResizeLeft 正确设定）
+  //   CE 版拖拽中实时更新属性值，Vue 版必须保留当前值不能回退到 props.segment.end。
+  const currentVisualLeft = _resizeBaseLeft.value + _resizeDeltaPx.value
+  const zeroVal = _e0
   _mode = 'resize-right'
   _ptrStart = _client(e)
-  // 左柄已拖到原右边缘位置，新锚点为右边缘（零宽度起点）
-  _s0 = props.segment.end
-  _e0 = props.segment.end
+  _resizeBaseLeft.value = currentVisualLeft
+  _resizeBaseWidth.value = 0
+  _s0 = zeroVal
+  _e0 = zeroVal
   _resizeDeltaPx.value = 0
   _dragging.value = false
   _resizing.value = true
-  // 重新计算边界（模式切换后左右边界可能不同）
   _computeBounds()
 }
 
 /** 右柄越过左边缘 → 切换为左柄模式，从零宽度位置开始向左拉伸 */
 function _swapToResizeLeft(e) {
+  // ── 零宽点的值：使用 resize-right 正在钳制的 _s0（可能已因此前交换从 start 变为 end）──
+  //   CE 版拖拽中实时更新 this.start/end，所以直接取 this.start 就对了；
+  //   Vue 版 props 不可变，必须保留当前的零宽值 _s0，不能回退到 props.segment.start。
+  // ── 零宽点的视觉位置：_resizeBaseLeft 应保持当前位置（不重置），
+  //   它已由 _startDrag（左边缘）或 _swapToResizeRight（右边缘）正确设定。──
+  const zeroVal = _s0
   _mode = 'resize-left'
   _ptrStart = _client(e)
-  // 右柄已拖到原左边缘位置，新锚点为左边缘（零宽度起点）
-  _s0 = props.segment.start
-  _e0 = props.segment.start
+  // 不改变 _resizeBaseLeft — 它已经指向正确的零宽点像素位置
+  _resizeBaseWidth.value = 0
+  _s0 = zeroVal
+  _e0 = zeroVal
   _resizeDeltaPx.value = 0
   _dragging.value = false
   _resizing.value = true
@@ -720,21 +822,21 @@ function onCtxMenu(e) {
     { type: 'header', label: headerLabel },
   ]
 
-  if (props.editable) {
+  if (segmentEditable.value) {
     items.push({
       label: loc.modifyProps || '修改属性',
       action: () => _editSegment(),
     })
   }
 
-  if (props.copyable) {
+  if (segmentCopyable.value) {
     items.push({
       label: loc.copySegment || '复制段',
       action: () => _copySegment(),
     })
   }
 
-  if (props.deletable) {
+  if (segmentDeletable.value) {
     items.push({
       label: loc.deleteBtnTitle || '删除',
       danger: true,
@@ -783,6 +885,8 @@ function _detectTargetTrack(e) {
   if (!el) return null
   const track = el.closest('.tlt-row')
   if (!track || track === _srcTrackEl) return null
+  // 目标轨道不可编辑时不允许跨轨道进入（与 CE _detectTargetTrack 一致）
+  if (track.dataset.editable === 'false') return null
   const srcContainer = _srcTrackEl?.closest('.tlc-container')
   const tgtContainer = track.closest('.tlc-container')
   if (srcContainer !== tgtContainer) return null
@@ -806,17 +910,35 @@ function _enterCrossTrack(e) {
 
 function _updateCrossGhost(e) {
   if (!_targetTrackEl) return
-  const rect = _targetTrackEl.querySelector('.tlt-seg-area')?.getBoundingClientRect()
+  const segArea = _targetTrackEl.querySelector('.tlt-seg-area')
+  if (!segArea) return
+  const rect = segArea.getBoundingClientRect()
   if (!rect) return
 
-  const er = { start: props.rangeStart, end: props.rangeEnd }
-  const range = er.end - er.start
+  /* 从目标轨道 DOM 读取有效范围（dragBounds 优先，fallback effRange），
+     与 TimeTrack.dragBounds / effRange 计算逻辑对齐 */
+  const tgtRS = parseFloat(_targetTrackEl.dataset.dragBoundsStart ?? _targetTrackEl.dataset.effRangeStart ?? props.rangeStart)
+  const tgtRE = parseFloat(_targetTrackEl.dataset.dragBoundsEnd ?? _targetTrackEl.dataset.effRangeEnd ?? props.rangeEnd)
+  const range = tgtRE - tgtRS
   if (!range) return
 
   const v = props.vertical
   const dim = v ? rect.height : rect.width
-  const lo = ((props.segment.start - er.start) / range) * dim
-  const hi = ((props.segment.end - er.start) / range) * dim
+  /* 鼠标在目标轨道 seg-area 内的相对位置 → 值空间 */
+  const cp = v ? e.clientY : e.clientX
+  const orig = v ? rect.top : rect.left
+  const mouseVal = tgtRS + ((cp - orig) / dim) * range
+
+  /* 保持段时长，以鼠标位置居中，吸附并钳制到目标轨道边界 */
+  const w = Math.min(_e0 - _s0, range)
+  let s = mouseVal - w / 2
+  s = snap(s, props.step || 0)
+  s = clamp(s, tgtRS, tgtRE - w)
+  const eTime = s + w
+
+  /* 像素坐标（用于 Ghost 定位） */
+  const lo = ((s - tgtRS) / range) * dim
+  const hi = ((eTime - tgtRS) / range) * dim
   const segW = Math.max(Math.abs(hi - lo), 2)
   const segL = Math.min(lo, hi)
 
@@ -852,21 +974,51 @@ function _exitCrossTrack() {
 
 function _finishCrossTrack(e) {
   const tgt = _targetTrackEl
-  _exitCrossTrack()
-  if (!tgt) return
+  if (!tgt) { _exitCrossTrack(); return }
 
-  // 将跨轨道拖放事件转发给父组件，由 Container 完成数据迁移
-  // 此处的 sourceTrackId 通过 DOM data-track-id 获取（VTimelineTrack 渲染时设置）
-  emit('context-menu', {
-    action: 'cross-track-drop',
-    sourceTrackId: _srcTrackEl?.dataset?.trackId,
-    segment: props.segment,
-  })
+  /* — 计算落位值（使用目标轨道的有效范围，与 _updateCrossGhost 一致） — */
+  const segArea = tgt.querySelector('.tlt-seg-area')
+  const rect = segArea?.getBoundingClientRect()
+  const tgtRS = parseFloat(tgt.dataset.dragBoundsStart ?? tgt.dataset.effRangeStart ?? props.rangeStart)
+  const tgtRE = parseFloat(tgt.dataset.dragBoundsEnd ?? tgt.dataset.effRangeEnd ?? props.rangeEnd)
+
+  let dropStart, dropEnd
+  if (rect && tgtRE > tgtRS) {
+    const v = props.vertical
+    const cp = v ? e.clientY : e.clientX
+    const orig = v ? rect.top : rect.left
+    const dim = v ? rect.height : rect.width
+    const range = tgtRE - tgtRS
+    const mouseVal = tgtRS + ((cp - orig) / dim) * range
+    const w = Math.min(_e0 - _s0, range)
+    let s = mouseVal - w / 2
+    s = snap(s, props.step || 0)
+    s = clamp(s, tgtRS, tgtRE - w)
+    dropStart = s
+    dropEnd = s + w
+  } else {
+    // 兜底：保持原始值
+    dropStart = _s0
+    dropEnd = _e0
+  }
+
+  _exitCrossTrack()
 
   _ptrActive.value = false
   _dragging.value = false
   _mode = null
+  _dragTimeText.value = null
   if (wrapperRef.value) wrapperRef.value.releasePointerCapture(e.pointerId)
+
+  // 携带目标轨道 ID 和落位值，由 Track → Container 完成数据迁移及重叠校验
+  emit('context-menu', {
+    action: 'cross-track-drop',
+    sourceTrackId: _srcTrackEl?.dataset?.trackId,
+    targetTrackId: tgt.dataset?.trackId,
+    segment: props.segment,
+    start: dropStart,
+    end: dropEnd,
+  })
 }
 
 /* ---- Ctrl+拖拽复制 ---- */
@@ -883,13 +1035,19 @@ function _enterCopyMode(e) {
 }
 
 function _updateCopyGhost(e) {
-  // 使用目标轨道或当前轨道的坐标范围
+  // 使用目标轨道或当前轨道的坐标范围（与 CE 一致：t = this._tgtTrack || this._track）
   const tEl = _targetTrackEl || _srcTrackEl
   if (!tEl) return
   const rect = tEl.querySelector('.tlt-seg-area')?.getBoundingClientRect()
   if (!rect) return
 
-  const er = { start: props.rangeStart, end: props.rangeEnd }
+  // 跨轨道时用目标轨道的数据集范围，否则用 props 范围
+  const er = _targetTrackEl
+    ? {
+        start: parseFloat(_targetTrackEl.dataset.dragBoundsStart ?? _targetTrackEl.dataset.effRangeStart ?? props.rangeStart),
+        end:   parseFloat(_targetTrackEl.dataset.dragBoundsEnd   ?? _targetTrackEl.dataset.effRangeEnd   ?? props.rangeEnd),
+      }
+    : { start: props.rangeStart, end: props.rangeEnd }
   const range = er.end - er.start
   if (!range) return
 
@@ -900,7 +1058,7 @@ function _updateCopyGhost(e) {
   const w = _e0 - _s0
   let s = _s0 + dt
   s = snap(s, props.step || 0)
-  s = clamp(s, props.rangeStart, props.rangeEnd - w)
+  s = clamp(s, er.start, er.end - w)
   const eTime = s + w
 
   const v = props.vertical
@@ -937,33 +1095,70 @@ function _finishCopy(e) {
   _copyMode = false
   _ctrlOnDown = false
 
+  // 跨轨道复制 → 传递 targetTrackId 给 Container，在目标轨道创建新段
+  const targetTrackId = _targetTrackEl?.dataset?.trackId
+
   // 计算目标位置
   const tEl = _targetTrackEl || _srcTrackEl
   if (!tEl) {
     _ptrActive.value = false
     _dragging.value = false
     _mode = null
+    _dragTimeText.value = null
     if (_targetTrackEl) _targetTrackEl.classList.remove('tlt-drag-over')
     _targetTrackEl = null
     return
   }
 
-  const dp = _client(e) - _ptrStart
-  const range = props.rangeEnd - props.rangeStart
-  const dt = _segAreaRect ? (dp / (props.vertical ? _segAreaRect.height : _segAreaRect.width)) * range : 0
-  const w = _e0 - _s0
-  let s = snap(_s0 + dt, props.step || 0)
-  s = clamp(s, props.rangeStart, props.rangeEnd - w)
-  let eTime = s + w
-  if (eTime > props.rangeEnd) { eTime = props.rangeEnd; s = eTime - w }
+  let s, eTime, w
+  if (_targetTrackEl) {
+    // 跨轨道复制：使用目标轨道的坐标空间计算（与 CE 一致：t = this._tgtTrack）
+    const segArea = _targetTrackEl.querySelector('.tlt-seg-area')
+    const rect = segArea?.getBoundingClientRect()
+    const tgtRS = parseFloat(_targetTrackEl.dataset.dragBoundsStart ?? _targetTrackEl.dataset.effRangeStart ?? 0)
+    const tgtRE = parseFloat(_targetTrackEl.dataset.dragBoundsEnd ?? _targetTrackEl.dataset.effRangeEnd ?? 24)
+    const range = tgtRE - tgtRS
+    if (rect && range) {
+      const v = props.vertical
+      const cp = v ? e.clientY : e.clientX
+      const orig = v ? rect.top : rect.left
+      const dim = v ? rect.height : rect.width
+      const mouseVal = tgtRS + ((cp - orig) / dim) * range
+      w = _e0 - _s0
+      s = mouseVal - w / 2
+      s = snap(s, props.step || 0)
+      s = clamp(s, tgtRS, tgtRE - w)
+    } else {
+      s = _s0; w = _e0 - _s0
+    }
+    eTime = s + w
+  } else {
+    // 同轨道复制（原有逻辑）
+    const dp = _client(e) - _ptrStart
+    const range = props.rangeEnd - props.rangeStart
+    const dt = _segAreaRect ? (dp / (props.vertical ? _segAreaRect.height : _segAreaRect.width)) * range : 0
+    w = _e0 - _s0
+    s = snap(_s0 + dt, props.step || 0)
+    s = clamp(s, props.rangeStart, props.rangeEnd - w)
+    eTime = s + w
+    if (eTime > props.rangeEnd) { eTime = props.rangeEnd; s = eTime - w }
+  }
 
-  // 段数上限校验由 Container 在 onSegChange(copyFrom) 中处理（与 CE addSegment → _checkSegmentLimit 等效）
+  // 段数上限校验由 Container 处理（与 CE addSegment → _checkSegmentLimit 等效）
   // emit 创建事件（带 copyFrom 标记，Container 会据此创建新段而非移动原段）
-  emit('change', { id: props.segment.id, start: s, end: eTime, copyFrom: props.segment.id })
+  // 跨轨道复制时携带 targetTrackId，让 Container 在目标轨道创建
+  emit('change', {
+    id: props.segment.id,
+    start: s,
+    end: eTime,
+    copyFrom: props.segment.id,
+    targetTrackId,
+  })
 
   _ptrActive.value = false
   _dragging.value = false
   _mode = null
+  _dragTimeText.value = null
   if (_targetTrackEl) _targetTrackEl.classList.remove('tlt-drag-over')
   _targetTrackEl = null
   if (wrapperRef.value) wrapperRef.value.releasePointerCapture(e.pointerId)
@@ -1045,19 +1240,19 @@ defineExpose({
 /* 文字溢出隐藏 */
 .tls-text-hidden .tls-inner { visibility: hidden; }
 
-/* 拖拽手柄 — 与 CE 对齐：4px 宽、-2px 偏移、渐变条 */
+/* 拖拽手柄 — 3px 宽、-1.5px 偏移（缩小把手降低零宽时视觉残留） */
 .tls-hdl {
   position: absolute;
   top: 0;
   bottom: 0;
-  width: 4px;
+  width: 3px;
   z-index: 3;
   display: flex;
   align-items: center;
   justify-content: center;
 }
-.tls-hdl-left { left: -2px; }
-.tls-hdl-right { right: -2px; }
+.tls-hdl-left { left: -1.5px; }
+.tls-hdl-right { right: -1.5px; }
 .tls-hdl-bar {
   width: 3px;
   height: 50%;
@@ -1135,8 +1330,8 @@ defineExpose({
 
 <!-- 垂直模式光标 + CE 自定义 SVG 光标（需感知父轨道 .tlt-row.vertical，scoped 内无法跨组件选择） -->
 <style>
-/* 水平① grab 光标 — 与 CE 自定义 SVG 一致 */
-.tls-wrapper { cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20'%3E%3Cpath d='M10 2l-4 4h3v3H6V6L2 10l4 4v-3h3v3H6l4 4 4-4h-3v-3h3v3l4-4-4-4v3h-3V6h3z' stroke='%23fff' stroke-width='3.5' fill='none' stroke-linejoin='round' stroke-linecap='round'/%3E%3Cpath d='M10 2l-4 4h3v3H6V6L2 10l4 4v-3h3v3H6l4 4 4-4h-3v-3h3v3l4-4-4-4v3h-3V6h3z' stroke='%23444' stroke-width='2' fill='none' stroke-linejoin='round' stroke-linecap='round'/%3E%3C/svg%3E") 10 10, grab; }
+/* 水平状态光标 — SVG 小手 */
+.tls-wrapper { cursor: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='24'%20height='24'%3E%3Cg%20fill='%23444'%20stroke='%23fff'%20stroke-width='1.5'%20stroke-linejoin='round'%3E%3Crect%20x='8'%20y='12'%20width='11'%20height='9'%20rx='2.5'/%3E%3Crect%20x='9'%20y='6'%20width='3'%20height='7.5'%20rx='1.5'/%3E%3Crect%20x='12.5'%20y='5'%20width='3'%20height='8.5'%20rx='1.5'/%3E%3Crect%20x='16'%20y='6.5'%20width='3'%20height='7'%20rx='1.5'/%3E%3Crect%20x='5.5'%20y='10'%20width='3'%20height='6'%20rx='1.5'%20transform='rotate(-18%207%2013)'/%3E%3C/g%3E%3C/svg%3E") 12 12, grab; }
 /* 水平 dragging 光标 — 填充版 */
 .tls-wrapper.dragging { cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20'%3E%3Cpath d='M10 2l-4 4h3v3H6V6L2 10l4 4v-3h3v3H6l4 4 4-4h-3v-3h3v3l4-4-4-4v3h-3V6h3z' stroke='%23fff' stroke-width='3.5' fill='none' stroke-linejoin='round' stroke-linecap='round'/%3E%3Cpath d='M10 2l-4 4h3v3H6V6L2 10l4 4v-3h3v3H6l4 4 4-4h-3v-3h3v3l4-4-4-4v3h-3V6h3z' fill='%23444' stroke='none'/%3E%3C/svg%3E") 10 10, grabbing; }
 /* 水平 resize 光标 — 左右三角箭头 */
@@ -1144,12 +1339,12 @@ defineExpose({
 /* 水平手柄光标 */
 .tls-hdl { cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24'%3E%3Cpolygon points='6,12 11,5 11,19' fill='%23444' stroke='%23fff' stroke-width='1.5' stroke-linejoin='round'/%3E%3Cpolygon points='18,12 13,5 13,19' fill='%23444' stroke='%23fff' stroke-width='1.5' stroke-linejoin='round'/%3E%3C/svg%3E") 12 12, ew-resize; }
 
-/* 垂直模式：全部 ns-resize + 上下三角箭头 */
-.tlt-row.vertical .tls-wrapper { cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20'%3E%3Cpath d='M10 2l-4 4h3v3H6V6L2 10l4 4v-3h3v3H6l4 4 4-4h-3v-3h3v3l4-4-4-4v3h-3V6h3z' stroke='%23fff' stroke-width='3.5' fill='none' stroke-linejoin='round' stroke-linecap='round'/%3E%3Cpath d='M10 2l-4 4h3v3H6V6L2 10l4 4v-3h3v3H6l4 4 4-4h-3v-3h3v3l4-4-4-4v3h-3V6h3z' stroke='%23444' stroke-width='2' fill='none' stroke-linejoin='round' stroke-linecap='round'/%3E%3C/svg%3E") 10 10, grab; }
+/* 垂直模式：默认小手，拖拽/调整大小 ns-resize + 上下三角箭头 */
+.tlt-row.vertical .tls-wrapper { cursor: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='24'%20height='24'%3E%3Cg%20fill='%23444'%20stroke='%23fff'%20stroke-width='1.5'%20stroke-linejoin='round'%3E%3Crect%20x='8'%20y='12'%20width='11'%20height='9'%20rx='2.5'/%3E%3Crect%20x='9'%20y='6'%20width='3'%20height='7.5'%20rx='1.5'/%3E%3Crect%20x='12.5'%20y='5'%20width='3'%20height='8.5'%20rx='1.5'/%3E%3Crect%20x='16'%20y='6.5'%20width='3'%20height='7'%20rx='1.5'/%3E%3Crect%20x='5.5'%20y='10'%20width='3'%20height='6'%20rx='1.5'%20transform='rotate(-18%207%2013)'/%3E%3C/g%3E%3C/svg%3E") 12 12, grab; }
 .tlt-row.vertical .tls-wrapper.dragging { cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20'%3E%3Cpath d='M10 2l-4 4h3v3H6V6L2 10l4 4v-3h3v3H6l4 4 4-4h-3v-3h3v3l4-4-4-4v3h-3V6h3z' stroke='%23fff' stroke-width='3.5' fill='none' stroke-linejoin='round' stroke-linecap='round'/%3E%3Cpath d='M10 2l-4 4h3v3H6V6L2 10l4 4v-3h3v3H6l4 4 4-4h-3v-3h3v3l4-4-4-4v3h-3V6h3z' fill='%23444' stroke='none'/%3E%3C/svg%3E") 10 10, grabbing; }
 .tlt-row.vertical .tls-wrapper.resizing { cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24'%3E%3Cpolygon points='12,6 5,11 19,11' fill='%23444' stroke='%23fff' stroke-width='1.5' stroke-linejoin='round'/%3E%3Cpolygon points='12,18 5,13 19,13' fill='%23444' stroke='%23fff' stroke-width='1.5' stroke-linejoin='round'/%3E%3C/svg%3E") 12 12, ns-resize; }
 .tlt-row.vertical .tls-hdl { cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24'%3E%3Cpolygon points='12,6 5,11 19,11' fill='%23444' stroke='%23fff' stroke-width='1.5' stroke-linejoin='round'/%3E%3Cpolygon points='12,18 5,13 19,13' fill='%23444' stroke='%23fff' stroke-width='1.5' stroke-linejoin='round'/%3E%3C/svg%3E") 12 12, ns-resize; }
 /* 垂直手柄位置 */
-.tlt-row.vertical .tls-hdl-left { top: -2px; left: 0; right: 0; bottom: auto; width: auto; height: 4px; }
-.tlt-row.vertical .tls-hdl-right { bottom: -2px; left: 0; right: 0; top: auto; width: auto; height: 4px; }
+.tlt-row.vertical .tls-hdl-left { top: -1.5px; left: 0; right: 0; bottom: auto; width: auto; height: 3px; }
+.tlt-row.vertical .tls-hdl-right { bottom: -1.5px; left: 0; right: 0; top: auto; width: auto; height: 3px; }
 </style>

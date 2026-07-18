@@ -93,9 +93,9 @@ export function useTooltip() {
         break
     }
 
-    // 设为可见
+    // 设为可见（class 拆为独立 side 和 align，匹配 CSS .tls-global-tip.top::after 选择器）
     _state.visible = true
-    _state.posClass = `${side}-${align}`
+    _state.posClass = `${side} ${align}`
     _state.arrowStyle = arrowStyle
     _state.top = top
     _state.left = left

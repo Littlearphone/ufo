@@ -4,7 +4,7 @@
  * @module TimeSegment
  */
 
-import { clamp, h, snap, nextKey } from '../shared/utils.js'
+import { clamp, h, nextKey, snap } from '../shared/utils.js'
 import { createFormatter } from '../shared/formatter.js'
 import { hideGlobalTip, showGlobalTip } from './tooltip.js'
 import { hideContextMenu, showContextMenu, showDeleteConfirm, showSegmentEditDialog } from './contextmenu.js'
@@ -541,7 +541,12 @@ export class TimeSegment extends HTMLElement {
 
     // 强制回排后检查截断状态，同步更新 tooltip
     void this.offsetHeight
-    this._refreshTooltip()
+    // 拖拽中始终显示 tooltip（仅在 tooltip=none 时跳过），与 Vue 版行为一致
+    if (this._ptrActive) {
+      if (this.tooltip !== 'none') showGlobalTip(this)
+    } else {
+      this._refreshTooltip()
+    }
 
     this.dispatchEvent(new CustomEvent('segment-change', {
       bubbles: true, detail: { segment: this, key: this.key, start: this.start, end: this.end }
@@ -833,10 +838,12 @@ export class TimeSegment extends HTMLElement {
     const segL = Math.min(lo, hi)
 
     // 定位采用 fixed，坐标来自 getBoundingClientRect（视口相对）
+    // 显式设置 opacity 0.7 半透明，与 CSS .tlt-cross-ghost.show 一致
     Object.assign(this._ghost.style, {
       position: 'fixed',
       zIndex: '9999',
       pointerEvents: 'none',
+      opacity: '0.7',
       ...(v
         ? { left: rect.left + 'px', top: rect.top + segL + 'px', width: rect.width + 'px', height: segW + 'px' }
         : { left: rect.left + segL + 'px', top: rect.top + 'px', width: segW + 'px', height: rect.height + 'px' }),
@@ -848,13 +855,10 @@ export class TimeSegment extends HTMLElement {
     if (this._tgtTrack) this._tgtTrack.classList.remove('tlt-drag-over')
     this._tgtTrack = null
     this.style.visibility = ''
+    // 立即移除 ghost，不播放退场动画（避免回到源轨道时 ghost 滞留）
     if (this._ghost) {
-      // 退场动画后移除
-      this._ghost.classList.remove('show')
-      this._ghost.classList.add('hide')
-      const g = this._ghost
+      this._ghost.remove()
       this._ghost = null
-      setTimeout(() => { if (g.parentNode) g.remove() }, 200)
     }
   }
 

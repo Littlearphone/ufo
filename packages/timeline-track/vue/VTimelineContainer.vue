@@ -364,30 +364,43 @@ const tracks = computed(() => props.modelValue)
 
 /* =============================== 段事件 =============================== */
 
-function onSegChange({ trackId, id, start, end, copyFrom }) {
+function onSegChange({ trackId, id, start, end, copyFrom, targetTrackId }) {
   const list = [...props.modelValue]
   const tIdx = list.findIndex(t => t.id === trackId)
   if (tIdx < 0) return
 
   // Ctrl+拖拽复制：创建新段，不移动原段
   if (copyFrom) {
+    // 跨轨道复制：使用 targetTrackId 指定的目标轨道，否则使用源轨道（同轨道复制）
+    const effectiveTrackId = targetTrackId || trackId
+    const tgtIdx = list.findIndex(t => t.id === effectiveTrackId)
+    if (tgtIdx < 0) return
+
+    // 找源段数据（同轨道时为源轨道，跨轨道时为源轨道中的段）
     const srcTrack = list[tIdx]
     const srcSeg = srcTrack.segments.find(s => s.id === copyFrom)
     if (!srcSeg) return
 
-    // 校验段数上限（与 CE _finishCopy 一致）
-    const maxSegs = resolveMaxSegments(srcTrack)
-    if (maxSegs > 0 && srcTrack.segments.length >= maxSegs) {
-      emit('seg-copy-error', { trackId, sourceId: copyFrom, start, end, reason: 'segment-limit' })
+    // 校验：目标轨道可编辑
+    if (resolveEditable(list[tgtIdx]) === false) {
+      emit('seg-copy-error', { trackId, targetTrackId, sourceId: copyFrom, start, end, reason: 'track-not-editable' })
       return
     }
 
-    // 校验与已有段重叠
-    const overlap = srcTrack.segments.find(s =>
-      s.id !== copyFrom && start < s.end && end > s.start
+    // 校验段数上限（与 CE _finishCopy 一致）
+    const tgtTrack = list[tgtIdx]
+    const maxSegs = resolveMaxSegments(tgtTrack)
+    if (maxSegs > 0 && tgtTrack.segments.length >= maxSegs) {
+      emit('seg-copy-error', { trackId, targetTrackId: effectiveTrackId, sourceId: copyFrom, start, end, reason: 'segment-limit' })
+      return
+    }
+
+    // 校验与目标轨道已有段重叠
+    const overlap = (tgtTrack.segments || []).find(s =>
+      start < s.end && end > s.start
     )
     if (overlap) {
-      emit('seg-copy-error', { trackId, sourceId: copyFrom, start, end, reason: 'overlap' })
+      emit('seg-copy-error', { trackId, targetTrackId: effectiveTrackId, sourceId: copyFrom, start, end, reason: 'overlap' })
       return
     }
 
@@ -396,12 +409,12 @@ function onSegChange({ trackId, id, start, end, copyFrom }) {
       start,
       end,
       label: srcSeg.label || '',
-      color: srcSeg.color || resolveDefaultColor(srcTrack),
+      color: srcSeg.color || resolveDefaultColor(tgtTrack),
     }
-    const segs = [...srcTrack.segments, newSeg]
-    list[tIdx] = { ...srcTrack, segments: segs }
+    const segs = [...(tgtTrack.segments || []), newSeg]
+    list[tgtIdx] = { ...tgtTrack, segments: segs }
     emit('update:modelValue', list)
-    emit('seg-created', { trackId, segment: newSeg })
+    emit('seg-created', { trackId: effectiveTrackId, segment: newSeg })
     return
   }
 
@@ -451,18 +464,41 @@ function onTrackContextMenu(e) {
     const tgtIdx = list.findIndex(t => t.id === e.targetTrackId)
     if (srcIdx < 0 || tgtIdx < 0) return
 
-    // 从源轨道移除段
     const srcTrack = list[srcIdx]
     const segToMove = srcTrack.segments.find(s => s.id === e.segment.id)
     if (!segToMove) return
+
+    // 使用段计算的目标落位值（已根据目标轨道有效范围吸附 + 边界钳制）
+    const dropStart = e.start != null ? e.start : segToMove.start
+    const dropEnd = e.end != null ? e.end : segToMove.end
+    if (dropStart >= dropEnd) return
+
+    const tgtTrack = list[tgtIdx]
+
+    // 校验：目标轨道可编辑（与 CE _finishCrossTrack 一致）
+    if (resolveEditable(tgtTrack) === false) return
+
+    // 校验：目标轨道段数上限（与 CE _finishCrossTrack 一致）
+    const maxSegs = resolveMaxSegments(tgtTrack)
+    if (maxSegs > 0 && tgtTrack.segments.length >= maxSegs) return
+
+    // 校验：最小持续长度（与 CE minDur 一致）
+    const minDur = resolveMinDuration(tgtTrack)
+    if (dropEnd - dropStart < minDur) return
+
+    // 校验：与目标轨道已有段重叠（与 CE _finishCrossTrack 一致）
+    const overlap = tgtTrack.segments.some(s =>
+      dropStart < s.end && dropEnd > s.start
+    )
+    if (overlap) return
+
+    // 通过全部校验：从源轨道移除
     const srcSegs = srcTrack.segments.filter(s => s.id !== e.segment.id)
     list[srcIdx] = { ...srcTrack, segments: srcSegs }
 
-    // 添加到目标轨道（校验段数上限）
-    const tgtTrack = list[tgtIdx]
-    const maxSegs = resolveMaxSegments(tgtTrack)
-    if (maxSegs > 0 && tgtTrack.segments.length >= maxSegs) return
-    const tgtSegs = [...tgtTrack.segments, { ...segToMove }]
+    // 添加到目标轨道（使用落位值）
+    const movedSeg = { ...segToMove, start: dropStart, end: dropEnd }
+    const tgtSegs = [...tgtTrack.segments, movedSeg]
     list[tgtIdx] = { ...tgtTrack, segments: tgtSegs }
 
     emit('update:modelValue', list)
@@ -622,11 +658,15 @@ function _getMaxZoomRange() {
 
 function _zoomAtRatio(ratio, factor) {
   let vs, ve
-  if (props.zoomStart != null && props.zoomEnd != null) {
+  // 允许单独设置 zoomStart 或 zoomEnd（与 CE 一致）
+  if (props.zoomStart != null) {
     vs = formatter.value.parse(props.zoomStart, sharedRange.value.start)
-    ve = formatter.value.parse(props.zoomEnd, sharedRange.value.end)
   } else {
     vs = sharedRange.value.start
+  }
+  if (props.zoomEnd != null) {
+    ve = formatter.value.parse(props.zoomEnd, sharedRange.value.end)
+  } else {
     ve = sharedRange.value.end
   }
 
@@ -659,21 +699,34 @@ function zoomTo(start, end) { emit('update:zoomStart', start); emit('update:zoom
 function zoomReset() { emit('update:zoomStart', null); emit('update:zoomEnd', null) }
 function zoomFit() { zoomReset() }
 
-/** Ctrl+滚轮缩放 */
+/** Ctrl+滚轮缩放（与 CE _wheelZoom 对齐） */
 function onWheel(e) {
   if (!e.ctrlKey && !e.metaKey) return
   e.preventDefault()
 
-  // 找到鼠标下的轨道
-  const trackEl = e.target.closest('.tlt-row')
-  if (!trackEl) return
-  const segArea = trackEl.querySelector('.tlt-seg-area')
-  if (!segArea) return
-  const areaRect = segArea.getBoundingClientRect()
   const isV = props.direction === 'vertical'
+  const tracksVal = tracks.value
+  if (!tracksVal.length) return
+
+  // 使用 elementFromPoint 查找鼠标下轨道（与 CE 一致，不受事件目标影响）
+  let areaRect = null
+  const hovered = document.elementFromPoint(e.clientX, e.clientY)
+  if (hovered) {
+    const row = hovered.closest('.tlt-row')
+    if (row) {
+      const segArea = row.querySelector('.tlt-seg-area')
+      if (segArea) areaRect = segArea.getBoundingClientRect()
+    }
+  }
+  // 回退：用第一条轨道
+  if (!areaRect) {
+    const first = document.querySelector('.tlt-row .tlt-seg-area')
+    if (first) areaRect = first.getBoundingClientRect()
+  }
+  if (!areaRect || !areaRect.width || !areaRect.height) return
+
   const cp = isV ? e.clientY - areaRect.top : e.clientX - areaRect.left
   const dim = isV ? areaRect.height : areaRect.width
-  if (!dim) return
 
   const ratio = clamp(cp / dim, 0, 1)
   const factor = e.deltaY > 0 ? 1.2 : 1 / 1.2

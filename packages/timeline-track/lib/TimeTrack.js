@@ -5,7 +5,7 @@
  */
 
 import { ensureCSS } from './css.js'
-import { clamp, h, snap, nextKey } from '../shared/utils.js'
+import { clamp, h, nextKey, snap } from '../shared/utils.js'
 import { showContextMenu, showCopyToTracksDialog, showDeleteConfirm, showTrackEditDialog } from './contextmenu.js'
 import { resolveLocale } from '../shared/locale.js'
 import { clearClipboard, copyToClipboard, getClipboard } from './clipboard.js'
@@ -968,11 +968,11 @@ export class TimeTrack extends HTMLElement {
 
     // 三向约束：最小宽度不超过可用空间 & 实际宽度不超可用空间
     // 解释：
-    //   1) Math.min(6, avail) — 尽量让段至少有 6px 可见，但受限于可用空间
+    //   1) Math.min(2, avail) — 尽量让段至少有 6px 可见，但受限于可用空间
     //   2) Math.max(p2 - p1, ...) — 至少等于时间计算出来的自然宽度
     //   3) Math.min(..., avail) — 绝对不能超出到下一段的空间（防止时间重叠的段溢出）
     //   → 极端场景（avail < 1px）：段变为细线但不会重叠
-    const minW  = Math.min(6, avail)
+    const minW  = Math.min(2, avail)
     const segW  = Math.min(Math.max(p2 - p1, minW), avail)
 
     if (v) {
@@ -1041,7 +1041,7 @@ export class TimeTrack extends HTMLElement {
         if (nStart >= p2) rightBound = nStart
       }
       const avail = rightBound - p1
-      const minW = Math.min(6, avail)
+      const minW = Math.min(2, avail)
       const segW = Math.min(Math.max(p2 - p1, minW), avail)
 
       if (v) {
