@@ -7,86 +7,90 @@
  * @module locale
  */
 
-/** Default English locale */
+/** Default Chinese locale — 与 CLAUDE.md 文档保持一致 */
 export const DEFAULT_LOCALE = {
   /** Fallback display name when a track/segment has no label */
-  unnamed: 'Untitled',
+  unnamed: '未命名',
   /** Title tooltip on segment delete button */
-  deleteBtnTitle: 'Delete',
+  deleteBtnTitle: '删除',
   /** Context menu item — edit properties */
-  modifyProps: 'Edit Properties',
+  modifyProps: '修改属性',
   /** Context menu item — delete track */
-  deleteTrack: 'Delete Track',
+  deleteTrack: '删除轨道',
   /** Context menu item — clear all segments */
-  clearSegments: 'Clear Segments',
+  clearSegments: '清空时间段',
   /** Track context menu header template, {name}=track name */
   trackMenuHeader: '📋 {name}',
   /** Segment context menu header template, {name}=segment name, {range}=time range */
   segmentMenuHeader: '🔖 {name}  {range}',
   /** Delete track confirmation template, {name}=track name, {range}=time range */
-  confirmDeleteTrack: 'Delete track "{name}" ({range})?',
+  confirmDeleteTrack: '确定要删除轨道「{name}」({range}) 吗？',
   /** Delete segment confirmation template */
-  confirmDeleteSegment: 'Delete segment "{name}" ({range})?',
+  confirmDeleteSegment: '确定要删除时间段「{name}」({range}) 吗？',
   /** Clear all segments confirmation template, {name}=track name */
-  confirmClearSegments: 'Clear all segments in track "{name}"?',
+  confirmClearSegments: '确定要清空轨道「{name}」的所有时间段吗？',
 
   /* ---- Copy / Paste ---- */
   /** Context menu — copy segment */
-  copySegment: 'Copy Segment',
+  copySegment: '复制段',
   /** Context menu — copy track */
-  copyTrack: 'Copy Track',
+  copyTrack: '复制轨道',
   /** Context menu — copy to other tracks */
-  copyToTracks: 'Copy to Tracks…',
+  copyToTracks: '复制到其他轨道…',
   /** Context menu — paste segment */
-  pasteSegment: 'Paste Segment',
+  pasteSegment: '粘贴段',
   /** Context menu — paste as new track */
-  pasteNewTrack: 'Paste as New Track',
+  pasteNewTrack: '粘贴为新轨道',
   /** Context menu — paste and overwrite this track */
-  pasteOverwrite: 'Paste to This Track',
+  pasteOverwrite: '覆盖粘贴到本轨道',
   /** Copy-to-tracks dialog title, {name}=source track name */
-  copyToTracksTitle: 'Copy segments of "{name}" to:',
+  copyToTracksTitle: '将「{name}」的段复制到：',
   /** Copy-to-tracks dialog when no targets available */
-  copyToTracksEmpty: 'No available target tracks (target must be editable and different from source)',
+  copyToTracksEmpty: '没有可用的目标轨道（目标必须可编辑且与来源不同）',
   /** Select all */
-  copySelectAll: 'Select All',
+  copySelectAll: '全选',
   /** Segment count unit (e.g. "5 segments") */
-  segmentUnit: 'segments',
+  segmentUnit: '个时间段',
 
   /* ---- Edit Dialogs ---- */
-  segmentEditTitle: 'Edit Segment',
-  trackEditTitle: 'Edit Track',
-  labelField: 'Label',
-  startTime: 'Start Time',
-  endTime: 'End Time',
-  rangeStart: 'Start',
-  rangeEnd: 'End',
-  color: 'Color',
-  name: 'Name',
-  step: 'Step',
-  maxSegmentsField: 'Max Segments',
-  zeroUnlimited: '0=Unlimited',
+  segmentEditTitle: '修改时间段属性',
+  trackEditTitle: '修改轨道属性',
+  labelField: '标签',
+  startTime: '开始时间',
+  endTime: '结束时间',
+  rangeStart: '起始',
+  rangeEnd: '结束',
+  color: '颜色',
+  name: '名称',
+  step: '步长',
+  maxSegmentsField: '最大段数',
+  zeroUnlimited: '0=无限制',
 
   /* ---- Buttons ---- */
-  cancel: 'Cancel',
-  confirm: 'OK',
-  confirmDeleteTitle: 'Confirm Delete',
+  cancel: '取消',
+  confirm: '确定',
+  confirmDelete: '确定删除',
+  confirmDeleteTitle: '确认删除',
 
   /* ---- Time units --- */
-  hourUnit: 'h',
-  minuteUnit: 'm',
-  secondUnit: 's',
+  hourUnit: '时',
+  minuteUnit: '分',
+  secondUnit: '秒',
+
+  /* ---- Fallback text for invalid time ---- */
+  invalidTime: '--:--',
 
   /* ---- Step hint ---- */
-  stepHint: 'Step {step} (click to adjust)',
+  stepHint: '步长 {step}（点击调整）',
 
   /* ---- Validation messages ---- */
-  invalidValue: 'Invalid value',
-  startMustBeBeforeEnd: 'Start must be before end',
+  invalidValue: '无效值',
+  startMustBeBeforeEnd: '起始必须早于结束',
   /**
    * Overlap hint shown below the field
    * Placeholder: {label}=conflicting segment name
    */
-  overlapHint: 'Overlaps with "{label}"',
+  overlapHint: '与「{label}」重叠',
 
   /* ---- Axis ruler ---- */
   /**
@@ -103,7 +107,7 @@ export const DEFAULT_LOCALE = {
    * {label}=conflicting segment name,
    * {segStart}/{segEnd}=conflicting segment range.
    */
-  segmentOverlapError: 'Segment overlap: new [{start}–{end}] conflicts with "{label}" [{segStart}–{segEnd}]',
+  segmentOverlapError: '时间段重叠：新段 [{start}–{end}] 与已有段「{label}」[{segStart}–{segEnd}] 冲突',
 }
 
 /**

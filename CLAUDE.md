@@ -551,6 +551,195 @@ time-line-container[axis-mode="shared"] time-line-track:hover .tlt-row {
 - 浮层透明度 `0.7`，可透视查看下方是否存在已有段
 - 浮层带阴影效果、显示完整段内容（标签 + 时间范围）
 
+## Vue 3 纯组件包装（`packages/*/vue/`）
+
+`vue/` 目录提供纯 Vue 3 组件，**不依赖 Custom Elements**，使用 Vue template 渲染，完全支持 `v-for` / `v-model` / `@event` 等 Vue 特性。每个组件包独立提供。
+
+**核心优势：** Props → 数据驱动的声明式渲染、事件向上冒泡、Teleport 全局门户（Tooltip / ContextMenu / Modal）。
+
+> ⚠️ 与 `lib/` Custom Elements 是**两套独立实现**，功能完全对齐。使用同一套 `shared/` 工具（`formatter.js` / `locale.js` / `utils.js`）。
+
+### 组件列表
+
+| 组件 | 文件 | 对应 CE | 功能 |
+|---|---|---|---|
+| `VTimelineContainer` | `vue/VTimelineContainer.vue` | `<time-line-container>` | 容器、布局、共享轴、缩放、CRUD 权限、locale、Tooltip/ContextMenu/Modal 门户 |
+| `VTimelineTrack` | `vue/VTimelineTrack.vue` | `<time-line-track>` | 轨道、网格 Canvas、拖拽创建新段、右键菜单、复制/粘贴/清空 |
+| `VTimelineSegment` | `vue/VTimelineSegment.vue` | `<time-line-segment>` | 段、拖拽移动/调整大小（含把手交换）、跨轨道拖拽、Ctrl+拖拽复制、Tooltip、右键菜单、选中模式、文字截断检测 |
+
+### 门户组件（Portal）
+
+通过 `<Teleport to="body">` 渲染的全局 UI，与 lib 包行为一致：
+
+| 组件 | 文件 | 功能 |
+|---|---|---|
+| `TooltipPortal` | `vue/TooltipPortal.vue` | 全局 Tooltip，避免祖先 overflow 裁剪 |
+| `ContextMenuPortal` | `vue/ContextMenuPortal.vue` | 右键菜单，自动视口边界修正 |
+| `ModalPortal` | `vue/ModalPortal.vue` | 模态框（信息/确认/表单） |
+
+> 这三个门户由 `VTimelineContainer` 内部自动渲染，使用者无需手动添加。
+
+### Composables（可组合式 API）
+
+| Composable | 文件 | 功能 |
+|---|---|---|
+| `useLocale()` | `vue/useLocale.js` | 注入容器提供的 locale 对象（响应式） |
+| `useTooltip()` | `vue/useTooltip.js` | 全局 Tooltip 控制器（show/hide + 响应式 state） |
+| `useContextMenu()` | `vue/useContextMenu.js` | 右键菜单控制器（show/hide + 响应式 state） |
+| `useModal()` | `vue/useModal.js` | 模态框控制器（show/hide + 响应式 state） |
+| `useClipboard()` | `vue/useClipboard.js` | 内部剪贴板（copyToClipboard / clearClipboard / hasClipboard） |
+| `resolveLocaleFromProps(props)` | `vue/useLocale.js` | 从组件 props 解析 locale 对象 |
+| `formatLocale(tpl, params)` | `vue/useLocale.js` | 模板字符串替换 `{key}` 占位符 |
+
+### 使用方式
+
+```vue
+<script setup>
+import { ref } from 'vue'
+import { VTimelineContainer } from '@ufo/timeline-track/vue'
+
+const tracks = ref([
+  {
+    id: 'track1', label: '功能开发', start: '0', end: '24',
+    segments: [
+      { id: 'seg1', start: 8, end: 12, label: '前端', color: '#3498db' },
+      { id: 'seg2', start: 13, end: 17, label: '后端', color: '#2ecc71' },
+    ],
+  },
+])
+</script>
+
+<template>
+  <VTimelineContainer
+    v-model="tracks"
+    direction="horizontal"
+    :step="0.5"
+    type="time"
+  />
+</template>
+```
+
+### VTimelineContainer Props
+
+| Prop | 类型 | 默认值 | 说明 |
+|---|---|---|---|
+| `modelValue` | `Array` | `[]` | v-model 绑定的轨道数据 |
+| `direction` | `'horizontal'\|'vertical'` | `'horizontal'` | 布局方向 |
+| `axisMode` | `'per-track'\|'shared'` | `'per-track'` | 轴模式 |
+| `type` | `'time'\|'number'` | `'time'` | 值类型 |
+| `unit` | `string` | `'hour'` | 单位（hour/min/sec 或自定义 %/px 等） |
+| `step` | `Number\|String` | `undefined` | 容器级默认步长 |
+| `sharedStart` | `Number\|String` | `undefined` | 共享轴起始 |
+| `sharedEnd` | `Number\|String` | `undefined` | 共享轴结束 |
+| `sharedClipRange` | `Boolean` | `false` | 共享轴裁剪模式 |
+| `zoomStart` | `Number\|String` | `undefined` | 缩放起始 |
+| `zoomEnd` | `Number\|String` | `undefined` | 缩放结束 |
+| `editable` | `Boolean` | `true` | 可编辑 |
+| `deletable` | `Boolean` | `true` | 可删除 |
+| `creatable` | `Boolean` | `true` | 可创建 |
+| `clearable` | `Boolean` | `true` | 可清空 |
+| `copyable` | `Boolean` | `true` | 可复制 |
+| `borderless` | `Boolean` | `false` | 共享轴无边框模式 |
+| `defaultColor` | `String` | `'#5c9ce6'` | 段默认颜色 |
+| `globalRadius` | `String` | `'0'` | 全局圆角 |
+| `selectionMode` | `Boolean` | `false` | 点击选中模式 |
+| `tooltipPos` | `String` | `'top-center'` | Tooltip 位置（side-align） |
+| `labelH` | `'top'\|'bottom'` | `'top'` | 横向轴标签位置 |
+| `labelV` | `'left'\|'right'` | `'left'` | 纵向轴标签位置 |
+| `axisLabel` | `String` | `undefined` | 共享轴自定义标签 |
+| `loc-*` | `String` | locale 默认值 | 所有 `loc-*` 属性，如 `loc-unnamed`, `loc-cancel` |
+
+### VTimelineContainer Events
+
+| Event | Payload | 说明 |
+|---|---|---|
+| `update:modelValue` | `tracks[]` | v-model 同步 |
+| `seg-changed` | `{ trackId, id, start, end }` | 段变更完成 |
+| `seg-created` | `{ trackId, segment }` | 新段创建 |
+| `seg-deleted` | `{ trackId, id }` | 段删除 |
+
+### VTimelineTrack Props
+
+| Prop | 类型 | 默认值 | 说明 |
+|---|---|---|---|
+| `track` | `Object` | required | 轨道数据 |
+| `vertical` | `Boolean` | `false` | 纵向模式 |
+| `step` | `Number` | `0` | 步长 |
+| `minDuration` | `Number` | `0` | 最小段长度 |
+| `rangeStart` | `Number` | `0` | 范围起始 |
+| `rangeEnd` | `Number` | `24` | 范围结束 |
+| `formatter` | `Object` | `null` | Formatter 实例 |
+| `locale` | `Object` | `null` | Locale 对象（不传则从容器 inject） |
+| `editable/deletable/creatable/clearable/copyable` | `Boolean` | `true` | CRUD 权限 |
+| `maxSegments` | `Number` | `0` | 最大段数（0=无限制） |
+| `defaultColor` | `String` | `'#5c9ce6'` | 默认段颜色 |
+| `labelH/labelV` | `String` | `'top'/'left'` | 标签位置 |
+| `tooltipPos` | `String` | `'top-center'` | Tooltip 位置 |
+| `globalRadius` | `String` | `'0'` | 段圆角 |
+| `selectionMode` | `Boolean` | `false` | 选中模式 |
+| `sharedClipRange` | `Boolean` | `false` | 共享轴裁剪 |
+| `sharedStart/sharedEnd` | `Number` | `0/24` | 共享轴范围 |
+| `zoomStart/zoomEnd` | `Number` | `null` | 缩放范围 |
+
+### VTimelineTrack Events
+
+| Event | Payload | 说明 |
+|---|---|---|
+| `seg-change` | `{ trackId, id, start, end }` | 段变更 |
+| `seg-delete` | `{ trackId, id }` | 段删除 |
+| `seg-create` | `{ trackId, start, end, color? }` | 段创建 |
+
+### VTimelineSegment Props
+
+| Prop | 类型 | 默认值 | 说明 |
+|---|---|---|---|
+| `segment` | `Object` | required | 段数据 `{ id, start, end, label, color, tooltip }` |
+| `pixelLeft/Top/Width/Height` | `Number` | `0` | 像素位置（由父轨道计算） |
+| `hidden` | `Boolean` | `false` | 视觉隐藏 |
+| `step` | `Number` | `0` | 步长吸附 |
+| `minDuration` | `Number` | `0` | 最小持续长度 |
+| `editable/deletable/copyable` | `Boolean` | `true` | CRUD 权限 |
+| `vertical` | `Boolean` | `false` | 纵向模式 |
+| `rangeStart/rangeEnd` | `Number` | `0/24` | 轨道范围 |
+| `formatter` | `Object` | `null` | Formatter |
+| `locale` | `Object` | `null` | Locale（不传则 inject） |
+| `tooltipPos` | `String` | `'top-center'` | Tooltip 位置 |
+| `globalRadius` | `String` | `'0'` | 圆角 |
+| `selectionMode` | `Boolean` | `false` | 选中模式 |
+
+### VTimelineSegment Events
+
+| Event | Payload | 说明 |
+|---|---|---|
+| `change` | `{ id, start, end }` | 拖拽结束后最终位置 |
+| `delete` | `id` | 删除按钮点击 |
+| `segment-change` | `{ id, start, end }` | 拖拽中实时位置 |
+| `context-menu` | `{ action, segment, ... }` | 右键菜单操作 |
+
+### 使用快捷键
+
+| 操作 | Windows/Linux | macOS |
+|---|---|---|
+| 缩放 | Ctrl + 滚轮 | ⌘ + 滚轮 |
+| 复制拖拽 | Ctrl + 拖拽段 | ⌘ + 拖拽段 |
+
+### 右键菜单功能
+
+| 菜单项 | 作用范围 | 权限守卫 |
+|---|---|---|
+| 修改属性 | 轨道/段 | 对应 `editable` |
+| 复制段 | 段 | `segment.copyable` |
+| 复制轨道 | 轨道 | `track.copyable` |
+| 清空时间段 | 轨道 | `track.clearable` |
+| 删除轨道/段 | 轨道/段 | 对应 `deletable` |
+| 粘贴段 | 轨道（右键位置） | `track.creatable` |
+| 粘贴为新轨道 | 轨道 | `container.creatable` |
+| 覆盖粘贴到本轨道 | 轨道 | `track.deletable` |
+
+### 多容器注意事项
+
+Tooltip / ContextMenu / Modal 使用 **模块级单例**（与 lib 包一致），同一页面有多个 `VTimelineContainer` 实例时共享同一套弹出层。行为与 Custom Elements 版本完全相同。
+
 ## 设计文档
 
 重要架构变更方案在组件包根目录的 `DESIGN.md` 中记录。当前活跃方案：

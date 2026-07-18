@@ -28,7 +28,7 @@
 
       <!-- ════ Tab 4: Vue 3 集成 ════ -->
       <div class="controls-content" :class="{ active: activeTab === 4 }">
-        <Tab5Controls :container="containers[4]" @add-track="$emit('addTrack', $event)" />
+        <Tab5Controls @add-track="$emit('addTrack', $event)" />
       </div>
 
       <!-- ════ Tab 5: CRUD 权限 ════ -->

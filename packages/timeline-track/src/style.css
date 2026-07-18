@@ -827,9 +827,10 @@ time-line-segment[tooltip="none"]::after {
 }
 
 /* ── Tab 4 Vue 3 集成 ── */
-.vue-tab4 {
-  position: relative;
-  overflow: hidden;
+/* VTimelineContainer 根元素 .tlc-container 直接填满 tab-pane */
+.vue-tab4.active > .tlc-container {
+  flex: 1;
+  min-height: 0;
 }
 
 .vue-tab4-layout {

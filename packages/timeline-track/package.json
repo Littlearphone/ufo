@@ -24,7 +24,8 @@
   },
   "dependencies": {
     "prismjs": "^1.30.0",
-    "vue": "^3.5.0"
+    "vue": "^3.5.0",
+    "vue-router": "^5.2.0"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^5.2.0",

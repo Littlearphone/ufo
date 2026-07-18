@@ -1,0 +1,779 @@
+/* ═══════════════════════════════════════════
+   右键菜单 & 模态框 & Tooltip & Ghost 样式
+   引用 :root 的 CSS 变量，用户可通过 time-line-container 覆盖
+   ═══════════════════════════════════════════ */
+
+/* ── Global Tooltip (与 CE base.css .tls-global-tip 对齐) ── */
+.tls-global-tip {
+  position: fixed;
+  z-index: 99999;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity .15s;
+  background: var(--tlc-bg-tooltip, rgba(30,35,42,.92));
+  color: #fff;
+  padding: 5px 9px;
+  border-radius: var(--tlc-radius, 0);
+  font-size: 11px;
+  line-height: 1.3;
+  white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(0,0,0,.25);
+}
+.tls-global-tip.show { opacity: 1; }
+.tls-global-tip::after {
+  content: '';
+  position: absolute;
+  border: 5px solid transparent;
+}
+.tls-global-tip.top::after {
+  top: 100%;
+  border-top-color: var(--tlc-bg-tooltip, rgba(30,35,42,.92));
+  border-bottom: none;
+  left: var(--tlc-arrow-left, 50%);
+  transform: translateX(-50%);
+}
+.tls-global-tip.bottom::after {
+  bottom: 100%;
+  border-bottom-color: var(--tlc-bg-tooltip, rgba(30,35,42,.92));
+  border-top: none;
+  left: var(--tlc-arrow-left, 50%);
+  transform: translateX(-50%);
+}
+.tls-global-tip.left::after {
+  left: 100%;
+  border-left-color: var(--tlc-bg-tooltip, rgba(30,35,42,.92));
+  border-right: none;
+  top: var(--tlc-arrow-top, 50%);
+  transform: translateY(-50%);
+}
+.tls-global-tip.right::after {
+  right: 100%;
+  border-right-color: var(--tlc-bg-tooltip, rgba(30,35,42,.92));
+  border-left: none;
+  top: var(--tlc-arrow-top, 50%);
+  transform: translateY(-50%);
+}
+.tls-global-tip-label { font-weight: 600; }
+.tls-global-tip-time  { opacity: .75; font-size: 10px; }
+
+/* ── 跨轨道拖拽浮层 ── */
+.tlt-cross-ghost {
+  position: fixed;
+  z-index: 9999;
+  pointer-events: none;
+  opacity: 0;
+  transform: scale(0.88);
+  transition: opacity .12s ease, transform .12s ease;
+}
+.tlt-cross-ghost.show { opacity: 1; transform: scale(1); }
+.tlt-cross-ghost.hide {
+  transform: scale(0.88);
+  opacity: 0;
+  transition: transform 0.15s ease, opacity 0.12s ease;
+}
+.tlt-cross-ghost .tls-bar {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.tlt-cross-ghost .tls-inner {
+  color: #fff;
+  font-size: 11px;
+  line-height: 1.25;
+  text-shadow: 0 1px 2px rgba(0,0,0,.25);
+  pointer-events: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 0 14px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.tlt-cross-ghost .tls-label { font-weight: 600; }
+.tlt-cross-ghost .tls-time  { font-size: 10px; opacity: .82; }
+
+/* 成功落位闪光 — 与 CE @keyframes tlt-ghost-flash 对齐 */
+@keyframes tlt-ghost-flash {
+  0%   { filter: brightness(1); transform: scale(1); opacity: 0.92; }
+  40%  { filter: brightness(1.25); transform: scale(1.04); opacity: 1; }
+  100% { filter: brightness(1.6); transform: scale(0.7); opacity: 0; }
+}
+.tlt-cross-ghost.success {
+  animation: tlt-ghost-flash 0.22s ease-out forwards;
+  pointer-events: none;
+}
+
+/* ── 共享轴裁剪模式遮罩 ── */
+.tlt-clip-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+}
+.tlt-clip-overlay .tlt-clip-block {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  background: repeating-linear-gradient(
+    -45deg,
+    rgba(160, 167, 175, 0.38) 0px,
+    rgba(160, 167, 175, 0.38) 8px,
+    rgba(180, 186, 192, 0.30) 8px,
+    rgba(180, 186, 192, 0.30) 16px
+  );
+  border-right: 1px solid rgba(130, 138, 148, 0.5);
+  pointer-events: none;
+  transition: opacity 0.25s;
+}
+.tlt-clip-overlay .tlt-clip-block + .tlt-clip-block {
+  border-right: none;
+  border-left: 1px solid rgba(130, 138, 148, 0.5);
+}
+
+/* ── 共享轴纵向模式轴尺 ── */
+.tlc-axis-ruler {
+  display: flex;
+  align-items: stretch;
+  flex-shrink: 0;
+  background: var(--tlc-axis-bg, var(--tlc-bg, #f8f9fb));
+  border-bottom: 1px solid var(--tlc-border, #dfe3e8);
+}
+.tlc-dir-vertical .tlc-axis-ruler {
+  top: auto;
+  left: 0;
+  flex-direction: column;
+  width: 44px;
+  min-width: 44px;
+  border-bottom: none;
+  border-right: 1px solid var(--tlc-border, #dfe3e8);
+}
+.tlc-dir-vertical .tlc-axis-ruler .tlc-axis-spacer {
+  width: auto;
+  min-width: auto;
+  height: 28px;
+  min-height: 28px;
+  padding: 0 4px;
+  border-bottom: 1px solid var(--tlc-border-light, #e5e8ec);
+}
+.tlc-dir-vertical .tlc-axis-ruler .tlc-axis-range {
+  display: none;
+}
+.tlc-dir-vertical .tlc-axis-ruler .tlc-axis-body {
+  height: auto;
+  min-height: 0;
+  flex: 1;
+}
+
+/* ── 共享轴无边框模式 ── */
+.tlc-container.tlc-borderless .tlt-row {
+  border: none !important;
+  border-radius: 0 !important;
+}
+.tlc-container.tlc-borderless .tlt-head {
+  border-right: none !important;
+}
+.tlc-dir-vertical.tlc-container.tlc-borderless .tlt-head {
+  border-bottom: none !important;
+  border-right: none !important;
+}
+
+/* ── 跨轨道拖拽：目标轨道高亮 ── */
+.tlt-row.tlt-drag-over {
+  box-shadow: inset 0 0 0 2px var(--tlc-primary, #4285f4);
+  background: rgba(66,133,244,.04);
+}
+.tlt-row.tlt-drag-over .tlt-body {
+  background: rgba(66,133,244,.02);
+}
+
+/* ── Context Menu ── */
+.tlc-context-menu {
+  position: fixed;
+  z-index: 100000;
+  background: var(--tlc-bg-card);
+  border: 1px solid var(--tlc-border);
+  border-radius: var(--tlc-radius-md);
+  box-shadow: var(--tlc-shadow-panel);
+  padding: 4px 0;
+  min-width: 148px;
+  opacity: 0;
+  transform-origin: top left;
+  transform: scale(0.92);
+  transition: opacity .1s ease, transform .1s ease;
+  pointer-events: none;
+  font-family: var(--tlc-font);
+  font-size: 12px;
+  user-select: none;
+}
+.tlc-context-menu.show {
+  opacity: 1;
+  transform: scale(1);
+  pointer-events: auto;
+}
+.tlc-context-item {
+  padding: 7px 14px;
+  cursor: pointer;
+  color: var(--tlc-text);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: background .09s;
+  white-space: nowrap;
+}
+.tlc-context-item:hover {
+  background: var(--tlc-bg-hover);
+}
+.tlc-context-item:active {
+  background: var(--tlc-bg-active);
+}
+.tlc-context-header {
+  padding: 7px 14px 5px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--tlc-text-muted);
+  cursor: default;
+  border-bottom: 1px solid #f0f0f0;
+  margin-bottom: 4px;
+  white-space: nowrap;
+  line-height: 1.4;
+}
+.tlc-context-item-danger {
+  color: var(--tlc-danger);
+}
+.tlc-context-item-danger:hover {
+  background: #fbe9e7;
+}
+.tlc-context-item-danger:active {
+  background: #f5d0cc;
+}
+.tlc-context-divider {
+  height: 1px;
+  background: var(--tlc-bg-active);
+  margin: 4px 0;
+}
+
+/* ── Modal Overlay ── */
+.tlc-modal-overlay {
+  position: fixed;
+  z-index: 100001;
+  inset: 0;
+  background: rgba(0,0,0,.32);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity .18s ease;
+  pointer-events: none;
+}
+.tlc-modal-overlay.show {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* ── Modal Card ── */
+.tlc-modal {
+  background: var(--tlc-bg-card);
+  border-radius: var(--tlc-radius-lg);
+  box-shadow: var(--tlc-shadow-modal);
+  min-width: 300px;
+  max-width: 420px;
+  width: 90vw;
+  transform: scale(0.94) translateY(8px);
+  transition: transform .18s ease;
+  font-family: var(--tlc-font);
+  font-size: 13px;
+  color: var(--tlc-text);
+}
+.tlc-modal-overlay.show .tlc-modal {
+  transform: scale(1) translateY(0);
+}
+.tlc-modal-header {
+  padding: 14px 18px 10px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+.tlc-modal-body {
+  padding: 8px 18px 14px;
+  max-height: 400px;
+  overflow-y: auto;
+}
+.tlc-modal-body label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+  font-size: 12px;
+  color: var(--tlc-text-secondary);
+}
+.tlc-modal-body label > span {
+  min-width: 56px;
+  flex-shrink: 0;
+  text-align: right;
+  color: #666;
+}
+.tlc-modal-body input {
+  flex: 1;
+  padding: 5px 9px;
+  border: 1px solid var(--tlc-border-input);
+  border-radius: var(--tlc-radius-sm);
+  font-size: 12px;
+  font-family: inherit;
+  outline: none;
+  transition: border-color .12s, box-shadow .12s;
+}
+.tlc-modal-body input:focus {
+  border-color: var(--tlc-primary);
+  box-shadow: 0 0 0 2px rgba(66,133,244,.15);
+}
+.tlc-modal-body input[type="color"] {
+  min-height: 30px;
+  padding: 2px 3px;
+  cursor: pointer;
+  flex: 0 0 48px;
+}
+.tlc-modal-body p {
+  margin: 4px 0;
+  font-size: 13px;
+  color: #444;
+  line-height: 1.5;
+}
+.tlc-modal-body .tlc-modal-hint {
+  font-size: 11px;
+  color: var(--tlc-text-muted);
+  margin-top: -4px;
+  margin-bottom: 8px;
+}
+.tlc-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 10px 18px 14px;
+}
+.tlc-btn {
+  padding: 6px 18px;
+  border: 1px solid var(--tlc-border-input);
+  border-radius: var(--tlc-radius-sm);
+  background: var(--tlc-bg-card);
+  cursor: pointer;
+  font-size: 12px;
+  font-family: inherit;
+  transition: background .09s, border-color .09s;
+  color: #444;
+}
+.tlc-btn:hover {
+  background: #f5f6f8;
+  border-color: #c0c5cc;
+}
+.tlc-btn:active {
+  background: var(--tlc-bg-active);
+}
+.tlc-btn-primary {
+  background: var(--tlc-primary);
+  color: #fff;
+  border-color: var(--tlc-primary);
+}
+.tlc-btn-primary:hover {
+  background: var(--tlc-primary-hover);
+  border-color: var(--tlc-primary-hover);
+}
+.tlc-btn-primary:active {
+  background: var(--tlc-primary-active);
+}
+.tlc-btn-danger {
+  background: var(--tlc-danger);
+  color: #fff;
+  border-color: var(--tlc-danger);
+}
+.tlc-btn-danger:hover {
+  background: var(--tlc-danger-hover);
+  border-color: var(--tlc-danger-hover);
+}
+.tlc-btn-danger:active {
+  background: var(--tlc-danger-active);
+}
+
+/* ── Stepper Buttons ── */
+.tlc-step-btns {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--tlc-border-input);
+  border-radius: var(--tlc-radius-sm);
+  flex-shrink: 0;
+  overflow: hidden;
+}
+.tlc-step-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  flex: 1;
+  min-height: 15px;
+  border: none;
+  border-radius: 0;
+  background: #f8f9fa;
+  cursor: pointer;
+  font-size: 7px;
+  line-height: 1;
+  padding: 0;
+  color: var(--tlc-text-secondary);
+  transition: background .09s;
+  user-select: none;
+  outline: none;
+}
+.tlc-step-btn:hover {
+  background: var(--tlc-bg-active);
+}
+.tlc-step-btn:active {
+  background: var(--tlc-border-input);
+}
+.tlc-step-btn + .tlc-step-btn {
+  border-top: 1px solid #e0e3e8;
+}
+
+/* ── Stacked Form Fields ── */
+.tlc-field {
+  margin-bottom: 10px;
+}
+.tlc-field-label {
+  display: block;
+  margin-bottom: 3px;
+  font-size: 12px;
+  color: #666;
+  line-height: 1.4;
+}
+.tlc-field-input {
+  display: block;
+  width: 100%;
+  padding: 5px 9px;
+  border: 1px solid var(--tlc-border-input);
+  border-radius: var(--tlc-radius-sm);
+  font-size: 13px;
+  font-family: inherit;
+  outline: none;
+  transition: border-color .12s, box-shadow .12s;
+  box-sizing: border-box;
+}
+.tlc-field-input:focus {
+  border-color: var(--tlc-primary);
+  box-shadow: 0 0 0 2px rgba(66,133,244,.15);
+}
+.tlc-field-hint {
+  display: block;
+  margin-top: 2px;
+  font-size: 11px;
+  color: var(--tlc-text-muted);
+}
+.tlc-field-error {
+  display: block;
+  margin-top: 2px;
+  font-size: 11px;
+  color: var(--tlc-danger);
+  line-height: 1.3;
+  min-height: 0;
+}
+.tlc-field-error:empty {
+  display: none;
+}
+
+/* ── Time Field Columns (per-unit, independent stepper) ── */
+.tlc-tf-row {
+  display: flex;
+  align-items: stretch;
+  gap: 3px;
+  width: 100%;
+}
+.tlc-tf-col {
+  display: flex;
+  align-items: stretch;
+  flex: 1;
+  min-width: 0;
+  position: relative;
+}
+
+/* ── Time Control: 各列统一外边框 ── */
+.tlc-time-control .tlc-tf-col {
+  border: 1px solid var(--tlc-border-input);
+  border-radius: var(--tlc-radius-sm);
+  overflow: hidden;
+}
+.tlc-time-control .tlc-tf-input {
+  border: none;
+  padding: 5px 9px;
+  border-radius: 0;
+}
+.tlc-time-control .tlc-tf-steps {
+  border: none;
+  border-radius: 0;
+}
+.tlc-time-control .tlc-tf-col:focus-within {
+  border-color: var(--tlc-primary);
+  box-shadow: 0 0 0 2px rgba(66,133,244,.15);
+}
+.tlc-time-control .tlc-tf-input:focus {
+  box-shadow: none;
+}
+.tlc-time-control .tlc-tf-col.tlc-input-error {
+  border-color: var(--tlc-danger);
+  box-shadow: 0 0 0 2px rgba(229,57,53,.15);
+}
+
+.tlc-tf-input {
+  width: 100%;
+  min-width: 0;
+  text-align: center;
+  padding: 4px 22px 4px 2px;
+  border: 1px solid var(--tlc-border-input);
+  border-right: none;
+  border-radius: var(--tlc-radius-sm) 0 0 var(--tlc-radius-sm);
+  font-size: 15px;
+  font-family: inherit;
+  font-variant-numeric: tabular-nums;
+  outline: none;
+  box-sizing: border-box;
+  -moz-appearance: textfield;
+  transition: border-color .12s, box-shadow .12s;
+  background: var(--tlc-bg-card);
+}
+.tlc-tf-input::-webkit-inner-spin-button,
+.tlc-tf-input::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.tlc-tf-input:focus {
+  border-color: var(--tlc-primary);
+  box-shadow: 0 0 0 2px rgba(66,133,244,.15);
+  z-index: 1;
+  position: relative;
+}
+.tlc-tf-suffix {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  font-size: 11px;
+  color: var(--tlc-text-muted);
+  user-select: none;
+  pointer-events: none;
+  line-height: 1;
+  padding: 0 4px 0 4px;
+}
+.tlc-tf-colon {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--tlc-text-secondary);
+  user-select: none;
+  padding: 0 1px;
+}
+.tlc-tf-steps {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--tlc-border-input);
+  border-radius: 0 var(--tlc-radius-sm) var(--tlc-radius-sm) 0;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.tlc-tf-step {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: #f8f9fa;
+  cursor: pointer;
+  font-size: 6px;
+  line-height: 1;
+  padding: 0 4px;
+  min-height: 13px;
+  color: var(--tlc-text-secondary);
+  transition: background .09s;
+  user-select: none;
+  outline: none;
+}
+.tlc-tf-step:hover { background: var(--tlc-bg-active); }
+.tlc-tf-step:active { background: var(--tlc-border-input); }
+.tlc-tf-step + .tlc-tf-step { border-top: 1px solid #e0e3e8; }
+.tlc-time-control .tlc-field-error { margin-top: 4px; }
+.tlc-number-control .tlc-tf-steps { margin-left: 4px; }
+
+/* ── Number Control: 输入框与步进统一外边框 ── */
+.tlc-number-control .tlc-tf-row {
+  border: 1px solid var(--tlc-border-input);
+  border-radius: var(--tlc-radius-sm);
+  overflow: hidden;
+  gap: 0;
+}
+.tlc-number-control .tlc-tf-col {
+  border: none;
+  overflow: visible;
+}
+.tlc-number-control .tlc-field-input {
+  border: none;
+  border-radius: 0;
+}
+.tlc-number-control .tlc-tf-steps {
+  border: none;
+  border-radius: 0;
+  margin-left: 0;
+}
+.tlc-number-control .tlc-tf-row:focus-within {
+  border-color: var(--tlc-primary);
+  box-shadow: 0 0 0 2px rgba(66,133,244,.15);
+}
+.tlc-number-control .tlc-field-input:focus {
+  box-shadow: none;
+}
+.tlc-number-control.tlc-input-error .tlc-tf-row,
+.tlc-number-control .tlc-tf-row.tlc-input-error {
+  border-color: var(--tlc-danger);
+  box-shadow: 0 0 0 2px rgba(229,57,53,.15);
+}
+
+/* ── Color Picker with Presets ── */
+.tlc-color-control {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tlc-color-control input[type="color"] {
+  width: 36px;
+  height: 26px;
+  padding: 2px;
+  border: 1px solid var(--tlc-border-input);
+  border-radius: var(--tlc-radius-sm);
+  cursor: pointer;
+  box-sizing: border-box;
+  flex-shrink: 0;
+}
+.tlc-color-presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  flex: 1;
+}
+.tlc-color-swatch {
+  width: 20px;
+  height: 20px;
+  border-radius: 2px;
+  border: 1.5px solid rgba(0,0,0,.10);
+  cursor: pointer;
+  padding: 0;
+  outline: none;
+  transition: transform .1s, box-shadow .1s;
+  box-sizing: border-box;
+}
+.tlc-color-swatch:hover {
+  transform: scale(1.25);
+  box-shadow: 0 1px 5px rgba(0,0,0,.25);
+  border-color: rgba(0,0,0,.2);
+}
+.tlc-color-swatch:active {
+  transform: scale(1.08);
+}
+
+/* ── 输入框文字对齐切换（父元素添加 tlc-text-left / tlc-text-center）── */
+.tlc-text-left .tlc-tf-input,
+.tlc-text-left .tlc-field-input {
+  text-align: left !important;
+}
+.tlc-text-center .tlc-tf-input,
+.tlc-text-center .tlc-field-input {
+  text-align: center !important;
+}
+
+/* ── 复制到其他轨道弹窗：轨道列表项 ── */
+/* 用 .tlc-modal-body 前缀提升特异性，覆盖通用 .tlc-modal-body label > span 规则 */
+.tlc-modal-body .tlc-copy-track-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 8px;
+  margin: 0;
+  cursor: pointer;
+  font-size: 12px;
+  user-select: none;
+  border-radius: 6px;
+  transition: background .09s;
+  color: inherit;
+}
+.tlc-modal-body .tlc-copy-track-item:hover {
+  background: #f5f7fa;
+}
+.tlc-modal-body .tlc-copy-track-item .tlc-copy-track-name,
+.tlc-modal-body .tlc-copy-toggle-item .tlc-copy-track-name {
+  flex: 1;
+  font-weight: 500;
+  color: #2c3e50;
+  text-align: left;
+  min-width: 0;
+}
+.tlc-modal-body .tlc-copy-track-item .tlc-copy-track-meta {
+  font-size: 10px;
+  color: #aab3bf;
+  flex-shrink: 0;
+  text-align: left;
+  min-width: 0;
+}
+.tlc-modal-body .tlc-copy-track-item .tlc-copy-track-check,
+.tlc-modal-body .tlc-copy-toggle-item .tlc-copy-track-check {
+  width: 14px;
+  height: 14px;
+  min-width: 14px;
+  border: 1.5px solid #cdd3db;
+  border-radius: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all .1s;
+  flex-shrink: 0;
+  box-sizing: border-box;
+}
+.tlc-modal-body .tlc-copy-track-item:has(input:checked) .tlc-copy-track-check,
+.tlc-modal-body .tlc-copy-toggle-item:has(input:checked) .tlc-copy-track-check {
+  background: var(--tlc-primary);
+  border-color: var(--tlc-primary);
+}
+.tlc-modal-body .tlc-copy-track-item:has(input:checked) .tlc-copy-track-check::after,
+.tlc-modal-body .tlc-copy-toggle-item:has(input:checked) .tlc-copy-track-check::after {
+  content: '✓';
+  color: #fff;
+  font-size: 9px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+/* ── 全选行 + 分割线 ── */
+.tlc-copy-track-header {
+  border-bottom: 1px solid #e8eaed;
+  margin-bottom: 4px;
+  padding-bottom: 4px;
+}
+.tlc-copy-toggle-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 8px;
+  cursor: pointer;
+  font-size: 12px;
+  user-select: none;
+  border-radius: 6px;
+  transition: background .09s;
+  color: inherit;
+  margin: 0;
+}
+.tlc-copy-toggle-item:hover {
+  background: #f5f7fa;
+}
+.tlc-copy-toggle-label {
+  font-weight: 600;
+  color: #37474f;
+}

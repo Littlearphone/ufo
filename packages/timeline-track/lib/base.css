@@ -247,27 +247,26 @@ time-line-segment .tls-time  { font-size: 10px; opacity: .82; }
 
 time-line-segment .tls-del {
   position: absolute;
-  top: -2px;
-  right: -2px;
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  background: var(--tlc-danger);
-  color: #fff;
-  border: 2px solid #fff;
-  cursor: pointer;
-  font-size: 12px;
-  line-height: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  opacity: 0;
-  transition: opacity .14s, transform .14s;
-  z-index: 15;
+  top: 0;
+  right: 0;
+  z-index: 4;
+  width: 16px;
+  height: 16px;
   padding: 0;
-  box-shadow: var(--tlc-shadow-sm);
+  border: none;
+  background: rgba(0,0,0,.35);
+  color: #fff;
+  font-size: 11px;
+  line-height: 16px;
+  text-align: center;
+  border-radius: 0 0 0 4px;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity .12s;
 }
-time-line-segment .tls-del:hover { transform: scale(1.15); }
+time-line-segment .tls-del:hover {
+  background: rgba(200,0,0,.7);
+}
 time-line-segment:hover .tls-del { opacity: 1; }
 time-line-segment.dragging .tls-del,
 time-line-segment.resizing .tls-del { opacity: 0; }

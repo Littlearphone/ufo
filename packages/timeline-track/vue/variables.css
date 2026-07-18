@@ -1,0 +1,68 @@
+/* ═══════════════════════════════════════════
+   Vue 组件 CSS 自定义属性
+   与 lib/base.css 保持完全一致，支持用户通过 time-line-container 覆盖
+   作为非 scoped 样式由 VTimelineContainer 引入
+   ═══════════════════════════════════════════ */
+
+:root {
+  /* System */
+  --tlc-bg: #f8f9fb;
+  --tlc-axis-bg: var(--tlc-bg);
+  --tlc-border: #dfe3e8;
+  --tlc-radius: 0;
+  --tlc-padding: 14px 16px;
+  --tlc-gap: 10px;
+
+  /* Brand */
+  --tlc-primary: #4285f4;
+  --tlc-primary-hover: #3b78e7;
+  --tlc-primary-active: #3367d6;
+  --tlc-danger: #e53935;
+  --tlc-danger-hover: #d32f2f;
+  --tlc-danger-active: #c62828;
+
+  /* Surfaces */
+  --tlc-bg-card: #fff;
+  --tlc-bg-hover: #f0f2f5;
+  --tlc-bg-active: #e8eaed;
+  --tlc-bg-tooltip: rgba(30,35,42,.92);
+
+  /* Text */
+  --tlc-text: #333;
+  --tlc-text-secondary: #555;
+  --tlc-text-muted: #999;
+
+  /* Borders */
+  --tlc-border-input: #d0d4da;
+  --tlc-border-light: #e5e8ec;
+
+  /* Shadows */
+  --tlc-shadow-sm: 0 1px 4px rgba(0,0,0,.2);
+  --tlc-shadow-panel: 0 4px 20px rgba(0,0,0,.14);
+  --tlc-shadow-modal: 0 12px 40px rgba(0,0,0,.18);
+
+  /* Radii */
+  --tlc-radius-sm: 3px;
+  --tlc-radius-md: 4px;
+  --tlc-radius-lg: 6px;
+
+  /* Font */
+  --tlc-font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+/* Track CSS 变量（与 lib/base.css time-line-track 一致） */
+.tlc-container {
+  --tlt-header-w: 110px;
+  --tlt-row-h: 70px;
+  --tlt-row-w: 150px;
+  --tlt-row-min-h: 280px;
+  --tlt-seg-top: 18px;
+  --tlt-seg-bottom: 0px;
+  --tls-height: 100%;
+  --tls-width: 100%;
+}
+
+/* 全局段圆角 */
+.tlc-container {
+  --tls-global-radius: 0;
+}
