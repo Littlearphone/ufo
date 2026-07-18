@@ -22,16 +22,29 @@ function keyToAttr(key) {
 }
 
 /**
+ * 将 kebab-case 转为 camelCase
+ * loc-confirm-delete-track → locConfirmDeleteTrack
+ * @param {string} str
+ * @returns {string}
+ */
+function kebabToCamel(str) {
+  return str.replace(/-([a-z])/g, (_, c) => c.toUpperCase())
+}
+
+/**
  * 从 props 中提取所有 loc-* 属性并合并到 DEFAULT_LOCALE
+ * 注意：只检查 loc-* 前缀的属性（kebab-case 和 camelCase 两种形式），
+ * 不 fallback 到同名的普通 prop，避免将组件 prop 值（如 rangeStart）误赋给 locale label。
  * @param {Record<string, any>} props - 组件 props 对象
  * @returns {Record<string, string>} 合并后的 locale 对象
  */
 export function resolveLocaleFromProps(props) {
   const locale = { ...DEFAULT_LOCALE }
   for (const key of Object.keys(DEFAULT_LOCALE)) {
-    const attrKey = keyToAttr(key)
-    // Vue 会把 kebab-case props 转为 camelCase，所以同时检查两种形式
-    const val = props[attrKey] ?? props[key]
+    const attrKey = keyToAttr(key)  // e.g. 'loc-range-start'
+    // Vue 会把 kebab-case attrs 转为 camelCase 形式在 props 上可用
+    const camelKey = kebabToCamel(attrKey)  // e.g. 'locRangeStart'
+    const val = props[camelKey] ?? props[attrKey]
     if (val != null) {
       locale[key] = String(val)
     }

@@ -50,6 +50,7 @@ export function useModal() {
     _state.danger = config.danger || false
     _state.formData = config.formData || {}
     _state.formFields = config.formFields || []
+    _state.data = config.data || {}
   }
 
   function hide() {

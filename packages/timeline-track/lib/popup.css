@@ -318,6 +318,7 @@
   border: none;
   padding: 5px 9px;
   border-radius: 0;
+  text-align: left;
 }
 .tlc-time-control .tlc-tf-steps {
   border: none;
@@ -499,6 +500,35 @@
 .tlc-text-center .tlc-tf-input,
 .tlc-text-center .tlc-field-input {
   text-align: center !important;
+}
+
+/* ── 下拉快选面板 ── */
+.tlc-tf-dropdown-panel {
+  background: var(--tlc-bg-card, #fff);
+  border: 1px solid var(--tlc-border, #dfe3e8);
+  border-radius: var(--tlc-radius-sm, 4px);
+  box-shadow: 0 4px 16px rgba(0,0,0,.15);
+  max-height: 220px;
+  overflow-y: auto;
+  min-width: 90px;
+}
+.tlc-tf-dropdown-item {
+  padding: 5px 12px;
+  font-size: 12px;
+  cursor: pointer;
+  color: var(--tlc-text, #333);
+  transition: background .09s;
+  font-variant-numeric: tabular-nums;
+}
+.tlc-tf-dropdown-item:hover { background: #f0f4ff; }
+.tlc-tf-dropdown-item.active,
+.tlc-tf-dropdown-item:active {
+  background: var(--tlc-primary, #4285f4);
+  color: #fff;
+}
+/* 时间分列下拉居中，与 input text-align:center 对齐 */
+.tlc-time-control .tlc-tf-dropdown-item {
+  text-align: center;
 }
 
 /* ── 复制到其他轨道弹窗：轨道列表项 ── */

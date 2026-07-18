@@ -63,7 +63,8 @@ watch(() => props.state.visible, (visible) => {
 })
 
 function onItemClick(item) {
-  if (item.action) item.action()
+  // 先通知父组件关闭菜单（避免遮挡后续弹窗），再执行操作
   emit('action', item)
+  if (item.action) item.action()
 }
 </script>

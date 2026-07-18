@@ -24,6 +24,7 @@ let _menuClickHandler = null
  * 关闭所有弹出层（右键菜单 + 模态框）
  */
 export function closeAll() {
+  _closeDropdown()
   hideContextMenu()
   closeModal()
 }
@@ -174,6 +175,7 @@ function _showModal() {
  * 关闭模态框
  */
 export function closeModal() {
+  _closeDropdown()
   if (_overlay) {
     _overlay.classList.remove('show')
     if (_modalEl && _modalEl.parentNode === _overlay) {
@@ -626,6 +628,179 @@ function _initFormControls(modal, fmt) {
       col.classList.toggle('tlc-input-error', isError)
     })
   })
+
+  // ── ▾ 下拉快选 ──
+  _initDropdowns(modal, fmt, isTime)
+}
+
+/* ============================ ▾ 下拉快选 ============================ */
+
+let _dropdownEl = null
+let _ddCloseHandler = null
+let _ddBlurEl = null
+let _ddBlurHandler = null
+
+/**
+ * 生成下拉快选选项
+ * @param {import('./formatter.js').ValueFormatter} fmt
+ * @param {number} min
+ * @param {number} max
+ * @param {number} step
+ * @returns {Array<{value:number, label:string}>}
+ */
+function _buildDropdownOptions(fmt, min, max, step) {
+  step = step || Math.max((max - min) / 24, 1)
+  const range = max - min
+  const effStep = range / Math.min(range / step, 48) || step
+  const opts = []
+  for (let v = min; v <= max + effStep / 2; v += effStep) {
+    const clamped = Math.min(Math.max(v, min), max)
+    const label = fmt.format(clamped, 'editor')
+    if (!opts.length || opts[opts.length - 1].label !== label) {
+      opts.push({ value: clamped, label })
+    }
+  }
+  return opts
+}
+
+/** 关闭下拉面板 */
+function _closeDropdown() {
+  if (_dropdownEl) {
+    _dropdownEl.remove()
+    _dropdownEl = null
+  }
+  if (_ddCloseHandler) {
+    document.removeEventListener('pointerdown', _ddCloseHandler, true)
+    _ddCloseHandler = null
+  }
+  // 移除输入框 blur 监听（Tab 键失焦关闭）
+  if (_ddBlurEl && _ddBlurHandler) {
+    _ddBlurEl.removeEventListener('blur', _ddBlurHandler)
+    _ddBlurEl = null
+    _ddBlurHandler = null
+  }
+}
+
+/**
+ * 初始化下拉快选：各列独立下拉（时列 00-23，分/秒列按步进）
+ * @param {HTMLElement} modal
+ * @param {import('./formatter.js').ValueFormatter} fmt
+ * @param {boolean} isTime
+ */
+function _initDropdowns(modal, fmt, isTime) {
+  // ── 时间控件：每列独立下拉 ──
+  if (isTime) {
+    modal.querySelectorAll('.tlc-time-control .tlc-tf-col').forEach(col => {
+      const input = col.querySelector('.tlc-tf-input')
+      if (!input) return
+      const part = col.dataset.part  // 'h' | 'm' | 's'
+      const control = col.closest('.tlc-time-control')
+
+      const showDropdown = () => {
+        _closeDropdown()
+        // 生成该列的选项
+        let opts = []
+        if (part === 'h') {
+          // 小时：00-24（24:00 是有效终点）
+          for (let v = 0; v <= 24; v++) opts.push(String(v).padStart(2, '0'))
+        } else {
+          // 分/秒：00-59
+          for (let v = 0; v <= 59; v++) opts.push(String(v).padStart(2, '0'))
+        }
+
+        _renderDropdownPanel(opts, col, (val) => {
+          input.value = val
+          input.dispatchEvent(new Event('input', { bubbles: true }))
+          // 选 24 点时，分秒强制为 00
+          if (part === 'h' && val === '24') {
+            const mInput = control.querySelector('.tlc-tf-col[data-part="m"] .tlc-tf-input')
+            const sInput = control.querySelector('.tlc-tf-col[data-part="s"] .tlc-tf-input')
+            if (mInput) { mInput.value = '00'; mInput.dispatchEvent(new Event('input', { bubbles: true })) }
+            if (sInput) { sInput.value = '00'; sInput.dispatchEvent(new Event('input', { bubbles: true })) }
+          }
+        }, input)
+      }
+
+      input.addEventListener('focus', showDropdown)
+      input.addEventListener('click', () => { if (!_dropdownEl) showDropdown() })
+    })
+  }
+
+  // ── 数值控件 ──
+  modal.querySelectorAll('.tlc-number-control .tlc-field-input').forEach(input => {
+    const control = input.closest('.tlc-number-control')
+    const showDropdown = () => {
+      _closeDropdown()
+      const min = parseFloat(control.dataset.min) || 0
+      const max = parseFloat(control.dataset.max) || 100
+      const step = control.dataset.step ? parseFloat(control.dataset.step) : 1
+      const opts = _buildDropdownOptions(fmt, min, max, step)
+
+      _renderDropdownPanel(opts, input, (label) => {
+        input.value = label
+        input.dispatchEvent(new Event('input', { bubbles: true }))
+      }, input)
+    }
+    input.addEventListener('focus', showDropdown)
+    input.addEventListener('click', () => { if (!_dropdownEl) showDropdown() })
+  })
+}
+
+/**
+ * 渲染下拉面板（固定定位在锚点元素下方，对齐整列宽度）
+ * @param {Array<{value:number, label:string}>|string[]} opts
+ * @param {HTMLElement} anchor - 锚点元素（如 .tlc-tf-col）
+ * @param {Function} onSelect - 选中回调 (val) => void
+ * @param {HTMLElement} [blurInput] - 可选，失焦时自动关闭下拉的输入框
+ */
+function _renderDropdownPanel(opts, anchor, onSelect, blurInput) {
+  _dropdownEl = document.createElement('div')
+  _dropdownEl.className = 'tlc-tf-dropdown-panel'
+  opts.forEach(o => {
+    const label = typeof o === 'string' ? o : o.label
+    const item = document.createElement('div')
+    item.className = 'tlc-tf-dropdown-item'
+    item.textContent = label
+    item.addEventListener('pointerdown', (e) => {
+      e.preventDefault()
+      onSelect(label)
+      _closeDropdown()
+    })
+    _dropdownEl.appendChild(item)
+  })
+
+  const r = anchor.getBoundingClientRect()
+  _dropdownEl.style.position = 'fixed'
+  _dropdownEl.style.top = (r.bottom + 4) + 'px'
+  _dropdownEl.style.left = r.left + 'px'
+  _dropdownEl.style.width = r.width + 'px'
+  _dropdownEl.style.zIndex = '200000'
+  document.body.appendChild(_dropdownEl)
+
+  // 自动滚动到当前值位置
+  if (blurInput) {
+    const cur = blurInput.value
+    const items = _dropdownEl.querySelectorAll('.tlc-tf-dropdown-item')
+    for (const item of items) {
+      if (item.textContent === cur) {
+        item.classList.add('active')
+        item.scrollIntoView({ block: 'nearest' })
+        break
+      }
+    }
+  }
+
+  _ddCloseHandler = (ev) => {
+    if (!_dropdownEl.contains(ev.target) && ev.target !== input) _closeDropdown()
+  }
+  document.addEventListener('pointerdown', _ddCloseHandler, true)
+
+  // Blur：输入框失焦时关闭下拉（Tab 键、点击其他可聚焦元素等）
+  if (blurInput) {
+    _ddBlurEl = blurInput
+    _ddBlurHandler = () => _closeDropdown()
+    blurInput.addEventListener('blur', _ddBlurHandler)
+  }
 }
 
 /* ============================ SHARED DIALOG HELPERS ============================ */

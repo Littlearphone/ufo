@@ -1,10 +1,11 @@
 # UFO — 自定义元素组件库
 
-## Development Rules
+## 开发规则
 
-- NEVER run development servers (e.g., `npm run dev`, `vite`) automatically.
-- Do not run any long-running or non-terminating background processes.
-- Only run build (`npm run build`) or linting/testing commands if needed to verify code.
+- 禁止自动运行开发服务器（如 `npm run dev`、`vite`）。
+- 不要运行任何长时间执行或不终止的后台进程。
+- 仅在需要验证代码时运行构建（`npm run build`）或 lint/测试命令。
+- **修改 lib（Custom Elements）包时，必须同步检查 vue 包的行为一致性；反之亦然。** 重点关注交互行为（点击、聚焦、失焦、键盘导航）、下拉面板定位与文字对齐、右键菜单/模态框行为。确保两个包的体验完全一致。
 
 ## 项目概览
 

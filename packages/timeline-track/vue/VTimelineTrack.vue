@@ -733,9 +733,13 @@ function _editTrack() {
     title: loc.trackEditTitle || '编辑轨道',
     formFields: [
       { name: 'label', type: 'text', label: loc.name || '名称', value: props.track.label || '' },
-      { name: 'start', type: isTime ? 'time' : 'number', label: loc.rangeStart || '起始', value: props.rangeStart },
-      { name: 'end', type: isTime ? 'time' : 'number', label: loc.rangeEnd || '结束', value: props.rangeEnd },
-      { name: 'step', type: 'text', label: loc.step || '步长', value: props.track.step != null ? String(props.track.step) : '' },
+      { name: 'start', type: isTime ? 'time' : 'number', label: loc.rangeStart || '起始',
+      value: fmt ? fmt.format(props.rangeStart, 'editor') : props.rangeStart,
+      step: (props.step || (isTime ? 0.5 : 1)), min: props.rangeStart, max: props.rangeEnd },
+      { name: 'end', type: isTime ? 'time' : 'number', label: loc.rangeEnd || '结束',
+      value: fmt ? fmt.format(props.rangeEnd, 'editor') : props.rangeEnd,
+      step: (props.step || (isTime ? 0.5 : 1)), min: props.rangeStart, max: props.rangeEnd },
+      { name: 'step', type: 'text', label: loc.step || '步长', value: String(props.step || ''), placeholder: loc.zeroUnlimited || '0=无限制' },
       { name: 'maxSegments', type: 'text', label: loc.maxSegmentsField || '最大段数', value: props.track.maxSegments || '', placeholder: loc.zeroUnlimited || '0=无限制' },
     ],
     onConfirm: (values) => {

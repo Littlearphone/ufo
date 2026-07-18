@@ -62,6 +62,7 @@
     <ContextMenuPortal :state="ctxMenuCtrl.state" @action="onCtxMenuAction" />
     <ModalPortal
       :state="modalCtrl.state"
+      :formatter="formatter"
       :cancel-text="locale.cancel"
       :confirm-text="locale.confirm"
       @confirm="onModalConfirm"
@@ -505,14 +506,23 @@ function onTrackContextMenu(e) {
     const fmt = formatter.value
     const seg = e.segment
     const isTime = fmt ? fmt.format(0, 'editor').includes(':') : true
+    // 查找轨道数据以确定范围/步长
+    const trackData = props.modelValue.find(t => t.id === e.trackId)
+    const trackStart = trackData && fmt ? fmt.parse(trackData.start, 0) : 0
+    const trackEnd = trackData && fmt ? fmt.parse(trackData.end, 24) : 24
+    const trackStep = resolveStep(trackData || {})
 
     modalCtrl.show({
       type: 'edit-segment',
       title: loc.segmentEditTitle || '修改时间段属性',
       formFields: [
         { name: 'label', type: 'text', label: loc.labelField || '标签', value: seg.label || '' },
-        { name: 'start', type: isTime ? 'time' : 'text', label: loc.startTime || '开始时间', value: seg.start },
-        { name: 'end', type: isTime ? 'time' : 'text', label: loc.endTime || '结束时间', value: seg.end },
+        { name: 'start', type: isTime ? 'time' : 'text', label: loc.startTime || '开始时间',
+          value: fmt ? fmt.format(seg.start, 'editor') : seg.start,
+          step: isTime ? trackStep : undefined, min: trackStart, max: trackEnd },
+        { name: 'end', type: isTime ? 'time' : 'text', label: loc.endTime || '结束时间',
+          value: fmt ? fmt.format(seg.end, 'editor') : seg.end,
+          step: isTime ? trackStep : undefined, min: trackStart, max: trackEnd },
         { name: 'color', type: 'color', label: loc.color || '颜色', value: seg.color || '' },
       ],
       onConfirm: (values) => {
@@ -555,7 +565,7 @@ function onTrackContextMenu(e) {
       label: vals.label != null ? vals.label : list[tIdx].label,
       start: vals.start != null ? String(fmt.parse(vals.start, 0)) : list[tIdx].start,
       end: vals.end != null ? String(fmt.parse(vals.end, 24)) : list[tIdx].end,
-      step: vals.step != null ? vals.step : list[tIdx].step,
+      step: vals.step != null && vals.step !== '' ? vals.step : undefined,
       maxSegments: vals.maxSegments != null ? parseInt(vals.maxSegments, 10) || 0 : list[tIdx].maxSegments,
     }
     emit('update:modelValue', list)
@@ -567,8 +577,8 @@ function onTrackContextMenu(e) {
     const srcTrack = props.modelValue.find(t => t.id === e.trackId)
     if (!srcTrack) return
     const loc = locale.value
-    // 收集可编辑的目标轨道（排除源轨道自身）
-    const targets = props.modelValue.filter(t => t.id !== e.trackId && resolveEditable(t))
+    // 与 CE 一致：filter 目标轨道使用 deletable（复制会清空目标轨道后重建）
+    const targets = props.modelValue.filter(t => t.id !== e.trackId && resolveDeletable(t))
     if (!targets.length) {
       modalCtrl.show({
         type: 'custom',
@@ -588,7 +598,7 @@ function onTrackContextMenu(e) {
         label: t.label || loc.unnamed || '未命名',
         value: false,
       })),
-      data: { sourceTrackId: e.trackId, targetTracks: targets },
+      data: { sourceTrackId: e.trackId, targetTracks: targets, unnamedText: loc.unnamed || '未命名' },
       onConfirm: (values) => {
         const list = [...props.modelValue]
         const srcIdx = list.findIndex(t => t.id === e.trackId)
@@ -598,11 +608,12 @@ function onTrackContextMenu(e) {
           if (!values[`track_${t.id}`]) continue
           const tgtIdx = list.findIndex(tr => tr.id === t.id)
           if (tgtIdx < 0) continue
+          // 与 CE 一致：清空目标轨道后重建
           const copies = source.segments.map(s => ({
             id: crypto.randomUUID ? crypto.randomUUID() : `vseg_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
             start: s.start, end: s.end, label: s.label || '', color: s.color || '',
           }))
-          list[tgtIdx] = { ...list[tgtIdx], segments: [...list[tgtIdx].segments, ...copies] }
+          list[tgtIdx] = { ...list[tgtIdx], segments: [...copies] }
         }
         emit('update:modelValue', list)
         modalCtrl.hide()
@@ -1028,6 +1039,13 @@ function onModalCancel() {
 
 function onModalFieldInput({ index, value }) {
   // 供外部覆盖
+}
+
+/* =============================== 右键菜单回调 =============================== */
+
+/** 点选菜单项后关闭右键菜单（item.action 已在 ContextMenuPortal 中执行） */
+function onCtxMenuAction() {
+  ctxMenuCtrl.hide()
 }
 
 /* =============================== 暴露公共 API =============================== */
