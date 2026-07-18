@@ -1107,7 +1107,9 @@ export function showTrackEditDialog(track) {
       h('input', { class: 'tlc-field-input', name: 'maxSegments', type: 'text', inputmode: 'numeric', placeholder: loc.zeroUnlimited, value: track.maxSegments || '' }),
     ),
   ]
-  _showEditDialog(modal, loc, loc.trackEditTitle, bodyChildren, track.tStart, track.tEnd, step, fmt, track)
+  // 从轨道头部（label 区域）展开，而非轨道中心
+  const headEl = track.querySelector('.tlt-head') || track
+  _showEditDialog(modal, loc, loc.trackEditTitle, bodyChildren, track.tStart, track.tEnd, step, fmt, headEl)
 
   modal.querySelector('[data-action="confirm"]').addEventListener('click', () => {
     _clearErrors(modal)

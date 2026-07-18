@@ -8,7 +8,7 @@
     :data-drag-bounds-start="dragBounds.start"
     :data-drag-bounds-end="dragBounds.end">
     <!-- 轨道头部 -->
-    <div class="tlt-head">
+    <div class="tlt-head" ref="headRef">
       <span class="tlt-head-label" :title="labelText">{{ labelText }}</span>
       <span v-if="_showRangeLabel" class="tlt-head-range">{{ rangeLabel }}</span>
     </div>
@@ -140,6 +140,7 @@ const modalCtrl = useModal()
 /* =============================== Refs =============================== */
 
 const bodyRef = ref(null)
+const headRef = ref(null)
 const canvasRef = ref(null)
 const segAreaRef = ref(null)
 
@@ -732,7 +733,7 @@ function _editTrack() {
   modalCtrl.show({
     type: 'edit-track',
     title: loc.trackEditTitle || '编辑轨道',
-    originEl: bodyRef.value,  // 从轨道位置展开
+    originEl: headRef.value,  // 从轨道头部（label 区域）展开
     formFields: [
       { name: 'label', type: 'text', label: loc.name || '名称', value: props.track.label || '' },
       { name: 'start', type: isTime ? 'time' : 'number', label: loc.rangeStart || '起始',
