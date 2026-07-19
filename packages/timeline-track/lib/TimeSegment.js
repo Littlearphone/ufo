@@ -55,6 +55,70 @@ export class TimeSegment extends HTMLElement {
   set tooltip(v) { this.setAttribute('tooltip', v) }
   get duration() { return this.end - this.start }
 
+  /* ---- 值解析（基于容器 Formatter） ---- */
+
+  /**
+   * 起始值的所有表示形式（自动适配容器 type/unit）
+   * @returns {{ raw: number, hours: number, minutes: number, seconds: number, formatted: string }}
+   */
+  get startResolved() { return this._formatter.resolve(this.start) }
+  /**
+   * 结束值的所有表示形式
+   * @returns {{ raw: number, hours: number, minutes: number, seconds: number, formatted: string }}
+   */
+  get endResolved()   { return this._formatter.resolve(this.end) }
+  /** 起始小时数（不受容器 unit 影响，始终返回小时） */
+  get startHours()    { return this._formatter.toHours(this.start) }
+  /** 起始分钟数（始终返回分钟） */
+  get startMinutes()  { return this._formatter.toMinutes(this.start) }
+  /** 起始秒数 */
+  get startSeconds()  { return this._formatter.toSeconds(this.start) }
+  /** 起始格式化字符串 HH:MM[:SS] */
+  get startFormatted(){ return this._formatter.toFormatted(this.start) }
+  /** 结束小时数 */
+  get endHours()      { return this._formatter.toHours(this.end) }
+  /** 结束分钟数 */
+  get endMinutes()    { return this._formatter.toMinutes(this.end) }
+  /** 结束秒数 */
+  get endSeconds()    { return this._formatter.toSeconds(this.end) }
+  /** 结束格式化字符串 */
+  get endFormatted()  { return this._formatter.toFormatted(this.end) }
+
+  /**
+   * 生成事件 detail 的完整字段对象（含所有解析值），与 Vue resolveSegment 输出对齐
+   * 返回的对象包含 segment 元素引用 + 所有表示形式，可在事件监听中直接解构
+   * @returns {{
+   *   segment: TimeSegment, key: string|number,
+   *   start: number, end: number,
+   *   startHours: number, startMinutes: number, startSeconds: number,
+   *   startFormatted: string, startFormattedSec: string,
+   *   endHours: number, endMinutes: number, endSeconds: number,
+   *   endFormatted: string, endFormattedSec: string,
+   *   duration: number, durationSeconds: number, durationFormatted: string
+   * }}
+   */
+  _resolvedDetail() {
+    return {
+      segment: this,
+      key: this.key,
+      start: this.start,
+      end: this.end,
+      startHours: this.startHours,
+      startMinutes: this.startMinutes,
+      startSeconds: this.startSeconds,
+      startFormatted: this.startFormatted,
+      startFormattedSec: this._formatter.toFormatted(this.start, true),
+      endHours: this.endHours,
+      endMinutes: this.endMinutes,
+      endSeconds: this.endSeconds,
+      endFormatted: this.endFormatted,
+      endFormattedSec: this._formatter.toFormatted(this.end, true),
+      duration: this.duration,
+      durationSeconds: this._formatter.toSeconds(this.duration),
+      durationFormatted: this._formatter.toFormatted(this.duration, true),
+    }
+  }
+
   /* ---- 可编辑/可删除（继承自轨道） ---- */
 
   /** 是否允许编辑（拖拽移动/调整/修改属性），默认继承轨道值或 true */
@@ -492,7 +556,7 @@ export class TimeSegment extends HTMLElement {
           this._updateCrossGhost()
         }
         this.dispatchEvent(new CustomEvent('segment-change', {
-          bubbles: true, detail: { segment: this, key: this.key, start: this.start, end: this.end }
+          bubbles: true, detail: this._resolvedDetail()
         }))
         return
       }
@@ -502,7 +566,7 @@ export class TimeSegment extends HTMLElement {
         if (!this._tgtTrack.editable) {
           this._exitCrossTrack()
           this.dispatchEvent(new CustomEvent('segment-change', {
-            bubbles: true, detail: { segment: this, key: this.key, start: this.start, end: this.end }
+            bubbles: true, detail: this._resolvedDetail()
           }))
           return
         }
@@ -513,7 +577,7 @@ export class TimeSegment extends HTMLElement {
           this._exitCrossTrack()
         }
         this.dispatchEvent(new CustomEvent('segment-change', {
-          bubbles: true, detail: { segment: this, key: this.key, start: this.start, end: this.end }
+          bubbles: true, detail: this._resolvedDetail()
         }))
         return
       }
@@ -549,7 +613,7 @@ export class TimeSegment extends HTMLElement {
     }
 
     this.dispatchEvent(new CustomEvent('segment-change', {
-      bubbles: true, detail: { segment: this, key: this.key, start: this.start, end: this.end }
+      bubbles: true, detail: this._resolvedDetail()
     }))
   }
 
@@ -597,7 +661,7 @@ export class TimeSegment extends HTMLElement {
     }
 
     this.dispatchEvent(new CustomEvent('segment-changed', {
-      bubbles: true, detail: { segment: this, key: this.key, start: this.start, end: this.end }
+      bubbles: true, detail: this._resolvedDetail()
     }))
   }
 
@@ -706,7 +770,7 @@ export class TimeSegment extends HTMLElement {
       // 复制失败时派发事件，允许外部监听（如 toast 提示）
       this.dispatchEvent(new CustomEvent('segment-copy-error', {
         bubbles: true,
-        detail: { source: this, key: this.key, targetTrack: t, reason: copyError, start: s, end: eTime }
+        detail: { source: this, key: this.key, targetTrack: t, reason: copyError, start: s, end: eTime, ...this._formatter.resolveSegment({ id: this.key, start: s, end: eTime }) }
       }))
     }
 
@@ -919,7 +983,7 @@ export class TimeSegment extends HTMLElement {
       src._drawGrid()
     })
     this.dispatchEvent(new CustomEvent('segment-changed', {
-      bubbles: true, detail: { segment: this, key: this.key, start: this.start, end: this.end }
+      bubbles: true, detail: this._resolvedDetail()
     }))
   }
 
@@ -954,12 +1018,12 @@ export class TimeSegment extends HTMLElement {
    */
   deleteSegment() {
     const ok = this.dispatchEvent(new CustomEvent('segment-before-delete', {
-      bubbles: true, cancelable: true, detail: { segment: this, key: this.key }
+      bubbles: true, cancelable: true, detail: this._resolvedDetail()
     }))
     if (!ok) return
     this.remove()
     this.dispatchEvent(new CustomEvent('segment-deleted', {
-      bubbles: true, detail: { segment: this, key: this.key }
+      bubbles: true, detail: this._resolvedDetail()
     }))
   }
 

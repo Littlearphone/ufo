@@ -409,7 +409,7 @@ function onSegChange({ trackId, id, start, end, copyFrom, targetTrackId }) {
     const segs = [...(tgtTrack.segments || []), newSeg]
     list[tgtIdx] = { ...tgtTrack, segments: segs }
     emit('update:modelValue', list)
-    emit('seg-created', { trackId: effectiveTrackId, segment: newSeg })
+    emit('seg-created', { trackId: effectiveTrackId, segment: formatter.value.resolveSegment(newSeg) })
     return
   }
 
@@ -420,7 +420,7 @@ function onSegChange({ trackId, id, start, end, copyFrom, targetTrackId }) {
   segs[sIdx] = { ...segs[sIdx], start, end }
   list[tIdx] = { ...list[tIdx], segments: segs }
   emit('update:modelValue', list)
-  emit('seg-changed', { trackId, id, start, end })
+  emit('seg-changed', { trackId, ...formatter.value.resolveSegment({ id, start, end }) })
 }
 
 function onSegDelete({ trackId, id }) {
@@ -447,7 +447,7 @@ function onSegCreate({ trackId, start, end, color }) {
   const segs = [...list[tIdx].segments, newSeg]
   list[tIdx] = { ...list[tIdx], segments: segs }
   emit('update:modelValue', list)
-  emit('seg-created', { trackId, segment: newSeg })
+  emit('seg-created', { trackId, segment: formatter.value.resolveSegment(newSeg) })
 }
 
 /** 处理 Track/Segment 转发上来的复杂操作（跨轨道拖放、编辑、删除轨道、粘贴等） */

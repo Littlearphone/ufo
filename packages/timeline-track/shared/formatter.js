@@ -169,6 +169,37 @@ export class ValueFormatter {
     }
   }
 
+  /**
+   * 获取值的所有表示形式
+   * 子类可覆盖以提供更多字段（如 TimeFormatter 返回 hours/minutes/seconds）
+   * @param {number} val - 归一化数值
+   * @returns {{ raw: number, formatted: string }}
+   */
+  resolve(val) {
+    return {
+      raw: val,
+      formatted: this.format(val),
+    }
+  }
+
+  /**
+   * 获取段数据的所有表示形式——传入任意含 start/end 的对象，
+   * 返回增强后的完整 detail 对象，可解构使用
+   * @param {{ id?: *, start: number, end: number, label?: string, color?: string }} seg
+   * @returns {{ start: number, end: number, startFormatted: string, endFormatted: string, duration: number, durationFormatted: string }}
+   */
+  resolveSegment(seg) {
+    return {
+      ...seg,
+      start: seg.start,
+      end: seg.end,
+      startFormatted: this.format(seg.start),
+      endFormatted: this.format(seg.end),
+      duration: seg.end - seg.start,
+      durationFormatted: this.format(seg.end - seg.start),
+    }
+  }
+
   /* ---- 子类实现 ---- */
   _doParse(str, fallback) { throw new Error('must implement _doParse') }
   _doFormat(val, context) { throw new Error('must implement _doFormat') }
@@ -207,6 +238,90 @@ export class TimeFormatter extends ValueFormatter {
   /** 从小时转换为当前单位 */
   _fromHours(hours) {
     return hours / (TO_HOUR[this._unit] || 1)
+  }
+
+  /* ---- 值转换（不受配置 unit 影响，始终返回绝对单位） ---- */
+
+  /**
+   * 转换为小时（始终返回小时数，与配置 unit 无关）
+   * @param {number} val - 当前配置 unit 下的数值
+   * @returns {number}
+   */
+  toHours(val) { return this._toHours(val) }
+
+  /**
+   * 转换为分钟（始终返回分钟数）
+   * @param {number} val
+   * @returns {number}
+   */
+  toMinutes(val) { return this._toHours(val) * 60 }
+
+  /**
+   * 转换为秒（始终返回秒数）
+   * @param {number} val
+   * @returns {number}
+   */
+  toSeconds(val) { return this._toHours(val) * 3600 }
+
+  /**
+   * 格式化为 HH:MM[:SS] 字符串
+   * @param {number} val
+   * @param {boolean} [showSec] - 是否显示秒；不传则按配置自动决定
+   * @returns {string}
+   */
+  toFormatted(val, showSec) {
+    return _fmtHours(this._toHours(val), showSec ?? this.showSec)
+  }
+
+  /**
+   * 获取时间值的所有表示形式
+   * @param {number} val
+   * @returns {{ raw: number, hours: number, minutes: number, seconds: number, formatted: string }}
+   */
+  resolve(val) {
+    const hours = this._toHours(val)
+    return {
+      raw: val,
+      hours,
+      minutes: hours * 60,
+      seconds: hours * 3600,
+      formatted: this.toFormatted(val),
+    }
+  }
+
+  /**
+   * 获取段数据的完整 detail 对象（可解构使用，含时分秒+格式化时间）
+   * @param {{ id?: *, start: number, end: number, label?: string, color?: string }} seg
+   * @returns {{
+   *   start: number, end: number,
+   *   startHours: number, startMinutes: number, startSeconds: number,
+   *   startFormatted: string, startFormattedSec: string,
+   *   endHours: number, endMinutes: number, endSeconds: number,
+   *   endFormatted: string, endFormattedSec: string,
+   *   duration: number, durationSeconds: number, durationFormatted: string
+   * }}
+   */
+  resolveSegment(seg) {
+    const s = this.resolve(seg.start)
+    const e = this.resolve(seg.end)
+    return {
+      ...seg,
+      start: seg.start,
+      end: seg.end,
+      startHours: s.hours,
+      startMinutes: s.minutes,
+      startSeconds: s.seconds,
+      startFormatted: s.formatted,
+      startFormattedSec: this.toFormatted(seg.start, true),
+      endHours: e.hours,
+      endMinutes: e.minutes,
+      endSeconds: e.seconds,
+      endFormatted: e.formatted,
+      endFormattedSec: this.toFormatted(seg.end, true),
+      duration: seg.end - seg.start,
+      durationSeconds: this.toSeconds(seg.end - seg.start),
+      durationFormatted: this.toFormatted(seg.end - seg.start, true),
+    }
   }
 
   _doFormat(val, context) {
@@ -317,6 +432,18 @@ export class NumberFormatter extends ValueFormatter {
     let p = NUM_TICKS[NUM_TICKS.length - 1]
     while (p < raw) p *= 10
     return p
+  }
+
+  /**
+   * 获取数值的所有表示形式
+   * @param {number} val
+   * @returns {{ raw: number, formatted: string }}
+   */
+  resolve(val) {
+    return {
+      raw: val,
+      formatted: this.format(val),
+    }
   }
 
   _doInputType(val) { return 'number' }
