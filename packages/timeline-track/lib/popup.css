@@ -104,7 +104,7 @@
 /* ── Modal Card ── */
 .tlc-modal {
   background: var(--tlc-bg-card);
-  border-radius: var(--tlc-radius-lg);
+  border-radius: var(--tlc-modal-radius, 0);
   box-shadow: var(--tlc-shadow-modal);
   min-width: 300px;
   max-width: 420px;
@@ -115,7 +115,7 @@
   transform-origin: 0 0;  /* 从左上角计算 transform，精确匹配源元素位置 */
 }
 .tlc-modal-overlay.show .tlc-modal {
-  animation: tlc-modal-in .6s cubic-bezier(.34, 1.4, .64, 1) forwards;
+  animation: tlc-modal-in .2s cubic-bezier(.34, 1.4, .64, 1) forwards;
 }
 .tlc-modal-overlay.closing .tlc-modal {
   animation: tlc-modal-out .2s ease-in forwards;
