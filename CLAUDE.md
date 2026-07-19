@@ -243,6 +243,7 @@ pnpm -r run build:all
 | `--tlc-font` | `-apple-system, ...` | 字体栈 |
 | `--tlc-bg-card` | `#fff` | 轨道卡片背景 |
 | `--tlc-bg-tooltip` | `rgba(30,35,42,.92)` | Tooltip 背景 |
+| `--tlc-modal-radius` | `0` | 模态框圆角（编辑弹窗、确认弹窗） |
 
 ### 使用示例
 
@@ -592,6 +593,27 @@ time-line-container[axis-mode="shared"] time-line-track:hover .tlt-row {
 | `resolveLocaleFromProps(props)` | `vue/useLocale.js` | 从组件 props 解析 locale 对象 |
 | `formatLocale(tpl, params)` | `vue/useLocale.js` | 模板字符串替换 `{key}` 占位符 |
 
+### 值解析（Formatter）
+
+Vue 中通过 `formatter` prop（容器自动创建）或 `formatter.resolveSegment()` 获取段数据的完整解析：
+
+```vue
+<script setup>
+import { useInject } from 'vue'
+// 通过 VTimelineContainer 注入的 formatter 访问值解析
+</script>
+
+<template>
+  <VTimelineContainer
+    @seg-changed="({ startSeconds, endSeconds, startFormatted, startFormattedSec }) => {
+      console.log(startFormattedSec, '→', endSeconds, '秒')
+    }"
+  />
+</template>
+```
+
+见下方「值解析系统」章节中 `resolve()` / `resolveSegment()` 的详细说明。
+
 ### 使用方式
 
 ```vue
@@ -655,8 +677,8 @@ const tracks = ref([
 | Event | Payload | 说明 |
 |---|---|---|
 | `update:modelValue` | `tracks[]` | v-model 同步 |
-| `seg-changed` | `{ trackId, id, start, end }` | 段变更完成 |
-| `seg-created` | `{ trackId, segment }` | 新段创建 |
+| `seg-changed` | `{ trackId, id, start, end, startSeconds, endSeconds, startFormatted, startFormattedSec, durationSeconds, … }` | 段变更完成（detail 含完整解析字段） |
+| `seg-created` | `{ trackId, segment: { id, start, end, label, color, startSeconds, endSeconds, startFormatted, … } }` | 新段创建（segment 对象含完整解析字段） |
 | `seg-deleted` | `{ trackId, id }` | 段删除 |
 
 ### VTimelineTrack Props

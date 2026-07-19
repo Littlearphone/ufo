@@ -69,13 +69,15 @@
 | `addTrack(label, start, end, opts?)` | 添加轨道，返回 `<time-line-track>` |
 | `removeTrack(track)` | 删除轨道 |
 | `allTracks()` | 获取所有轨道数组 |
-| `getFormatter()` | 获取当前 ValueFormatter 实例 |
+| `getFormatter()` | 获取当前 ValueFormatter 实例（见下方「值解析系统」） |
 | `setGlobalRadius(radius)` | 设置所有段的圆角 |
 | `zoomIn(centerRatio?)` | 放大 |
 | `zoomOut(centerRatio?)` | 缩小 |
 | `zoomTo(start, end)` | 缩放到指定范围 |
 | `zoomReset()` | 重置缩放 |
 | `zoomFit()` | 自适应缩放 |
+
+> `getFormatter()` 返回的 Formatter 实例提供 `resolve(val)`、`resolveSegment(seg)`、`toHours(val)`、`toMinutes(val)`、`toSeconds(val)`、`toFormatted(val)` 等方法，用于将段数据的原始值转换为小时/分钟/秒/格式化字符串。 |
 
 ### Tooltip 位置格式
 
@@ -142,13 +144,36 @@
 | 属性 | 类型 | 默认值 | 说明 |
 |---|---|---|---|
 | `key` | `string|number` | — | 用户自定义标识符，事件 detail 中直接携带此值（见下方「数据关联」） |
-| `start` | number | — | 起始值 |
+| `start` | number | — | 起始值（配置 unit 下的原始浮点数） |
 | `end` | number | — | 结束值 |
 | `label` | string | — | 显示名称 |
 | `color` | string | 轨道 `default-color` | 背景色 |
 | `tooltip` | `auto` / `always` / `none` | `auto` | Tooltip 显示策略 |
 | `editable` | `false` | 继承轨道 | 是否允许编辑（移动/调整大小） |
 | `deletable` | `false` | 继承轨道 | 是否允许删除 |
+
+### 值解析 Getter（基于容器 Formatter，自动适配 type/unit）
+
+| Getter | 类型 | 说明 |
+|---|---|---|
+| `startSeconds` | number | 起始秒数（始终返回秒，不受 unit 影响） |
+| `startMinutes` | number | 起始分钟数 |
+| `startHours` | number | 起始小时数 |
+| `startFormatted` | string | 起始格式化字符串 HH:MM |
+| `startResolved` | object | `{ raw, hours, minutes, seconds, formatted }` |
+| `endSeconds` | number | 结束秒数 |
+| `endMinutes` | number | 结束分钟数 |
+| `endHours` | number | 结束小时数 |
+| `endFormatted` | string | 结束格式化字符串 |
+| `endResolved` | object | `{ raw, hours, minutes, seconds, formatted }` |
+
+```js
+const seg = track.querySelector('time-line-segment')
+console.log(seg.startSeconds)   // 34200（假设 start=9.5, unit=hour）
+console.log(seg.startFormatted) // "09:30"
+console.log(seg.startResolved)
+// → { raw: 9.5, hours: 9.5, minutes: 570, seconds: 34200, formatted: "09:30" }
+```
 
 ### tooltip 属性说明
 
@@ -172,19 +197,29 @@
 
 ## 事件
 
-所有事件冒泡到 `document`：
+所有事件冒泡到 `document`。**段相关事件的 `detail` 中除了下方列出的字段外，还包含完整的值解析字段**（`startSeconds`、`endSeconds`、`startFormatted`、`startFormattedSec`、`durationSeconds` 等，见下方示例），可直接解构使用。
 
 | 事件名 | 冒泡 | 可取消 | 说明 |
 |---|---|---|---|
-| `segment-created` | ✅ | — | 创建时间段 `detail: { segment, key }` |
-| `segment-change` | ✅ | — | 拖拽移动/调整中（频繁触发） `detail: { segment, key, start, end }` |
-| `segment-changed` | ✅ | — | 拖拽完成 `detail: { segment, key, start, end }` |
-| `segment-before-delete` | ✅ | ✅ | 段删除前（可阻止） `detail: { segment, key }` |
-| `segment-deleted` | ✅ | — | 段已删除 `detail: { segment, key }` |
+| `segment-created` | ✅ | — | 创建时间段 `detail: { segment, key, start, end, startSeconds, endSeconds, … }` |
+| `segment-change` | ✅ | — | 拖拽移动/调整中（频繁触发） `detail: { segment, key, start, end, startSeconds, … }` |
+| `segment-changed` | ✅ | — | 拖拽完成 `detail: { segment, key, start, end, startSeconds, endFormattedSec, durationSeconds, … }` |
+| `segment-before-delete` | ✅ | ✅ | 段删除前（可阻止） `detail: { segment, key, startSeconds, … }` |
+| `segment-deleted` | ✅ | — | 段已删除 `detail: { segment, key, startSeconds, … }` |
 | `segment-limit-reached` | ✅ | — | 段数已达上限 `detail: { track, key, current, max }` |
-| `segment-copy-error` | ✅ | — | Ctrl+拖拽复制失败 `detail: { source, key, targetTrack, reason, start, end }` |
+| `segment-copy-error` | ✅ | — | Ctrl+拖拽复制失败 `detail: { source, key, targetTrack, reason, start, end, startSeconds, … }` |
 | `track-before-delete` | ✅ | ✅ | 轨道删除前（可阻止） `detail: { track, key }` |
 | `track-deleted` | ✅ | — | 轨道已删除 `detail: { track, key }` |
+
+```js
+document.addEventListener('segment-changed', e => {
+  const { start, end, startSeconds, endSeconds, startFormatted, startFormattedSec, durationSeconds } = e.detail
+  console.log(`${startFormatted} → ${endFormatted}, 持续 ${durationSeconds} 秒`)
+  // "09:30 → 14:15, 持续 17100 秒"
+})
+```
+
+> `startFormattedSec` / `endFormattedSec` 始终输出 **HH:MM:SS** 格式（含秒），`startFormatted` / `endFormatted` 输出 HH:MM（秒由 `showSec` 控制）。所有 `*Seconds` / `*Minutes` / `*Hours` 字段不受容器 `unit` 影响，始终返回绝对单位的数值。
 
 ---
 
@@ -416,6 +451,52 @@ track.pasteSegment(segmentData, 300, 400)  // 在 (300,400) 坐标位置粘贴
 
 ---
 
+## 值解析系统
+
+通过容器 `getFormatter()` 获取的 `ValueFormatter` 实例，提供了一系列方法将原始值（配置 unit 下的浮点数）转换为绝对单位或格式化字符串。
+
+### 单值解析
+
+```js
+const fmt = container.getFormatter()
+
+// type="time" 时（假设 unit="hour", val=9.5）
+fmt.resolve(9.5)
+// → { raw: 9.5, hours: 9.5, minutes: 570, seconds: 34200, formatted: "09:30" }
+
+fmt.toSeconds(9.5)     // 34200（始终返回秒）
+fmt.toMinutes(9.5)     // 570（始终返回分钟）
+fmt.toHours(9.5)       // 9.5（始终返回小时，与 unit 无关）
+fmt.toFormatted(9.5)   // "09:30"（HH:MM）
+fmt.toFormatted(9.5, true) // "09:30:00"（HH:MM:SS）
+
+// type="number" 时（假设 unit="px", val=100）
+fmt.resolve(100)
+// → { raw: 100, formatted: "100 px" }
+```
+
+### 段数据解析
+
+```js
+// 传入任意含 start/end 的对象，返回完整 detail 对象
+const detail = fmt.resolveSegment({ id: 's1', start: 9.5, end: 14.25, label: '前端' })
+// detail 包含所有原始字段 + 解析字段：
+// { id: 's1', start: 9.5, end: 14.25, label: '前端',
+//   startHours: 9.5, startMinutes: 570, startSeconds: 34200,
+//   startFormatted: "09:30", startFormattedSec: "09:30:00",
+//   endHours: 14.25, endMinutes: 855, endSeconds: 51300,
+//   endFormatted: "14:15", endFormattedSec: "14:15:00",
+//   duration: 4.75, durationSeconds: 17100, durationFormatted: "04:45:00" }
+
+// 事件 detail 已自动通过 resolveSegment 增强，可直接解构：
+container.addEventListener('segment-changed', ({ detail }) => {
+  const { startSeconds, endSeconds, startFormattedSec } = detail
+  console.log(`从 ${startFormattedSec} 到 ${endSeconds}秒`)
+})
+```
+
+---
+
 ## CSS 变量
 
 ### 容器通用（`:root` 或 `time-line-container`）
@@ -436,6 +517,7 @@ track.pasteSegment(segmentData, 300, 400)  // 在 (300,400) 坐标位置粘贴
 | `--tlc-text` | `#333` | 文字颜色 |
 | `--tlc-border-light` | `#e5e8ec` | 轨道分隔线色 |
 | `--tlc-shadow-sm` | `0 1px 4px rgba(0,0,0,.2)` | 小阴影 |
+| `--tlc-modal-radius` | `0` | 模态框圆角（编辑弹窗、确认弹窗） |
 
 ### 轨道尺寸（`time-line-track`）
 
