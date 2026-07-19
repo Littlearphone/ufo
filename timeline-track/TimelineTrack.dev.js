@@ -208,14 +208,14 @@ time-line-segment .tls-hdl {
   position: absolute;
   z-index: 3;
 }
-time-line-segment .tls-hdl-left  { left: -2px; top: 0; bottom: 0; width: 4px; cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24'%3E%3Cpolygon points='6,12 11,5 11,19' fill='%23444' stroke='%23fff' stroke-width='1.5' stroke-linejoin='round'/%3E%3Cpolygon points='18,12 13,5 13,19' fill='%23444' stroke='%23fff' stroke-width='1.5' stroke-linejoin='round'/%3E%3C/svg%3E") 12 12, ew-resize; }
-time-line-segment .tls-hdl-right { right: -2px; top: 0; bottom: 0; width: 4px; cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24'%3E%3Cpolygon points='6,12 11,5 11,19' fill='%23444' stroke='%23fff' stroke-width='1.5' stroke-linejoin='round'/%3E%3Cpolygon points='18,12 13,5 13,19' fill='%23444' stroke='%23fff' stroke-width='1.5' stroke-linejoin='round'/%3E%3C/svg%3E") 12 12, ew-resize; }
+time-line-segment .tls-hdl-left  { left: -1.5px; top: 0; bottom: 0; width: 3px; cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24'%3E%3Cpolygon points='6,12 11,5 11,19' fill='%23444' stroke='%23fff' stroke-width='1.5' stroke-linejoin='round'/%3E%3Cpolygon points='18,12 13,5 13,19' fill='%23444' stroke='%23fff' stroke-width='1.5' stroke-linejoin='round'/%3E%3C/svg%3E") 12 12, ew-resize; }
+time-line-segment .tls-hdl-right { right: -1.5px; top: 0; bottom: 0; width: 3px; cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24'%3E%3Cpolygon points='6,12 11,5 11,19' fill='%23444' stroke='%23fff' stroke-width='1.5' stroke-linejoin='round'/%3E%3Cpolygon points='18,12 13,5 13,19' fill='%23444' stroke='%23fff' stroke-width='1.5' stroke-linejoin='round'/%3E%3C/svg%3E") 12 12, ew-resize; }
 
 time-line-segment .tls-hdl-bar {
   position: absolute;
   top: 20%;
   bottom: 20%;
-  width: 4px;
+  width: 3px;
   background: linear-gradient(to right, rgba(0,0,0,0.04), rgba(255,255,255,0.10));
   border-radius: var(--tlc-radius);
   opacity: 0;
@@ -228,8 +228,8 @@ time-line-segment:hover .tls-hdl-bar              { opacity: 1; }
 time-line-segment.dragging .tls-hdl-bar,
 time-line-segment.resizing .tls-hdl-bar           { opacity: 0; }
 
-time-line-track.vertical time-line-segment .tls-hdl-left  { left: 0; right: 0; top: -2px; bottom: auto; width: auto; height: 4px; cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24'%3E%3Cpolygon points='12,6 5,11 19,11' fill='%23444' stroke='%23fff' stroke-width='1.5' stroke-linejoin='round'/%3E%3Cpolygon points='12,18 5,13 19,13' fill='%23444' stroke='%23fff' stroke-width='1.5' stroke-linejoin='round'/%3E%3C/svg%3E") 12 12, ns-resize; }
-time-line-track.vertical time-line-segment .tls-hdl-right { left: 0; right: 0; bottom: -2px; top: auto; width: auto; height: 4px; cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24'%3E%3Cpolygon points='12,6 5,11 19,11' fill='%23444' stroke='%23fff' stroke-width='1.5' stroke-linejoin='round'/%3E%3Cpolygon points='12,18 5,13 19,13' fill='%23444' stroke='%23fff' stroke-width='1.5' stroke-linejoin='round'/%3E%3C/svg%3E") 12 12, ns-resize; }
+time-line-track.vertical time-line-segment .tls-hdl-left  { left: 0; right: 0; top: -1.5px; bottom: auto; width: auto; height: 3px; cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24'%3E%3Cpolygon points='12,6 5,11 19,11' fill='%23444' stroke='%23fff' stroke-width='1.5' stroke-linejoin='round'/%3E%3Cpolygon points='12,18 5,13 19,13' fill='%23444' stroke='%23fff' stroke-width='1.5' stroke-linejoin='round'/%3E%3C/svg%3E") 12 12, ns-resize; }
+time-line-track.vertical time-line-segment .tls-hdl-right { left: 0; right: 0; bottom: -1.5px; top: auto; width: auto; height: 3px; cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24'%3E%3Cpolygon points='12,6 5,11 19,11' fill='%23444' stroke='%23fff' stroke-width='1.5' stroke-linejoin='round'/%3E%3Cpolygon points='12,18 5,13 19,13' fill='%23444' stroke='%23fff' stroke-width='1.5' stroke-linejoin='round'/%3E%3C/svg%3E") 12 12, ns-resize; }
 
 time-line-segment .tls-inner {
   display: flex;
@@ -252,33 +252,56 @@ time-line-segment .tls-time  { font-size: 10px; opacity: .82; }
 
 time-line-segment .tls-del {
   position: absolute;
-  top: -2px;
-  right: -2px;
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  background: var(--tlc-danger);
-  color: #fff;
-  border: 2px solid #fff;
-  cursor: pointer;
-  font-size: 12px;
-  line-height: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  opacity: 0;
-  transition: opacity .14s, transform .14s;
-  z-index: 15;
+  top: 0;
+  right: 0;
+  z-index: 4;
+  width: 16px;
+  height: 16px;
   padding: 0;
-  box-shadow: var(--tlc-shadow-sm);
+  border: none;
+  background: rgba(0,0,0,.35);
+  color: #fff;
+  font-size: 11px;
+  line-height: 16px;
+  text-align: center;
+  border-radius: 0 0 0 4px;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity .12s;
 }
-time-line-segment .tls-del:hover { transform: scale(1.15); }
+time-line-segment .tls-del:hover {
+  background: rgba(200,0,0,.7);
+}
 time-line-segment:hover .tls-del { opacity: 1; }
 time-line-segment.dragging .tls-del,
 time-line-segment.resizing .tls-del { opacity: 0; }
 time-line-segment.tls-del-hidden .tls-del { display: none; }
 time-line-segment.tls-text-hidden .tls-inner { visibility: hidden; }
 time-line-segment.tls-selected .tls-bar { box-shadow: inset 0 0 0 2px rgba(255,255,255,.65); }
+
+/* ── 选中模式：段表面扫光动画 ── */
+/* 斜向亮条快速掠过段表面，模拟流水般的动态感 */
+@keyframes tls-bar-shine {
+  0%   { transform: translateX(-120%) skewX(-15deg); }
+  100% { transform: translateX(320%) skewX(-15deg); }
+}
+time-line-segment.tls-active .tls-bar::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255,255,255,.2) 35%,
+    rgba(255,255,255,.45) 50%,
+    rgba(255,255,255,.2) 65%,
+    transparent
+  );
+  transform: translateX(-120%) skewX(-15deg);
+  animation: tls-bar-shine 1.2s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 1;
+}
 
 .tls-global-tip {
   position: fixed;
@@ -631,9 +654,6 @@ time-line-segment.tls-copy-pulse .tls-bar {
   padding: 4px 0;
   min-width: 148px;
   opacity: 0;
-  transform-origin: top left;
-  transform: scale(0.92);
-  transition: opacity .1s ease, transform .1s ease;
   pointer-events: none;
   font-family: var(--tlc-font);
   font-size: 12px;
@@ -641,8 +661,23 @@ time-line-segment.tls-copy-pulse .tls-bar {
 }
 .tlc-context-menu.show {
   opacity: 1;
-  transform: scale(1);
   pointer-events: auto;
+  animation: tlc-menu-in .18s cubic-bezier(.34, 1.4, .64, 1);
+}
+.tlc-context-menu.closing {
+  animation: tlc-menu-out .12s ease-in forwards;
+  pointer-events: none;
+}
+
+/* ── 右键菜单 Zoom Transition（类 iOS 启动 app 效果） ── */
+/* 以 transform-origin 为锚点（JS 设为源元素中心），纯 scale 缩放 */
+@keyframes tlc-menu-in {
+  from { opacity: 0; transform: scale(0.2); }
+  to   { opacity: 1; transform: scale(1); }
+}
+@keyframes tlc-menu-out {
+  from { opacity: 1; transform: scale(1); }
+  to   { opacity: 0; transform: scale(0.2); }
 }
 .tlc-context-item {
   padding: 7px 14px;
@@ -696,30 +731,44 @@ time-line-segment.tls-copy-pulse .tls-bar {
   align-items: center;
   justify-content: center;
   opacity: 0;
-  transition: opacity .18s ease;
   pointer-events: none;
 }
 .tlc-modal-overlay.show {
   opacity: 1;
   pointer-events: auto;
 }
+.tlc-modal-overlay.closing {
+  animation: tlc-overlay-out .13s ease-in forwards;
+}
 
 /* ── Modal Card ── */
 .tlc-modal {
   background: var(--tlc-bg-card);
-  border-radius: var(--tlc-radius-lg);
+  border-radius: var(--tlc-modal-radius, 0);
   box-shadow: var(--tlc-shadow-modal);
   min-width: 300px;
   max-width: 420px;
   width: 90vw;
-  transform: scale(0.94) translateY(8px);
-  transition: transform .18s ease;
   font-family: var(--tlc-font);
   font-size: 13px;
   color: var(--tlc-text);
+  transform-origin: 0 0;  /* 从左上角计算 transform，精确匹配源元素位置 */
 }
 .tlc-modal-overlay.show .tlc-modal {
-  transform: scale(1) translateY(0);
+  animation: tlc-modal-in .2s cubic-bezier(.34, 1.4, .64, 1) forwards;
+}
+.tlc-modal-overlay.closing .tlc-modal {
+  animation: tlc-modal-out .2s ease-in forwards;
+}
+
+@keyframes tlc-overlay-out { from { opacity: 1; } to { opacity: 0; } }
+@keyframes tlc-modal-in {
+  from { transform: translate(var(--tlc-modal-tx), var(--tlc-modal-ty)) scale(var(--tlc-modal-sx, .35), var(--tlc-modal-sy, .35)); }
+  to { transform: translate(0, 0) scale(1, 1); }
+}
+@keyframes tlc-modal-out {
+  from { transform: translate(0, 0) scale(1, 1); }
+  to { transform: translate(var(--tlc-modal-tx), var(--tlc-modal-ty)) scale(var(--tlc-modal-sx, .35), var(--tlc-modal-sy, .35)); }
 }
 .tlc-modal-header {
   padding: 14px 18px 10px;
@@ -935,6 +984,7 @@ time-line-segment.tls-copy-pulse .tls-bar {
   border: none;
   padding: 5px 9px;
   border-radius: 0;
+  text-align: left;
 }
 .tlc-time-control .tlc-tf-steps {
   border: none;
@@ -1118,6 +1168,55 @@ time-line-segment.tls-copy-pulse .tls-bar {
   text-align: center !important;
 }
 
+/* ── 下拉快选面板 ── */
+.tlc-tf-dropdown-panel {
+  background: var(--tlc-bg-card, #fff);
+  border: 1px solid var(--tlc-border, #dfe3e8);
+  border-radius: var(--tlc-radius-sm, 4px);
+  box-shadow: 0 4px 16px rgba(0,0,0,.15);
+  max-height: 220px;
+  overflow-y: auto;
+  min-width: 90px;
+  transform-origin: top center;
+}
+
+/* ── 下拉面板进场/退场动画 ── */
+@keyframes tlc-dropdown-in {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes tlc-dropdown-out {
+  from { opacity: 1; transform: translateY(0); }
+  to   { opacity: 0; transform: translateY(-6px); }
+}
+/* 进场（lib 通过 panel-enter 类触发） */
+.tlc-tf-dropdown-panel.panel-enter {
+  animation: tlc-dropdown-in .15s ease-out;
+}
+/* 退场（lib 通过 closing 类触发） */
+.tlc-tf-dropdown-panel.closing {
+  animation: tlc-dropdown-out .12s ease-in forwards;
+  pointer-events: none;
+}
+.tlc-tf-dropdown-item {
+  padding: 5px 12px;
+  font-size: 12px;
+  cursor: pointer;
+  color: var(--tlc-text, #333);
+  transition: background .09s;
+  font-variant-numeric: tabular-nums;
+}
+.tlc-tf-dropdown-item:hover { background: #f0f4ff; }
+.tlc-tf-dropdown-item.active,
+.tlc-tf-dropdown-item:active {
+  background: var(--tlc-primary, #4285f4);
+  color: #fff;
+}
+/* 时间分列下拉居中，与 input text-align:center 对齐 */
+.tlc-time-control .tlc-tf-dropdown-item {
+  text-align: center;
+}
+
 /* ── 复制到其他轨道弹窗：轨道列表项 ── */
 /* 用 .tlc-modal-body 前缀提升特异性，覆盖通用 .tlc-modal-body label > span 规则 */
 .tlc-modal-body .tlc-copy-track-item {
@@ -1257,77 +1356,80 @@ time-line-segment.tls-copy-pulse .tls-bar {
   }
   const DEFAULT_LOCALE = {
     /** Fallback display name when a track/segment has no label */
-    unnamed: "Untitled",
+    unnamed: "未命名",
     /** Title tooltip on segment delete button */
-    deleteBtnTitle: "Delete",
+    deleteBtnTitle: "删除",
     /** Context menu item — edit properties */
-    modifyProps: "Edit Properties",
+    modifyProps: "修改属性",
     /** Context menu item — delete track */
-    deleteTrack: "Delete Track",
+    deleteTrack: "删除轨道",
     /** Context menu item — clear all segments */
-    clearSegments: "Clear Segments",
+    clearSegments: "清空时间段",
     /** Track context menu header template, {name}=track name */
     trackMenuHeader: "📋 {name}",
     /** Segment context menu header template, {name}=segment name, {range}=time range */
     segmentMenuHeader: "🔖 {name}  {range}",
     /** Delete track confirmation template, {name}=track name, {range}=time range */
-    confirmDeleteTrack: 'Delete track "{name}" ({range})?',
+    confirmDeleteTrack: "确定要删除轨道「{name}」({range}) 吗？",
     /** Delete segment confirmation template */
-    confirmDeleteSegment: 'Delete segment "{name}" ({range})?',
+    confirmDeleteSegment: "确定要删除时间段「{name}」({range}) 吗？",
     /** Clear all segments confirmation template, {name}=track name */
-    confirmClearSegments: 'Clear all segments in track "{name}"?',
+    confirmClearSegments: "确定要清空轨道「{name}」的所有时间段吗？",
     /* ---- Copy / Paste ---- */
     /** Context menu — copy segment */
-    copySegment: "Copy Segment",
+    copySegment: "复制段",
     /** Context menu — copy track */
-    copyTrack: "Copy Track",
+    copyTrack: "复制轨道",
     /** Context menu — copy to other tracks */
-    copyToTracks: "Copy to Tracks…",
+    copyToTracks: "复制到其他轨道…",
     /** Context menu — paste segment */
-    pasteSegment: "Paste Segment",
+    pasteSegment: "粘贴段",
     /** Context menu — paste as new track */
-    pasteNewTrack: "Paste as New Track",
+    pasteNewTrack: "粘贴为新轨道",
     /** Context menu — paste and overwrite this track */
-    pasteOverwrite: "Paste to This Track",
+    pasteOverwrite: "覆盖粘贴到本轨道",
     /** Copy-to-tracks dialog title, {name}=source track name */
-    copyToTracksTitle: 'Copy segments of "{name}" to:',
+    copyToTracksTitle: "将「{name}」的段复制到：",
     /** Copy-to-tracks dialog when no targets available */
-    copyToTracksEmpty: "No available target tracks (target must be editable and different from source)",
+    copyToTracksEmpty: "没有可用的目标轨道（目标必须可编辑且与来源不同）",
     /** Select all */
-    copySelectAll: "Select All",
+    copySelectAll: "全选",
     /** Segment count unit (e.g. "5 segments") */
-    segmentUnit: "segments",
+    segmentUnit: "个时间段",
     /* ---- Edit Dialogs ---- */
-    segmentEditTitle: "Edit Segment",
-    trackEditTitle: "Edit Track",
-    labelField: "Label",
-    startTime: "Start Time",
-    endTime: "End Time",
-    rangeStart: "Start",
-    rangeEnd: "End",
-    color: "Color",
-    name: "Name",
-    step: "Step",
-    maxSegmentsField: "Max Segments",
-    zeroUnlimited: "0=Unlimited",
+    segmentEditTitle: "修改时间段属性",
+    trackEditTitle: "修改轨道属性",
+    labelField: "标签",
+    startTime: "开始时间",
+    endTime: "结束时间",
+    rangeStart: "起始",
+    rangeEnd: "结束",
+    color: "颜色",
+    name: "名称",
+    step: "步长",
+    maxSegmentsField: "最大段数",
+    zeroUnlimited: "0=无限制",
     /* ---- Buttons ---- */
-    cancel: "Cancel",
-    confirm: "OK",
-    confirmDeleteTitle: "Confirm Delete",
+    cancel: "取消",
+    confirm: "确定",
+    confirmDelete: "确定删除",
+    confirmDeleteTitle: "确认删除",
     /* ---- Time units --- */
-    hourUnit: "h",
-    minuteUnit: "m",
-    secondUnit: "s",
+    hourUnit: "时",
+    minuteUnit: "分",
+    secondUnit: "秒",
+    /* ---- Fallback text for invalid time ---- */
+    invalidTime: "--:--",
     /* ---- Step hint ---- */
-    stepHint: "Step {step} (click to adjust)",
+    stepHint: "步长 {step}（点击调整）",
     /* ---- Validation messages ---- */
-    invalidValue: "Invalid value",
-    startMustBeBeforeEnd: "Start must be before end",
+    invalidValue: "无效值",
+    startMustBeBeforeEnd: "起始必须早于结束",
     /**
      * Overlap hint shown below the field
      * Placeholder: {label}=conflicting segment name
      */
-    overlapHint: 'Overlaps with "{label}"',
+    overlapHint: "与「{label}」重叠",
     /* ---- Axis ruler ---- */
     /**
      * Shared axis mode ruler label template.
@@ -1342,7 +1444,7 @@ time-line-segment.tls-copy-pulse .tls-bar {
      * {label}=conflicting segment name,
      * {segStart}/{segEnd}=conflicting segment range.
      */
-    segmentOverlapError: 'Segment overlap: new [{start}–{end}] conflicts with "{label}" [{segStart}–{segEnd}]'
+    segmentOverlapError: "时间段重叠：新段 [{start}–{end}] 与已有段「{label}」[{segStart}–{segEnd}] 冲突"
   };
   function formatLocale(tpl, params) {
     return tpl.replace(/\{(\w+)\}/g, (_, k) => params[k] != null ? params[k] : `{${k}}`);
@@ -1497,6 +1599,35 @@ time-line-segment.tls-copy-pulse .tls-bar {
         ...this._doInputStep ? { step: this._doInputStep(val) } : {}
       };
     }
+    /**
+     * 获取值的所有表示形式
+     * 子类可覆盖以提供更多字段（如 TimeFormatter 返回 hours/minutes/seconds）
+     * @param {number} val - 归一化数值
+     * @returns {{ raw: number, formatted: string }}
+     */
+    resolve(val) {
+      return {
+        raw: val,
+        formatted: this.format(val)
+      };
+    }
+    /**
+     * 获取段数据的所有表示形式——传入任意含 start/end 的对象，
+     * 返回增强后的完整 detail 对象，可解构使用
+     * @param {{ id?: *, start: number, end: number, label?: string, color?: string }} seg
+     * @returns {{ start: number, end: number, startFormatted: string, endFormatted: string, duration: number, durationFormatted: string }}
+     */
+    resolveSegment(seg) {
+      return {
+        ...seg,
+        start: seg.start,
+        end: seg.end,
+        startFormatted: this.format(seg.start),
+        endFormatted: this.format(seg.end),
+        duration: seg.end - seg.start,
+        durationFormatted: this.format(seg.end - seg.start)
+      };
+    }
     /* ---- 子类实现 ---- */
     _doParse(str, fallback) {
       throw new Error("must implement _doParse");
@@ -1539,6 +1670,89 @@ time-line-segment.tls-copy-pulse .tls-bar {
     /** 从小时转换为当前单位 */
     _fromHours(hours) {
       return hours / (TO_HOUR[this._unit] || 1);
+    }
+    /* ---- 值转换（不受配置 unit 影响，始终返回绝对单位） ---- */
+    /**
+     * 转换为小时（始终返回小时数，与配置 unit 无关）
+     * @param {number} val - 当前配置 unit 下的数值
+     * @returns {number}
+     */
+    toHours(val) {
+      return this._toHours(val);
+    }
+    /**
+     * 转换为分钟（始终返回分钟数）
+     * @param {number} val
+     * @returns {number}
+     */
+    toMinutes(val) {
+      return this._toHours(val) * 60;
+    }
+    /**
+     * 转换为秒（始终返回秒数）
+     * @param {number} val
+     * @returns {number}
+     */
+    toSeconds(val) {
+      return this._toHours(val) * 3600;
+    }
+    /**
+     * 格式化为 HH:MM[:SS] 字符串
+     * @param {number} val
+     * @param {boolean} [showSec] - 是否显示秒；不传则按配置自动决定
+     * @returns {string}
+     */
+    toFormatted(val, showSec) {
+      return _fmtHours(this._toHours(val), showSec ?? this.showSec);
+    }
+    /**
+     * 获取时间值的所有表示形式
+     * @param {number} val
+     * @returns {{ raw: number, hours: number, minutes: number, seconds: number, formatted: string }}
+     */
+    resolve(val) {
+      const hours = this._toHours(val);
+      return {
+        raw: val,
+        hours,
+        minutes: hours * 60,
+        seconds: hours * 3600,
+        formatted: this.toFormatted(val)
+      };
+    }
+    /**
+     * 获取段数据的完整 detail 对象（可解构使用，含时分秒+格式化时间）
+     * @param {{ id?: *, start: number, end: number, label?: string, color?: string }} seg
+     * @returns {{
+     *   start: number, end: number,
+     *   startHours: number, startMinutes: number, startSeconds: number,
+     *   startFormatted: string, startFormattedSec: string,
+     *   endHours: number, endMinutes: number, endSeconds: number,
+     *   endFormatted: string, endFormattedSec: string,
+     *   duration: number, durationSeconds: number, durationFormatted: string
+     * }}
+     */
+    resolveSegment(seg) {
+      const s = this.resolve(seg.start);
+      const e = this.resolve(seg.end);
+      return {
+        ...seg,
+        start: seg.start,
+        end: seg.end,
+        startHours: s.hours,
+        startMinutes: s.minutes,
+        startSeconds: s.seconds,
+        startFormatted: s.formatted,
+        startFormattedSec: this.toFormatted(seg.start, true),
+        endHours: e.hours,
+        endMinutes: e.minutes,
+        endSeconds: e.seconds,
+        endFormatted: e.formatted,
+        endFormattedSec: this.toFormatted(seg.end, true),
+        duration: seg.end - seg.start,
+        durationSeconds: this.toSeconds(seg.end - seg.start),
+        durationFormatted: this.toFormatted(seg.end - seg.start, true)
+      };
     }
     _doFormat(val, context) {
       const showSec = this.showSec || this._unit === "second" && (context === "tooltip" || context === "editor");
@@ -1612,6 +1826,17 @@ time-line-segment.tls-copy-pulse .tls-bar {
       while (p < raw) p *= 10;
       return p;
     }
+    /**
+     * 获取数值的所有表示形式
+     * @param {number} val
+     * @returns {{ raw: number, formatted: string }}
+     */
+    resolve(val) {
+      return {
+        raw: val,
+        formatted: this.format(val)
+      };
+    }
     _doInputType(val) {
       return "number";
     }
@@ -1677,6 +1902,7 @@ time-line-segment.tls-copy-pulse .tls-bar {
         "creatable",
         "clearable",
         "copyable",
+        "selection-mode",
         ...LOCALE_ATTRS
       ];
     }
@@ -1698,6 +1924,12 @@ time-line-segment.tls-copy-pulse .tls-bar {
         this.querySelectorAll("time-line-track").forEach((t) => {
           if (t._onEditableChange) t._onEditableChange();
         });
+        return;
+      }
+      if (name === "selection-mode") {
+        if (nv == null) {
+          this.querySelectorAll("time-line-segment.tls-active").forEach((s) => s.classList.remove("tls-active"));
+        }
         return;
       }
       if (name === "type" || name === "unit") {
@@ -1875,6 +2107,13 @@ time-line-segment.tls-copy-pulse .tls-bar {
     set creatable(v) {
       if (v == null || v === true || v === "true") this.removeAttribute("creatable");
       else this.setAttribute("creatable", "false");
+    }
+    /** 选中模式：点击段切换选中状态而非拖拽，默认关闭 */
+    get selectionMode() {
+      return this.hasAttribute("selection-mode");
+    }
+    set selectionMode(v) {
+      this.toggleAttribute("selection-mode", !!v);
     }
     /* ---- 缩放（视图范围） ---- */
     /** 视图起始（缩小范围 = 放大；null = 禁用缩放，使用默认范围） */
@@ -2345,17 +2584,20 @@ time-line-segment.tls-copy-pulse .tls-bar {
   let _closeHandler = null;
   let _keyHandler = null;
   let _menuClickHandler = null;
+  let _closeModalHandler = null;
   function closeAll() {
+    _closeDropdown();
     hideContextMenu();
     closeModal();
   }
-  function showContextMenu(items, x, y) {
+  function showContextMenu(items, x, y, originEl) {
     closeAll();
     if (!_menuEl) {
       _menuEl = document.createElement("div");
       _menuEl.className = "tlc-context-menu";
       document.body.appendChild(_menuEl);
     }
+    _menuEl.classList.remove("closing", "show");
     _menuEl.innerHTML = "";
     const menuChildren = [];
     items.forEach((item, i) => {
@@ -2389,6 +2631,16 @@ time-line-segment.tls-copy-pulse .tls-bar {
       const top = Math.max(8, Math.min(y, vh - mh - 8));
       _menuEl.style.left = left + "px";
       _menuEl.style.top = top + "px";
+      if (originEl) {
+        const r = originEl.getBoundingClientRect();
+        const srcCx = r.left + r.width / 2;
+        const srcCy = r.top + r.height / 2;
+        const ox = srcCx - left;
+        const oy = srcCy - top;
+        _menuEl.style.transformOrigin = `${ox}px ${oy}px`;
+      } else {
+        _menuEl.style.transformOrigin = "center";
+      }
       _menuEl.classList.add("show");
     });
     _closeHandler = (e) => {
@@ -2406,7 +2658,15 @@ time-line-segment.tls-copy-pulse .tls-bar {
   }
   function hideContextMenu() {
     if (_menuEl) {
-      _menuEl.classList.remove("show");
+      if (_menuEl.classList.contains("show")) {
+        _menuEl.classList.remove("show");
+        _menuEl.classList.add("closing");
+        _menuEl.addEventListener("animationend", () => {
+          _menuEl.classList.remove("closing");
+        }, { once: true });
+      } else {
+        _menuEl.classList.remove("closing");
+      }
     }
     if (_closeHandler) {
       document.removeEventListener("pointerdown", _closeHandler);
@@ -2442,11 +2702,36 @@ time-line-segment.tls-copy-pulse .tls-bar {
     }
     return _modalEl;
   }
-  function _showModal() {
+  function _showModal(originEl) {
     hideContextMenu();
     const overlay = _getOverlay();
     const modal = _getModal();
-    overlay.appendChild(modal);
+    if (_closeModalHandler) {
+      overlay.removeEventListener("animationend", _closeModalHandler);
+      _closeModalHandler = null;
+    }
+    overlay.classList.remove("closing");
+    if (modal.parentNode !== overlay) overlay.appendChild(modal);
+    if (originEl && typeof originEl.getBoundingClientRect === "function") {
+      const modalRect = modal.getBoundingClientRect();
+      const srcRect = originEl.getBoundingClientRect();
+      if (modalRect.width > 0 && modalRect.height > 0 && srcRect.width > 0 && srcRect.height > 0) {
+        modal.style.setProperty("--tlc-modal-tx", `${(srcRect.left - modalRect.left).toFixed(1)}px`);
+        modal.style.setProperty("--tlc-modal-ty", `${(srcRect.top - modalRect.top).toFixed(1)}px`);
+        modal.style.setProperty("--tlc-modal-sx", (srcRect.width / modalRect.width).toFixed(4));
+        modal.style.setProperty("--tlc-modal-sy", (srcRect.height / modalRect.height).toFixed(4));
+      } else {
+        modal.style.setProperty("--tlc-modal-tx", "0px");
+        modal.style.setProperty("--tlc-modal-ty", "0px");
+        modal.style.setProperty("--tlc-modal-sx", ".35");
+        modal.style.setProperty("--tlc-modal-sy", ".35");
+      }
+    } else {
+      modal.style.setProperty("--tlc-modal-tx", "0px");
+      modal.style.setProperty("--tlc-modal-ty", "0px");
+      modal.style.setProperty("--tlc-modal-sx", ".35");
+      modal.style.setProperty("--tlc-modal-sy", ".35");
+    }
     requestAnimationFrame(() => {
       overlay.classList.add("show");
     });
@@ -2454,10 +2739,29 @@ time-line-segment.tls-copy-pulse .tls-bar {
     if (firstInput) setTimeout(() => firstInput.focus(), 120);
   }
   function closeModal() {
+    _closeDropdown();
     if (_overlay) {
-      _overlay.classList.remove("show");
-      if (_modalEl && _modalEl.parentNode === _overlay) {
-        _overlay.removeChild(_modalEl);
+      if (_overlay.classList.contains("show")) {
+        _overlay.classList.remove("show");
+        _overlay.classList.add("closing");
+        if (_closeModalHandler) _overlay.removeEventListener("animationend", _closeModalHandler);
+        _closeModalHandler = () => {
+          _closeModalHandler = null;
+          _overlay.classList.remove("closing");
+          if (_modalEl && _modalEl.parentNode === _overlay && !_overlay.classList.contains("show")) {
+            _overlay.removeChild(_modalEl);
+          }
+        };
+        _overlay.addEventListener("animationend", _closeModalHandler);
+      } else {
+        if (_closeModalHandler) {
+          _overlay.removeEventListener("animationend", _closeModalHandler);
+          _closeModalHandler = null;
+        }
+        _overlay.classList.remove("closing");
+        if (_modalEl && _modalEl.parentNode === _overlay) {
+          _overlay.removeChild(_modalEl);
+        }
       }
     }
   }
@@ -2623,11 +2927,11 @@ time-line-segment.tls-copy-pulse .tls-bar {
     if (isTime) {
       modal.querySelectorAll(".tlc-time-control").forEach((control) => {
         control.querySelectorAll(".tlc-tf-col").forEach((col) => {
-          const input = col.querySelector(".tlc-tf-input");
+          const input2 = col.querySelector(".tlc-tf-input");
           const up = col.querySelector(".tlc-tf-step.up");
           const down = col.querySelector(".tlc-tf-step.down");
           const part = col.dataset.part;
-          if (!input || !up || !down || !part) return;
+          if (!input2 || !up || !down || !part) return;
           const limits = { h: { min: 0, max: 9999 }, m: { min: 0, max: 59 }, s: { min: 0, max: 59 } };
           const limit = limits[part] || { min: 0, max: 59 };
           _setupLongPress(up, () => {
@@ -2635,9 +2939,9 @@ time-line-segment.tls-copy-pulse .tls-bar {
             const mn = parseFloat(ctl.dataset.min);
             const mx = parseFloat(ctl.dataset.max);
             const hasRange = !isNaN(mn) && !isNaN(mx);
-            let val = parseInt(input.value, 10) || 0;
+            let val = parseInt(input2.value, 10) || 0;
             val = val >= limit.max ? limit.min : val + 1;
-            input.value = String(val).padStart(2, "0");
+            input2.value = String(val).padStart(2, "0");
             if (hasRange) {
               const raw = fmt.parse(_readTimeFields(ctl));
               if (!isNaN(raw) && (raw >= mx || raw < mn)) {
@@ -2645,16 +2949,16 @@ time-line-segment.tls-copy-pulse .tls-bar {
                 return;
               }
             }
-            input.dispatchEvent(new Event("input", { bubbles: true }));
+            input2.dispatchEvent(new Event("input", { bubbles: true }));
           });
           _setupLongPress(down, () => {
             const ctl = col.closest(".tlc-time-control");
             const mn = parseFloat(ctl.dataset.min);
             const mx = parseFloat(ctl.dataset.max);
             const hasRange = !isNaN(mn) && !isNaN(mx);
-            let val = parseInt(input.value, 10) || 0;
+            let val = parseInt(input2.value, 10) || 0;
             val = val <= limit.min ? limit.max : val - 1;
-            input.value = String(val).padStart(2, "0");
+            input2.value = String(val).padStart(2, "0");
             if (hasRange) {
               const raw = fmt.parse(_readTimeFields(ctl));
               if (raw < mn) {
@@ -2667,13 +2971,13 @@ time-line-segment.tls-copy-pulse .tls-bar {
                 return;
               }
             }
-            input.dispatchEvent(new Event("input", { bubbles: true }));
+            input2.dispatchEvent(new Event("input", { bubbles: true }));
           });
         });
       });
     } else {
       modal.querySelectorAll(".tlc-number-control").forEach((control) => {
-        const input = control.querySelector(".tlc-field-input");
+        const input2 = control.querySelector(".tlc-field-input");
         const up = control.querySelector(".tlc-tf-step.up");
         const down = control.querySelector(".tlc-tf-step.down");
         const step = parseFloat(control.dataset.step) || 1;
@@ -2681,23 +2985,23 @@ time-line-segment.tls-copy-pulse .tls-bar {
         const max = parseFloat(control.dataset.max);
         const hasMin = !isNaN(min);
         const hasMax = !isNaN(max);
-        if (!input || !up || !down) return;
+        if (!input2 || !up || !down) return;
         _setupLongPress(up, () => {
-          const val = fmt.parse(input.value);
+          const val = fmt.parse(input2.value);
           if (!isNaN(val)) {
             let newVal = val + step;
             if (hasMax && newVal > max) newVal = hasMin ? min : newVal;
-            input.value = fmt.format(newVal, "editor");
-            input.dispatchEvent(new Event("input", { bubbles: true }));
+            input2.value = fmt.format(newVal, "editor");
+            input2.dispatchEvent(new Event("input", { bubbles: true }));
           }
         });
         _setupLongPress(down, () => {
-          const val = fmt.parse(input.value);
+          const val = fmt.parse(input2.value);
           if (!isNaN(val)) {
             let newVal = val - step;
             if (hasMin && newVal < min) newVal = hasMax ? max : newVal;
-            input.value = fmt.format(newVal, "editor");
-            input.dispatchEvent(new Event("input", { bubbles: true }));
+            input2.value = fmt.format(newVal, "editor");
+            input2.dispatchEvent(new Event("input", { bubbles: true }));
           }
         });
       });
@@ -2723,14 +3027,14 @@ time-line-segment.tls-copy-pulse .tls-bar {
           control.querySelectorAll(".tlc-tf-col").forEach((col) => {
             const part = col.dataset.part;
             if (!part) return;
-            const input = col.querySelector(".tlc-tf-input");
-            if (!input) return;
+            const input2 = col.querySelector(".tlc-tf-input");
+            if (!input2) return;
             const limits = { h: { min: 0, max: 9999 }, m: { min: 0, max: 59 }, s: { min: 0, max: 59 } };
             const limit = limits[part] || { min: 0, max: 59 };
-            let val = parseInt(input.value, 10);
+            let val = parseInt(input2.value, 10);
             if (isNaN(val) || val < limit.min) val = limit.min;
             if (val > limit.max) val = limit.max;
-            input.value = String(val).padStart(2, "0");
+            input2.value = String(val).padStart(2, "0");
           });
           const raw2 = fmt.parse(_readTimeFields(control));
           let clamped2 = isNaN(raw2) ? hasMin2 ? min2 : 0 : raw2;
@@ -2742,10 +3046,10 @@ time-line-segment.tls-copy-pulse .tls-bar {
           control.querySelectorAll(".tlc-tf-col").forEach((col) => {
             const pk = col.dataset.part;
             if (!pk || PK_MAP[pk] == null) return;
-            const input = col.querySelector(".tlc-tf-input");
-            if (!input) return;
+            const input2 = col.querySelector(".tlc-tf-input");
+            if (!input2) return;
             const newVal = parts[PK_MAP[pk]] || "00";
-            input.value = String(parseInt(newVal, 10) || 0).padStart(2, "0");
+            input2.value = String(parseInt(newVal, 10) || 0).padStart(2, "0");
           });
           inp.dispatchEvent(new Event("input", { bubbles: true }));
           return;
@@ -2781,8 +3085,8 @@ time-line-segment.tls-copy-pulse .tls-bar {
           const hasMax = !isNaN(max);
           if (hasMin || hasMax) {
             const allFilled = [...control.querySelectorAll(".tlc-tf-col")].every((c) => {
-              const input = c.querySelector(".tlc-tf-input");
-              return input && input.value !== "" && !isNaN(parseInt(input.value, 10));
+              const input2 = c.querySelector(".tlc-tf-input");
+              return input2 && input2.value !== "" && !isNaN(parseInt(input2.value, 10));
             });
             if (allFilled) {
               const raw = fmt.parse(_readTimeFields(control));
@@ -2795,6 +3099,148 @@ time-line-segment.tls-copy-pulse .tls-bar {
         col.classList.toggle("tlc-input-error", isError);
       });
     });
+    _initDropdowns(modal, fmt, isTime);
+  }
+  let _dropdownEl = null;
+  let _ddCloseHandler = null;
+  let _ddBlurEl = null;
+  let _ddBlurHandler = null;
+  function _buildDropdownOptions(fmt, min, max, step) {
+    step = step || Math.max((max - min) / 24, 1);
+    const range = max - min;
+    const effStep = range / Math.min(range / step, 48) || step;
+    const opts = [];
+    for (let v = min; v <= max + effStep / 2; v += effStep) {
+      const clamped = Math.min(Math.max(v, min), max);
+      const label = fmt.format(clamped, "editor");
+      if (!opts.length || opts[opts.length - 1].label !== label) {
+        opts.push({ value: clamped, label });
+      }
+    }
+    return opts;
+  }
+  function _closeDropdown() {
+    if (_dropdownEl && !_dropdownEl.classList.contains("closing")) {
+      const el = _dropdownEl;
+      el.classList.add("closing");
+      if (_ddBlurEl && _ddBlurHandler) {
+        _ddBlurEl.removeEventListener("blur", _ddBlurHandler);
+        _ddBlurEl = null;
+        _ddBlurHandler = null;
+      }
+      el.addEventListener("animationend", () => {
+        if (el.parentNode) el.parentNode.removeChild(el);
+        if (_dropdownEl === el) _dropdownEl = null;
+      }, { once: true });
+    } else if (_dropdownEl) {
+      _dropdownEl.remove();
+      _dropdownEl = null;
+    }
+    if (_ddCloseHandler) {
+      document.removeEventListener("pointerdown", _ddCloseHandler, true);
+      _ddCloseHandler = null;
+    }
+  }
+  function _initDropdowns(modal, fmt, isTime) {
+    if (isTime) {
+      modal.querySelectorAll(".tlc-time-control .tlc-tf-col").forEach((col) => {
+        const input2 = col.querySelector(".tlc-tf-input");
+        if (!input2) return;
+        const part = col.dataset.part;
+        const control = col.closest(".tlc-time-control");
+        const showDropdown = () => {
+          _closeDropdown();
+          let opts = [];
+          if (part === "h") {
+            for (let v = 0; v <= 24; v++) opts.push(String(v).padStart(2, "0"));
+          } else {
+            for (let v = 0; v <= 59; v++) opts.push(String(v).padStart(2, "0"));
+          }
+          _renderDropdownPanel(opts, col, (val) => {
+            input2.value = val;
+            input2.dispatchEvent(new Event("input", { bubbles: true }));
+            if (part === "h" && val === "24") {
+              const mInput = control.querySelector('.tlc-tf-col[data-part="m"] .tlc-tf-input');
+              const sInput = control.querySelector('.tlc-tf-col[data-part="s"] .tlc-tf-input');
+              if (mInput) {
+                mInput.value = "00";
+                mInput.dispatchEvent(new Event("input", { bubbles: true }));
+              }
+              if (sInput) {
+                sInput.value = "00";
+                sInput.dispatchEvent(new Event("input", { bubbles: true }));
+              }
+            }
+          }, input2);
+        };
+        input2.addEventListener("focus", showDropdown);
+        input2.addEventListener("click", () => {
+          if (!_dropdownEl) showDropdown();
+        });
+      });
+    }
+    modal.querySelectorAll(".tlc-number-control .tlc-field-input").forEach((input2) => {
+      const control = input2.closest(".tlc-number-control");
+      const showDropdown = () => {
+        _closeDropdown();
+        const min = parseFloat(control.dataset.min) || 0;
+        const max = parseFloat(control.dataset.max) || 100;
+        const step = control.dataset.step ? parseFloat(control.dataset.step) : 1;
+        const opts = _buildDropdownOptions(fmt, min, max, step);
+        _renderDropdownPanel(opts, input2, (label) => {
+          input2.value = label;
+          input2.dispatchEvent(new Event("input", { bubbles: true }));
+        }, input2);
+      };
+      input2.addEventListener("focus", showDropdown);
+      input2.addEventListener("click", () => {
+        if (!_dropdownEl) showDropdown();
+      });
+    });
+  }
+  function _renderDropdownPanel(opts, anchor, onSelect, blurInput) {
+    _dropdownEl = document.createElement("div");
+    _dropdownEl.className = "tlc-tf-dropdown-panel";
+    opts.forEach((o) => {
+      const label = typeof o === "string" ? o : o.label;
+      const item = document.createElement("div");
+      item.className = "tlc-tf-dropdown-item";
+      item.textContent = label;
+      item.addEventListener("pointerdown", (e) => {
+        e.preventDefault();
+        onSelect(label);
+        _closeDropdown();
+      });
+      _dropdownEl.appendChild(item);
+    });
+    const r = anchor.getBoundingClientRect();
+    _dropdownEl.style.position = "fixed";
+    _dropdownEl.style.top = r.bottom + 4 + "px";
+    _dropdownEl.style.left = r.left + "px";
+    _dropdownEl.style.width = r.width + "px";
+    _dropdownEl.style.zIndex = "200000";
+    document.body.appendChild(_dropdownEl);
+    requestAnimationFrame(() => _dropdownEl.classList.add("panel-enter"));
+    if (blurInput) {
+      const cur = blurInput.value;
+      const items = _dropdownEl.querySelectorAll(".tlc-tf-dropdown-item");
+      for (const item of items) {
+        if (item.textContent === cur) {
+          item.classList.add("active");
+          item.scrollIntoView({ block: "nearest" });
+          break;
+        }
+      }
+    }
+    _ddCloseHandler = (ev) => {
+      if (!_dropdownEl.contains(ev.target) && ev.target !== input) _closeDropdown();
+    };
+    document.addEventListener("pointerdown", _ddCloseHandler, true);
+    if (blurInput) {
+      _ddBlurEl = blurInput;
+      _ddBlurHandler = () => _closeDropdown();
+      blurInput.addEventListener("blur", _ddBlurHandler);
+    }
   }
   function _resolveStep(track, isTime) {
     let step = 0;
@@ -2848,7 +3294,7 @@ time-line-segment.tls-copy-pulse .tls-bar {
     const firstErr = modal.querySelector(".tlc-input-error");
     if (firstErr) firstErr.scrollIntoView({ block: "nearest", behavior: "smooth" });
   }
-  function _showEditDialog(modal, loc, title, bodyChildren, tStart, tEnd, step, fmt) {
+  function _showEditDialog(modal, loc, title, bodyChildren, tStart, tEnd, step, fmt, originEl) {
     modal.innerHTML = "";
     modal.append(
       h("div", { class: "tlc-modal-header" }, title),
@@ -2858,7 +3304,7 @@ time-line-segment.tls-copy-pulse .tls-bar {
         h("button", { class: "tlc-btn tlc-btn-primary", "data-action": "confirm" }, loc.confirm)
       ])
     );
-    _showModal();
+    _showModal(originEl);
     _setupRangeDataset(modal, tStart, tEnd, step);
     _initFormControls(modal, fmt);
   }
@@ -2894,7 +3340,8 @@ time-line-segment.tls-copy-pulse .tls-bar {
       track ? track.tStart : 0,
       track ? track.tEnd : 24,
       step,
-      fmt
+      fmt,
+      segment
     );
     modal.querySelector('[data-action="confirm"]').addEventListener("click", () => {
       _clearErrors(modal);
@@ -2953,7 +3400,8 @@ time-line-segment.tls-copy-pulse .tls-bar {
         h("input", { class: "tlc-field-input", name: "maxSegments", type: "text", inputmode: "numeric", placeholder: loc.zeroUnlimited, value: track.maxSegments || "" })
       )
     ];
-    _showEditDialog(modal, loc, loc.trackEditTitle, bodyChildren, track.tStart, track.tEnd, step, fmt);
+    const headEl = track.querySelector(".tlt-head") || track;
+    _showEditDialog(modal, loc, loc.trackEditTitle, bodyChildren, track.tStart, track.tEnd, step, fmt, headEl);
     modal.querySelector('[data-action="confirm"]').addEventListener("click", () => {
       _clearErrors(modal);
       const { start, end } = _readTimeValues(modal, fmt, isTime);
@@ -2997,7 +3445,7 @@ time-line-segment.tls-copy-pulse .tls-bar {
         } }, loc.confirm)
       ])
     );
-    _showModal();
+    _showModal(refEl);
   }
   function showCopyToTracksDialog(srcTrack) {
     const container = srcTrack.closest("time-line-container");
@@ -3077,7 +3525,7 @@ time-line-segment.tls-copy-pulse .tls-bar {
       } }, loc.confirm)
     ]);
     modal.append(header, body, footer);
-    _showModal();
+    _showModal(srcTrack);
   }
   let _clipboard = null;
   function copyToClipboard(type, data) {
@@ -3552,7 +4000,8 @@ time-line-segment.tls-copy-pulse .tls-bar {
           } });
         }
         if (menuItems.length > 1) {
-          showContextMenu(menuItems, e.clientX, e.clientY);
+          const labelEl = this.querySelector(".tlt-head-label");
+          showContextMenu(menuItems, e.clientX, e.clientY, labelEl);
         }
       });
       this._resObs = new ResizeObserver(() => {
@@ -3986,7 +4435,7 @@ time-line-segment.tls-copy-pulse .tls-bar {
         if (nStart >= p2) rightBound = nStart;
       }
       const avail = rightBound - p1;
-      const minW = Math.min(6, avail);
+      const minW = Math.min(2, avail);
       const segW = Math.min(Math.max(p2 - p1, minW), avail);
       if (v) {
         seg.style.top = p1 + "px";
@@ -4006,6 +4455,7 @@ time-line-segment.tls-copy-pulse .tls-bar {
         seg.style.margin = useCustomSize ? "auto 0" : "";
       }
       seg.classList.toggle("tls-del-hidden", segW < 28);
+      seg._updateTextVisibility();
     }
     /**
      * 批量刷新所有段的位置（含重叠预防）
@@ -4043,7 +4493,7 @@ time-line-segment.tls-copy-pulse .tls-bar {
           if (nStart >= p2) rightBound = nStart;
         }
         const avail = rightBound - p1;
-        const minW = Math.min(6, avail);
+        const minW = Math.min(2, avail);
         const segW = Math.min(Math.max(p2 - p1, minW), avail);
         if (v) {
           seg.style.top = p1 + "px";
@@ -4354,6 +4804,87 @@ time-line-segment.tls-copy-pulse .tls-bar {
     get duration() {
       return this.end - this.start;
     }
+    /* ---- 值解析（基于容器 Formatter） ---- */
+    /**
+     * 起始值的所有表示形式（自动适配容器 type/unit）
+     * @returns {{ raw: number, hours: number, minutes: number, seconds: number, formatted: string }}
+     */
+    get startResolved() {
+      return this._formatter.resolve(this.start);
+    }
+    /**
+     * 结束值的所有表示形式
+     * @returns {{ raw: number, hours: number, minutes: number, seconds: number, formatted: string }}
+     */
+    get endResolved() {
+      return this._formatter.resolve(this.end);
+    }
+    /** 起始小时数（不受容器 unit 影响，始终返回小时） */
+    get startHours() {
+      return this._formatter.toHours(this.start);
+    }
+    /** 起始分钟数（始终返回分钟） */
+    get startMinutes() {
+      return this._formatter.toMinutes(this.start);
+    }
+    /** 起始秒数 */
+    get startSeconds() {
+      return this._formatter.toSeconds(this.start);
+    }
+    /** 起始格式化字符串 HH:MM[:SS] */
+    get startFormatted() {
+      return this._formatter.toFormatted(this.start);
+    }
+    /** 结束小时数 */
+    get endHours() {
+      return this._formatter.toHours(this.end);
+    }
+    /** 结束分钟数 */
+    get endMinutes() {
+      return this._formatter.toMinutes(this.end);
+    }
+    /** 结束秒数 */
+    get endSeconds() {
+      return this._formatter.toSeconds(this.end);
+    }
+    /** 结束格式化字符串 */
+    get endFormatted() {
+      return this._formatter.toFormatted(this.end);
+    }
+    /**
+     * 生成事件 detail 的完整字段对象（含所有解析值），与 Vue resolveSegment 输出对齐
+     * 返回的对象包含 segment 元素引用 + 所有表示形式，可在事件监听中直接解构
+     * @returns {{
+     *   segment: TimeSegment, key: string|number,
+     *   start: number, end: number,
+     *   startHours: number, startMinutes: number, startSeconds: number,
+     *   startFormatted: string, startFormattedSec: string,
+     *   endHours: number, endMinutes: number, endSeconds: number,
+     *   endFormatted: string, endFormattedSec: string,
+     *   duration: number, durationSeconds: number, durationFormatted: string
+     * }}
+     */
+    _resolvedDetail() {
+      return {
+        segment: this,
+        key: this.key,
+        start: this.start,
+        end: this.end,
+        startHours: this.startHours,
+        startMinutes: this.startMinutes,
+        startSeconds: this.startSeconds,
+        startFormatted: this.startFormatted,
+        startFormattedSec: this._formatter.toFormatted(this.start, true),
+        endHours: this.endHours,
+        endMinutes: this.endMinutes,
+        endSeconds: this.endSeconds,
+        endFormatted: this.endFormatted,
+        endFormattedSec: this._formatter.toFormatted(this.end, true),
+        duration: this.duration,
+        durationSeconds: this._formatter.toSeconds(this.duration),
+        durationFormatted: this._formatter.toFormatted(this.duration, true)
+      };
+    }
     /* ---- 可编辑/可删除（继承自轨道） ---- */
     /** 是否允许编辑（拖拽移动/调整/修改属性），默认继承轨道值或 true */
     get editable() {
@@ -4389,6 +4920,11 @@ time-line-segment.tls-copy-pulse .tls-bar {
         p = p.parentElement;
       }
       return null;
+    }
+    /** 容器是否启用了选中模式（点击选中而非拖拽） */
+    get _containerSelectionMode() {
+      const c = this.closest("time-line-container");
+      return c ? c.selectionMode : false;
     }
     /* ---- 数据关联 ---- */
     /**
@@ -4489,7 +5025,7 @@ time-line-segment.tls-copy-pulse .tls-bar {
         const l = resolveLocale(this);
         const segRange = this._formatter.formatRange(this.start, this.end, "axis");
         const name = this.label || segRange;
-        const headerLabel = this.label ? l.segmentMenuHeader.replace("{name}", this.label).replace("{range}", segRange) : segRange;
+        const headerLabel = l.segmentMenuHeader.replace("{name}", this.label || "").replace("{range}", segRange);
         const menuItems = [
           { type: "header", label: headerLabel }
         ];
@@ -4509,7 +5045,7 @@ time-line-segment.tls-copy-pulse .tls-bar {
           } });
         }
         if (menuItems.length > 1) {
-          showContextMenu(menuItems, e.clientX, e.clientY);
+          showContextMenu(menuItems, e.clientX, e.clientY, this);
         }
       });
     }
@@ -4536,6 +5072,17 @@ time-line-segment.tls-copy-pulse .tls-bar {
     _onLocaleChange() {
       this._buildDOM();
       this._updateTextVisibility();
+    }
+    /** 切换选中状态（选中模式用），单选：选中当前段，取消同一容器内其他段的选中 */
+    _toggleActive() {
+      const wasActive = this.classList.contains("tls-active");
+      const c = this.closest("time-line-container");
+      if (c) {
+        c.querySelectorAll("time-line-segment.tls-active").forEach((s) => s.classList.remove("tls-active"));
+      }
+      if (!wasActive) {
+        this.classList.add("tls-active");
+      }
     }
     /** 刷新文字可见性 */
     _updateTextVisibility() {
@@ -4579,6 +5126,10 @@ time-line-segment.tls-copy-pulse .tls-bar {
       if (e.button !== 0) return;
       if (!this.editable) return;
       hideContextMenu();
+      if (this._containerSelectionMode) {
+        this._toggleActive();
+        return;
+      }
       this.classList.add("tls-selected");
       const hdl = e.target.closest("[data-role]");
       if (hdl && hdl.dataset.role === "hdl-left") this._mode = "resize-left";
@@ -4694,7 +5245,7 @@ time-line-segment.tls-copy-pulse .tls-bar {
           }
           this.dispatchEvent(new CustomEvent("segment-change", {
             bubbles: true,
-            detail: { segment: this, key: this.key, start: this.start, end: this.end }
+            detail: this._resolvedDetail()
           }));
           return;
         }
@@ -4703,7 +5254,7 @@ time-line-segment.tls-copy-pulse .tls-bar {
             this._exitCrossTrack();
             this.dispatchEvent(new CustomEvent("segment-change", {
               bubbles: true,
-              detail: { segment: this, key: this.key, start: this.start, end: this.end }
+              detail: this._resolvedDetail()
             }));
             return;
           }
@@ -4714,7 +5265,7 @@ time-line-segment.tls-copy-pulse .tls-bar {
           }
           this.dispatchEvent(new CustomEvent("segment-change", {
             bubbles: true,
-            detail: { segment: this, key: this.key, start: this.start, end: this.end }
+            detail: this._resolvedDetail()
           }));
           return;
         }
@@ -4741,10 +5292,14 @@ time-line-segment.tls-copy-pulse .tls-bar {
       this._buildDOM();
       this._updateTextVisibility();
       void this.offsetHeight;
-      this._refreshTooltip();
+      if (this._ptrActive) {
+        if (this.tooltip !== "none") showGlobalTip(this);
+      } else {
+        this._refreshTooltip();
+      }
       this.dispatchEvent(new CustomEvent("segment-change", {
         bubbles: true,
-        detail: { segment: this, key: this.key, start: this.start, end: this.end }
+        detail: this._resolvedDetail()
       }));
     }
     _onUp_(e) {
@@ -4783,7 +5338,7 @@ time-line-segment.tls-copy-pulse .tls-bar {
       }
       this.dispatchEvent(new CustomEvent("segment-changed", {
         bubbles: true,
-        detail: { segment: this, key: this.key, start: this.start, end: this.end }
+        detail: this._resolvedDetail()
       }));
     }
     /* ---- Ctrl+拖拽复制 ---- */
@@ -4885,7 +5440,7 @@ time-line-segment.tls-copy-pulse .tls-bar {
       if (copyError) {
         this.dispatchEvent(new CustomEvent("segment-copy-error", {
           bubbles: true,
-          detail: { source: this, key: this.key, targetTrack: t, reason: copyError, start: s, end: eTime }
+          detail: { source: this, key: this.key, targetTrack: t, reason: copyError, start: s, end: eTime, ...this._formatter.resolveSegment({ id: this.key, start: s, end: eTime }) }
         }));
       }
       if (isSameTrack) {
@@ -5005,6 +5560,7 @@ time-line-segment.tls-copy-pulse .tls-bar {
         position: "fixed",
         zIndex: "9999",
         pointerEvents: "none",
+        opacity: "0.7",
         ...v ? { left: rect.left + "px", top: rect.top + segL + "px", width: rect.width + "px", height: segW + "px" } : { left: rect.left + segL + "px", top: rect.top + "px", width: segW + "px", height: rect.height + "px" }
       });
     }
@@ -5014,13 +5570,8 @@ time-line-segment.tls-copy-pulse .tls-bar {
       this._tgtTrack = null;
       this.style.visibility = "";
       if (this._ghost) {
-        this._ghost.classList.remove("show");
-        this._ghost.classList.add("hide");
-        const g = this._ghost;
+        this._ghost.remove();
         this._ghost = null;
-        setTimeout(() => {
-          if (g.parentNode) g.remove();
-        }, 200);
       }
     }
     /**
@@ -5084,7 +5635,7 @@ time-line-segment.tls-copy-pulse .tls-bar {
       });
       this.dispatchEvent(new CustomEvent("segment-changed", {
         bubbles: true,
-        detail: { segment: this, key: this.key, start: this.start, end: this.end }
+        detail: this._resolvedDetail()
       }));
     }
     /** 跨轨道拖拽失败时回退到来源轨道原始位置 */
@@ -5117,13 +5668,13 @@ time-line-segment.tls-copy-pulse .tls-bar {
       const ok = this.dispatchEvent(new CustomEvent("segment-before-delete", {
         bubbles: true,
         cancelable: true,
-        detail: { segment: this, key: this.key }
+        detail: this._resolvedDetail()
       }));
       if (!ok) return;
       this.remove();
       this.dispatchEvent(new CustomEvent("segment-deleted", {
         bubbles: true,
-        detail: { segment: this, key: this.key }
+        detail: this._resolvedDetail()
       }));
     }
     /**
