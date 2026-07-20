@@ -176,6 +176,9 @@ const props = defineProps({
   axisLabel: { type: String, default: undefined },
 
   // locale 属性（动态注入，使用 Vue 的 kebab-case → camelCase 自动转换）
+
+  // 模态框动效：true 启用缩放动效（默认），false 禁用
+  modalAnimation: { type: Boolean, default: true },
 })
 
 const emit = defineEmits([

@@ -34,6 +34,10 @@ export class TimeContainer extends HTMLElement {
     if (this._vrfRaf) cancelAnimationFrame(this._vrfRaf)
   }
 
+  /** 模态框动效开关：默认 true（启用缩放动效），false 时直接显示/隐藏 */
+  get modalAnimation() { return this.getAttribute('modal-animation') !== 'false' }
+  set modalAnimation(v) { this.toggleAttribute('modal-animation', v !== false && v !== 'false') }
+
   static get observedAttributes() {
     return [
       'direction', 'label-h', 'label-v', 'axis-mode',
@@ -43,6 +47,7 @@ export class TimeContainer extends HTMLElement {
       'default-color', 'borderless', 'axis-label',
       'zoom-start', 'zoom-end',
       'editable', 'deletable', 'creatable', 'clearable', 'copyable', 'selection-mode',
+      'modal-animation',
       ...LOCALE_ATTRS
     ]
   }

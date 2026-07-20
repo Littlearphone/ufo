@@ -186,11 +186,18 @@ function _getModal() {
   return _modalEl
 }
 
+/** 从 originEl 向上查找容器并判断是否启用模态框动效 */
+function _hasModalAnimation(originEl) {
+  const c = originEl && originEl.closest ? originEl.closest('time-line-container') : null
+  return c ? c.modalAnimation : true
+}
+
 /** 显示模态框（从 originEl 位置展开到窗口中央） */
 function _showModal(originEl) {
   hideContextMenu()
   const overlay = _getOverlay()
   const modal = _getModal()
+  const animating = _hasModalAnimation(originEl)
 
   // 取消前一次关闭时注册的 animationend 监听（防止其在新 modal 打开后误删元素）
   if (_closeModalHandler) {
@@ -200,30 +207,35 @@ function _showModal(originEl) {
   // 确保 overlay 无 closing 残留，modal 在 overlay 中
   overlay.classList.remove('closing')
   if (modal.parentNode !== overlay) overlay.appendChild(modal)
+  // 记录动效状态供 closeModal 使用
+  overlay._animating = animating
+  overlay.classList.toggle('tlc-modal-no-anim', !animating)
 
-  // 在 rAF 之前计算自定义属性值（此时布局已稳定），
-  // @keyframes 中的 var() 会在动画启动时读取这些值
-  // 计算从源元素（标签区）到弹窗的精确 transform（配合 transform-origin: 0 0），
-  // 使弹窗看起来从标签块放大展开
-  if (originEl && typeof originEl.getBoundingClientRect === 'function') {
-    const modalRect = modal.getBoundingClientRect()
-    const srcRect = originEl.getBoundingClientRect()
-    if (modalRect.width > 0 && modalRect.height > 0 && srcRect.width > 0 && srcRect.height > 0) {
-      modal.style.setProperty('--tlc-modal-tx', `${(srcRect.left - modalRect.left).toFixed(1)}px`)
-      modal.style.setProperty('--tlc-modal-ty', `${(srcRect.top - modalRect.top).toFixed(1)}px`)
-      modal.style.setProperty('--tlc-modal-sx', (srcRect.width / modalRect.width).toFixed(4))
-      modal.style.setProperty('--tlc-modal-sy', (srcRect.height / modalRect.height).toFixed(4))
+  if (animating) {
+    // 在 rAF 之前计算自定义属性值（此时布局已稳定），
+    // @keyframes 中的 var() 会在动画启动时读取这些值
+    // 计算从源元素（标签区）到弹窗的精确 transform（配合 transform-origin: 0 0），
+    // 使弹窗看起来从标签块放大展开
+    if (originEl && typeof originEl.getBoundingClientRect === 'function') {
+      const modalRect = modal.getBoundingClientRect()
+      const srcRect = originEl.getBoundingClientRect()
+      if (modalRect.width > 0 && modalRect.height > 0 && srcRect.width > 0 && srcRect.height > 0) {
+        modal.style.setProperty('--tlc-modal-tx', `${(srcRect.left - modalRect.left).toFixed(1)}px`)
+        modal.style.setProperty('--tlc-modal-ty', `${(srcRect.top - modalRect.top).toFixed(1)}px`)
+        modal.style.setProperty('--tlc-modal-sx', (srcRect.width / modalRect.width).toFixed(4))
+        modal.style.setProperty('--tlc-modal-sy', (srcRect.height / modalRect.height).toFixed(4))
+      } else {
+        modal.style.setProperty('--tlc-modal-tx', '0px')
+        modal.style.setProperty('--tlc-modal-ty', '0px')
+        modal.style.setProperty('--tlc-modal-sx', '.35')
+        modal.style.setProperty('--tlc-modal-sy', '.35')
+      }
     } else {
       modal.style.setProperty('--tlc-modal-tx', '0px')
       modal.style.setProperty('--tlc-modal-ty', '0px')
       modal.style.setProperty('--tlc-modal-sx', '.35')
       modal.style.setProperty('--tlc-modal-sy', '.35')
     }
-  } else {
-    modal.style.setProperty('--tlc-modal-tx', '0px')
-    modal.style.setProperty('--tlc-modal-ty', '0px')
-    modal.style.setProperty('--tlc-modal-sx', '.35')
-    modal.style.setProperty('--tlc-modal-sy', '.35')
   }
 
   requestAnimationFrame(() => {
@@ -236,24 +248,37 @@ function _showModal(originEl) {
 
 /**
  * 关闭模态框（触发 fadeOut + scale 缩小退场动画）
+ * 当容器 modal-animation="false" 时直接关闭，无动画
  */
 export function closeModal() {
   _closeDropdown()
   if (_overlay) {
+    const animating = _overlay._animating !== false
     if (_overlay.classList.contains('show')) {
       _overlay.classList.remove('show')
-      _overlay.classList.add('closing')
-      // 清除旧 listener 再注册新 listener（确保不会重复）
-      if (_closeModalHandler) _overlay.removeEventListener('animationend', _closeModalHandler)
-      _closeModalHandler = () => {
-        _closeModalHandler = null
+      if (animating) {
+        _overlay.classList.add('closing')
+        // 清除旧 listener 再注册新 listener（确保不会重复）
+        if (_closeModalHandler) _overlay.removeEventListener('animationend', _closeModalHandler)
+        _closeModalHandler = () => {
+          _closeModalHandler = null
+          _overlay.classList.remove('closing')
+          if (_modalEl && _modalEl.parentNode === _overlay && !_overlay.classList.contains('show')) {
+            _overlay.removeChild(_modalEl)
+          }
+        }
+        _overlay.addEventListener('animationend', _closeModalHandler)
+      } else {
+        // 无动效：直接清理
         _overlay.classList.remove('closing')
-        // 仅当 modal 未被重新打开时才移除（_showModal 会清除 listener）
-        if (_modalEl && _modalEl.parentNode === _overlay && !_overlay.classList.contains('show')) {
+        if (_closeModalHandler) {
+          _overlay.removeEventListener('animationend', _closeModalHandler)
+          _closeModalHandler = null
+        }
+        if (_modalEl && _modalEl.parentNode === _overlay) {
           _overlay.removeChild(_modalEl)
         }
       }
-      _overlay.addEventListener('animationend', _closeModalHandler)
     } else {
       // 非 show 状态直接清理
       if (_closeModalHandler) {

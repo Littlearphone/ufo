@@ -100,6 +100,13 @@
 .tlc-modal-overlay.closing {
   animation: tlc-overlay-out .13s ease-in forwards;
 }
+/* 无动效模式：动画禁用，直接显示/隐藏 */
+.tlc-modal-overlay.tlc-modal-no-anim {
+  transition: none;
+}
+.tlc-modal-overlay.tlc-modal-no-anim.closing {
+  animation: none;
+}
 
 /* ── Modal Card ── */
 .tlc-modal {
@@ -119,6 +126,10 @@
 }
 .tlc-modal-overlay.closing .tlc-modal {
   animation: tlc-modal-out .2s ease-in forwards;
+}
+.tlc-modal-overlay.tlc-modal-no-anim.show .tlc-modal,
+.tlc-modal-overlay.tlc-modal-no-anim.closing .tlc-modal {
+  animation: none !important;
 }
 
 @keyframes tlc-overlay-out { from { opacity: 1; } to { opacity: 0; } }

@@ -3,94 +3,96 @@
  * All hardcoded UI strings are centralized here and overridable via
  * `loc-*` attributes on `time-line-container`.
  *
- * Usage: <time-line-container loc-unnamed="Untitled" loc-cancel="Cancel">
+ * Default locale is English. Override individual strings via:
+ * <time-line-container loc-unnamed="自定义名称" loc-cancel="取消">
+ *
  * @module locale
  */
 
-/** Default Chinese locale — 与 CLAUDE.md 文档保持一致 */
+/** Default English locale */
 export const DEFAULT_LOCALE = {
   /** Fallback display name when a track/segment has no label */
-  unnamed: '未命名',
+  unnamed: 'Untitled',
   /** Title tooltip on segment delete button */
-  deleteBtnTitle: '删除',
+  deleteBtnTitle: 'Delete',
   /** Context menu item — edit properties */
-  modifyProps: '修改属性',
+  modifyProps: 'Edit Properties',
   /** Context menu item — delete track */
-  deleteTrack: '删除轨道',
+  deleteTrack: 'Delete Track',
   /** Context menu item — clear all segments */
-  clearSegments: '清空时间段',
+  clearSegments: 'Clear Segments',
   /** Track context menu header template, {name}=track name */
   trackMenuHeader: '📋 {name}',
   /** Segment context menu header template, {name}=segment name, {range}=time range */
   segmentMenuHeader: '🔖 {name}  {range}',
   /** Delete track confirmation template, {name}=track name, {range}=time range */
-  confirmDeleteTrack: '确定要删除轨道「{name}」({range}) 吗？',
+  confirmDeleteTrack: 'Delete track "{name}" ({range})?',
   /** Delete segment confirmation template */
-  confirmDeleteSegment: '确定要删除时间段「{name}」({range}) 吗？',
+  confirmDeleteSegment: 'Delete segment "{name}" ({range})?',
   /** Clear all segments confirmation template, {name}=track name */
-  confirmClearSegments: '确定要清空轨道「{name}」的所有时间段吗？',
+  confirmClearSegments: 'Clear all segments in track "{name}"?',
 
   /* ---- Copy / Paste ---- */
   /** Context menu — copy segment */
-  copySegment: '复制段',
+  copySegment: 'Copy Segment',
   /** Context menu — copy track */
-  copyTrack: '复制轨道',
+  copyTrack: 'Copy Track',
   /** Context menu — copy to other tracks */
-  copyToTracks: '复制到其他轨道…',
+  copyToTracks: 'Copy to Other Tracks…',
   /** Context menu — paste segment */
-  pasteSegment: '粘贴段',
+  pasteSegment: 'Paste Segment',
   /** Context menu — paste as new track */
-  pasteNewTrack: '粘贴为新轨道',
+  pasteNewTrack: 'Paste as New Track',
   /** Context menu — paste and overwrite this track */
-  pasteOverwrite: '覆盖粘贴到本轨道',
+  pasteOverwrite: 'Overwrite Paste to This Track',
   /** Copy-to-tracks dialog title, {name}=source track name */
-  copyToTracksTitle: '将「{name}」的段复制到：',
+  copyToTracksTitle: 'Copy segments from "{name}" to:',
   /** Copy-to-tracks dialog when no targets available */
-  copyToTracksEmpty: '没有可用的目标轨道（目标必须可编辑且与来源不同）',
+  copyToTracksEmpty: 'No available target tracks (target must be editable and different from source)',
   /** Select all */
-  copySelectAll: '全选',
+  copySelectAll: 'Select All',
   /** Segment count unit (e.g. "5 segments") */
-  segmentUnit: '个时间段',
+  segmentUnit: 'segments',
 
   /* ---- Edit Dialogs ---- */
-  segmentEditTitle: '修改时间段属性',
-  trackEditTitle: '修改轨道属性',
-  labelField: '标签',
-  startTime: '开始时间',
-  endTime: '结束时间',
-  rangeStart: '起始',
-  rangeEnd: '结束',
-  color: '颜色',
-  name: '名称',
-  step: '步长',
-  maxSegmentsField: '最大段数',
-  zeroUnlimited: '0=无限制',
+  segmentEditTitle: 'Edit Segment',
+  trackEditTitle: 'Edit Track',
+  labelField: 'Label',
+  startTime: 'Start Time',
+  endTime: 'End Time',
+  rangeStart: 'Start',
+  rangeEnd: 'End',
+  color: 'Color',
+  name: 'Name',
+  step: 'Step',
+  maxSegmentsField: 'Max Segments',
+  zeroUnlimited: '0=Unlimited',
 
   /* ---- Buttons ---- */
-  cancel: '取消',
-  confirm: '确定',
-  confirmDelete: '确定删除',
-  confirmDeleteTitle: '确认删除',
+  cancel: 'Cancel',
+  confirm: 'OK',
+  confirmDelete: 'Delete',
+  confirmDeleteTitle: 'Confirm Delete',
 
-  /* ---- Time units --- */
-  hourUnit: '时',
-  minuteUnit: '分',
-  secondUnit: '秒',
+  /* ---- Time units ---- */
+  hourUnit: 'h',
+  minuteUnit: 'm',
+  secondUnit: 's',
 
   /* ---- Fallback text for invalid time ---- */
   invalidTime: '--:--',
 
   /* ---- Step hint ---- */
-  stepHint: '步长 {step}（点击调整）',
+  stepHint: 'Step {step} (click to adjust)',
 
   /* ---- Validation messages ---- */
-  invalidValue: '无效值',
-  startMustBeBeforeEnd: '起始必须早于结束',
+  invalidValue: 'Invalid value',
+  startMustBeBeforeEnd: 'Start must be before end',
   /**
    * Overlap hint shown below the field
    * Placeholder: {label}=conflicting segment name
    */
-  overlapHint: '与「{label}」重叠',
+  overlapHint: 'Overlaps with "{label}"',
 
   /* ---- Axis ruler ---- */
   /**
@@ -107,7 +109,7 @@ export const DEFAULT_LOCALE = {
    * {label}=conflicting segment name,
    * {segStart}/{segEnd}=conflicting segment range.
    */
-  segmentOverlapError: '时间段重叠：新段 [{start}–{end}] 与已有段「{label}」[{segStart}–{segEnd}] 冲突',
+  segmentOverlapError: 'Segment overlap: new [{start}–{end}] conflicts with "{label}" [{segStart}–{segEnd}]',
 }
 
 /**

@@ -24,7 +24,17 @@ const _state = reactive({
   danger: false,
   // 展开动效源元素（从该元素位置展开到窗口中央）
   originEl: null,
+  // 动效开关（由 container 的 modalAnimation 控制）
+  animating: true,
 })
+
+/**
+ * 从源元素向上查找容器，判断是否启用模态框动效
+ */
+function _hasModalAnimation(originEl) {
+  const c = originEl && originEl.closest ? originEl.closest('time-line-container') : null
+  return c ? c.modalAnimation : true
+}
 
 export function useModal() {
   function show(config) {
@@ -42,27 +52,31 @@ export function useModal() {
     _state.formFields = config.formFields || []
     _state.data = config.data || {}
     _state.originEl = config.originEl || null
+    _state.animating = _hasModalAnimation(config.originEl)
 
     nextTick(() => {
       const overlay = document.querySelector('.tlc-modal-overlay')
       if (!overlay) return
       // 清除前一次的 closing 状态（防止 animationend 回调误操作）
       overlay.classList.remove('closing')
+      overlay.classList.toggle('tlc-modal-no-anim', !_state.animating)
 
-      // 设为 CSS 自定义属性，@keyframes 中的 var() 会在动画启动时读取
-      // 计算从源元素到弹窗的精确 transform（配合 transform-origin: 0 0），
-      // 使弹窗看起来从标签块放大展开
-      const originEl = _state.originEl
-      if (originEl && typeof originEl.getBoundingClientRect === 'function') {
-        const modalEl = overlay.querySelector('.tlc-modal')
-        if (modalEl) {
-          const modalRect = modalEl.getBoundingClientRect()
-          const srcRect = originEl.getBoundingClientRect()
-          if (modalRect.width > 0 && modalRect.height > 0 && srcRect.width > 0 && srcRect.height > 0) {
-            modalEl.style.setProperty('--tlc-modal-tx', `${(srcRect.left - modalRect.left).toFixed(1)}px`)
-            modalEl.style.setProperty('--tlc-modal-ty', `${(srcRect.top - modalRect.top).toFixed(1)}px`)
-            modalEl.style.setProperty('--tlc-modal-sx', (srcRect.width / modalRect.width).toFixed(4))
-            modalEl.style.setProperty('--tlc-modal-sy', (srcRect.height / modalRect.height).toFixed(4))
+      if (_state.animating) {
+        // 设为 CSS 自定义属性，@keyframes 中的 var() 会在动画启动时读取
+        // 计算从源元素到弹窗的精确 transform（配合 transform-origin: 0 0），
+        // 使弹窗看起来从标签块放大展开
+        const originEl = _state.originEl
+        if (originEl && typeof originEl.getBoundingClientRect === 'function') {
+          const modalEl = overlay.querySelector('.tlc-modal')
+          if (modalEl) {
+            const modalRect = modalEl.getBoundingClientRect()
+            const srcRect = originEl.getBoundingClientRect()
+            if (modalRect.width > 0 && modalRect.height > 0 && srcRect.width > 0 && srcRect.height > 0) {
+              modalEl.style.setProperty('--tlc-modal-tx', `${(srcRect.left - modalRect.left).toFixed(1)}px`)
+              modalEl.style.setProperty('--tlc-modal-ty', `${(srcRect.top - modalRect.top).toFixed(1)}px`)
+              modalEl.style.setProperty('--tlc-modal-sx', (srcRect.width / modalRect.width).toFixed(4))
+              modalEl.style.setProperty('--tlc-modal-sy', (srcRect.height / modalRect.height).toFixed(4))
+            }
           }
         }
       }
@@ -74,17 +88,22 @@ export function useModal() {
   function hide() {
     const overlay = document.querySelector('.tlc-modal-overlay')
     if (overlay && _state.visible) {
-      // 已在退场动画中则不重复执行
-      if (overlay.classList.contains('closing')) return
-      overlay.classList.remove('show')
-      overlay.classList.add('closing')
-      overlay.addEventListener('animationend', () => {
-        overlay.classList.remove('closing')
-        // 检查 modal 是否已被重新展示（关闭 + 快速打开时）
-        if (!overlay.classList.contains('show')) {
-          _state.visible = false
-        }
-      }, { once: true })
+      if (_state.animating) {
+        // 已在退场动画中则不重复执行
+        if (overlay.classList.contains('closing')) return
+        overlay.classList.remove('show')
+        overlay.classList.add('closing')
+        overlay.addEventListener('animationend', () => {
+          overlay.classList.remove('closing')
+          if (!overlay.classList.contains('show')) {
+            _state.visible = false
+          }
+        }, { once: true })
+      } else {
+        // 无动效：直接关闭
+        overlay.classList.remove('show', 'closing')
+        _state.visible = false
+      }
     } else {
       _state.visible = false
     }
