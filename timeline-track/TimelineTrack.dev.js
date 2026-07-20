@@ -53,6 +53,10 @@
 
   /* Font */
   --tlc-font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+
+  /* Segment size defaults (defined here so container-level overrides inherit down correctly) */
+  --tls-height: 100%;
+  --tls-width: 100%;
 }
 
 /* ---- Container ---- */
@@ -83,8 +87,6 @@ time-line-track {
   --tlt-row-min-h: 280px;
   --tlt-seg-top: 18px;
   --tlt-seg-bottom: 0px;
-  --tls-height: 100%;
-  --tls-width: 100%;
 }
 time-line-track .tlt-row {
   display: flex;
@@ -396,7 +398,7 @@ time-line-segment .tls-tip-time  { opacity: .75; font-size: 10px; }
   border: 2px dashed var(--tlc-primary);
   border-radius: var(--tlc-radius);
   pointer-events: none;
-  z-index: 9;
+  z-index: 20;
 }
 
 /* ── 拖拽创建段时 ghost 上的时间范围标签 ── */
@@ -740,6 +742,13 @@ time-line-segment.tls-copy-pulse .tls-bar {
 .tlc-modal-overlay.closing {
   animation: tlc-overlay-out .13s ease-in forwards;
 }
+/* 无动效模式：动画禁用，直接显示/隐藏 */
+.tlc-modal-overlay.tlc-modal-no-anim {
+  transition: none;
+}
+.tlc-modal-overlay.tlc-modal-no-anim.closing {
+  animation: none;
+}
 
 /* ── Modal Card ── */
 .tlc-modal {
@@ -759,6 +768,10 @@ time-line-segment.tls-copy-pulse .tls-bar {
 }
 .tlc-modal-overlay.closing .tlc-modal {
   animation: tlc-modal-out .2s ease-in forwards;
+}
+.tlc-modal-overlay.tlc-modal-no-anim.show .tlc-modal,
+.tlc-modal-overlay.tlc-modal-no-anim.closing .tlc-modal {
+  animation: none !important;
 }
 
 @keyframes tlc-overlay-out { from { opacity: 1; } to { opacity: 0; } }
@@ -1356,80 +1369,80 @@ time-line-segment.tls-copy-pulse .tls-bar {
   }
   const DEFAULT_LOCALE = {
     /** Fallback display name when a track/segment has no label */
-    unnamed: "未命名",
+    unnamed: "Untitled",
     /** Title tooltip on segment delete button */
-    deleteBtnTitle: "删除",
+    deleteBtnTitle: "Delete",
     /** Context menu item — edit properties */
-    modifyProps: "修改属性",
+    modifyProps: "Edit Properties",
     /** Context menu item — delete track */
-    deleteTrack: "删除轨道",
+    deleteTrack: "Delete Track",
     /** Context menu item — clear all segments */
-    clearSegments: "清空时间段",
+    clearSegments: "Clear Segments",
     /** Track context menu header template, {name}=track name */
     trackMenuHeader: "📋 {name}",
     /** Segment context menu header template, {name}=segment name, {range}=time range */
     segmentMenuHeader: "🔖 {name}  {range}",
     /** Delete track confirmation template, {name}=track name, {range}=time range */
-    confirmDeleteTrack: "确定要删除轨道「{name}」({range}) 吗？",
+    confirmDeleteTrack: 'Delete track "{name}" ({range})?',
     /** Delete segment confirmation template */
-    confirmDeleteSegment: "确定要删除时间段「{name}」({range}) 吗？",
+    confirmDeleteSegment: 'Delete segment "{name}" ({range})?',
     /** Clear all segments confirmation template, {name}=track name */
-    confirmClearSegments: "确定要清空轨道「{name}」的所有时间段吗？",
+    confirmClearSegments: 'Clear all segments in track "{name}"?',
     /* ---- Copy / Paste ---- */
     /** Context menu — copy segment */
-    copySegment: "复制段",
+    copySegment: "Copy Segment",
     /** Context menu — copy track */
-    copyTrack: "复制轨道",
+    copyTrack: "Copy Track",
     /** Context menu — copy to other tracks */
-    copyToTracks: "复制到其他轨道…",
+    copyToTracks: "Copy to Other Tracks…",
     /** Context menu — paste segment */
-    pasteSegment: "粘贴段",
+    pasteSegment: "Paste Segment",
     /** Context menu — paste as new track */
-    pasteNewTrack: "粘贴为新轨道",
+    pasteNewTrack: "Paste as New Track",
     /** Context menu — paste and overwrite this track */
-    pasteOverwrite: "覆盖粘贴到本轨道",
+    pasteOverwrite: "Overwrite Paste to This Track",
     /** Copy-to-tracks dialog title, {name}=source track name */
-    copyToTracksTitle: "将「{name}」的段复制到：",
+    copyToTracksTitle: 'Copy segments from "{name}" to:',
     /** Copy-to-tracks dialog when no targets available */
-    copyToTracksEmpty: "没有可用的目标轨道（目标必须可编辑且与来源不同）",
+    copyToTracksEmpty: "No available target tracks (target must be editable and different from source)",
     /** Select all */
-    copySelectAll: "全选",
+    copySelectAll: "Select All",
     /** Segment count unit (e.g. "5 segments") */
-    segmentUnit: "个时间段",
+    segmentUnit: "segments",
     /* ---- Edit Dialogs ---- */
-    segmentEditTitle: "修改时间段属性",
-    trackEditTitle: "修改轨道属性",
-    labelField: "标签",
-    startTime: "开始时间",
-    endTime: "结束时间",
-    rangeStart: "起始",
-    rangeEnd: "结束",
-    color: "颜色",
-    name: "名称",
-    step: "步长",
-    maxSegmentsField: "最大段数",
-    zeroUnlimited: "0=无限制",
+    segmentEditTitle: "Edit Segment",
+    trackEditTitle: "Edit Track",
+    labelField: "Label",
+    startTime: "Start Time",
+    endTime: "End Time",
+    rangeStart: "Start",
+    rangeEnd: "End",
+    color: "Color",
+    name: "Name",
+    step: "Step",
+    maxSegmentsField: "Max Segments",
+    zeroUnlimited: "0=Unlimited",
     /* ---- Buttons ---- */
-    cancel: "取消",
-    confirm: "确定",
-    confirmDelete: "确定删除",
-    confirmDeleteTitle: "确认删除",
-    /* ---- Time units --- */
-    hourUnit: "时",
-    minuteUnit: "分",
-    secondUnit: "秒",
+    cancel: "Cancel",
+    confirm: "OK",
+    confirmDelete: "Delete",
+    confirmDeleteTitle: "Confirm Delete",
+    /* ---- Time units ---- */
+    hourUnit: "h",
+    minuteUnit: "m",
+    secondUnit: "s",
     /* ---- Fallback text for invalid time ---- */
     invalidTime: "--:--",
     /* ---- Step hint ---- */
-    stepHint: "步长 {step}（点击调整）",
+    stepHint: "Step {step} (click to adjust)",
     /* ---- Validation messages ---- */
-    invalidValue: "无效值",
-    startMustBeBeforeEnd: "起始必须早于结束",
+    invalidValue: "Invalid value",
+    startMustBeBeforeEnd: "Start must be before end",
     /**
      * Overlap hint shown below the field
      * Placeholder: {label}=conflicting segment name
      */
-    overlapHint: "与「{label}」重叠",
+    overlapHint: 'Overlaps with "{label}"',
     /* ---- Axis ruler ---- */
     /**
      * Shared axis mode ruler label template.
@@ -1444,7 +1457,7 @@ time-line-segment.tls-copy-pulse .tls-bar {
      * {label}=conflicting segment name,
      * {segStart}/{segEnd}=conflicting segment range.
      */
-    segmentOverlapError: "时间段重叠：新段 [{start}–{end}] 与已有段「{label}」[{segStart}–{segEnd}] 冲突"
+    segmentOverlapError: 'Segment overlap: new [{start}–{end}] conflicts with "{label}" [{segStart}–{segEnd}]'
   };
   function formatLocale(tpl, params) {
     return tpl.replace(/\{(\w+)\}/g, (_, k) => params[k] != null ? params[k] : `{${k}}`);
@@ -1878,6 +1891,13 @@ time-line-segment.tls-copy-pulse .tls-bar {
       this.removeEventListener("wheel", this._wheelZoom);
       if (this._vrfRaf) cancelAnimationFrame(this._vrfRaf);
     }
+    /** 模态框动效开关：默认 true（启用缩放动效），false 时直接显示/隐藏 */
+    get modalAnimation() {
+      return this.getAttribute("modal-animation") !== "false";
+    }
+    set modalAnimation(v) {
+      this.toggleAttribute("modal-animation", v !== false && v !== "false");
+    }
     static get observedAttributes() {
       return [
         "direction",
@@ -1903,6 +1923,7 @@ time-line-segment.tls-copy-pulse .tls-bar {
         "clearable",
         "copyable",
         "selection-mode",
+        "modal-animation",
         ...LOCALE_ATTRS
       ];
     }
@@ -2702,35 +2723,44 @@ time-line-segment.tls-copy-pulse .tls-bar {
     }
     return _modalEl;
   }
+  function _hasModalAnimation(originEl) {
+    const c = originEl && originEl.closest ? originEl.closest("time-line-container") : null;
+    return c ? c.modalAnimation : true;
+  }
   function _showModal(originEl) {
     hideContextMenu();
     const overlay = _getOverlay();
     const modal = _getModal();
+    const animating = _hasModalAnimation(originEl);
     if (_closeModalHandler) {
       overlay.removeEventListener("animationend", _closeModalHandler);
       _closeModalHandler = null;
     }
     overlay.classList.remove("closing");
     if (modal.parentNode !== overlay) overlay.appendChild(modal);
-    if (originEl && typeof originEl.getBoundingClientRect === "function") {
-      const modalRect = modal.getBoundingClientRect();
-      const srcRect = originEl.getBoundingClientRect();
-      if (modalRect.width > 0 && modalRect.height > 0 && srcRect.width > 0 && srcRect.height > 0) {
-        modal.style.setProperty("--tlc-modal-tx", `${(srcRect.left - modalRect.left).toFixed(1)}px`);
-        modal.style.setProperty("--tlc-modal-ty", `${(srcRect.top - modalRect.top).toFixed(1)}px`);
-        modal.style.setProperty("--tlc-modal-sx", (srcRect.width / modalRect.width).toFixed(4));
-        modal.style.setProperty("--tlc-modal-sy", (srcRect.height / modalRect.height).toFixed(4));
+    overlay._animating = animating;
+    overlay.classList.toggle("tlc-modal-no-anim", !animating);
+    if (animating) {
+      if (originEl && typeof originEl.getBoundingClientRect === "function") {
+        const modalRect = modal.getBoundingClientRect();
+        const srcRect = originEl.getBoundingClientRect();
+        if (modalRect.width > 0 && modalRect.height > 0 && srcRect.width > 0 && srcRect.height > 0) {
+          modal.style.setProperty("--tlc-modal-tx", `${(srcRect.left - modalRect.left).toFixed(1)}px`);
+          modal.style.setProperty("--tlc-modal-ty", `${(srcRect.top - modalRect.top).toFixed(1)}px`);
+          modal.style.setProperty("--tlc-modal-sx", (srcRect.width / modalRect.width).toFixed(4));
+          modal.style.setProperty("--tlc-modal-sy", (srcRect.height / modalRect.height).toFixed(4));
+        } else {
+          modal.style.setProperty("--tlc-modal-tx", "0px");
+          modal.style.setProperty("--tlc-modal-ty", "0px");
+          modal.style.setProperty("--tlc-modal-sx", ".35");
+          modal.style.setProperty("--tlc-modal-sy", ".35");
+        }
       } else {
         modal.style.setProperty("--tlc-modal-tx", "0px");
         modal.style.setProperty("--tlc-modal-ty", "0px");
         modal.style.setProperty("--tlc-modal-sx", ".35");
         modal.style.setProperty("--tlc-modal-sy", ".35");
       }
-    } else {
-      modal.style.setProperty("--tlc-modal-tx", "0px");
-      modal.style.setProperty("--tlc-modal-ty", "0px");
-      modal.style.setProperty("--tlc-modal-sx", ".35");
-      modal.style.setProperty("--tlc-modal-sy", ".35");
     }
     requestAnimationFrame(() => {
       overlay.classList.add("show");
@@ -2741,18 +2771,30 @@ time-line-segment.tls-copy-pulse .tls-bar {
   function closeModal() {
     _closeDropdown();
     if (_overlay) {
+      const animating = _overlay._animating !== false;
       if (_overlay.classList.contains("show")) {
         _overlay.classList.remove("show");
-        _overlay.classList.add("closing");
-        if (_closeModalHandler) _overlay.removeEventListener("animationend", _closeModalHandler);
-        _closeModalHandler = () => {
-          _closeModalHandler = null;
+        if (animating) {
+          _overlay.classList.add("closing");
+          if (_closeModalHandler) _overlay.removeEventListener("animationend", _closeModalHandler);
+          _closeModalHandler = () => {
+            _closeModalHandler = null;
+            _overlay.classList.remove("closing");
+            if (_modalEl && _modalEl.parentNode === _overlay && !_overlay.classList.contains("show")) {
+              _overlay.removeChild(_modalEl);
+            }
+          };
+          _overlay.addEventListener("animationend", _closeModalHandler);
+        } else {
           _overlay.classList.remove("closing");
-          if (_modalEl && _modalEl.parentNode === _overlay && !_overlay.classList.contains("show")) {
+          if (_closeModalHandler) {
+            _overlay.removeEventListener("animationend", _closeModalHandler);
+            _closeModalHandler = null;
+          }
+          if (_modalEl && _modalEl.parentNode === _overlay) {
             _overlay.removeChild(_modalEl);
           }
-        };
-        _overlay.addEventListener("animationend", _closeModalHandler);
+        }
       } else {
         if (_closeModalHandler) {
           _overlay.removeEventListener("animationend", _closeModalHandler);
