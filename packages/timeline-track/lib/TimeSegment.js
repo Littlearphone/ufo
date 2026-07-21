@@ -42,9 +42,9 @@ export class TimeSegment extends HTMLElement {
   }
 
   get start()    { return this._formatter.parse(this.getAttribute('start'), 0) }
-  set start(v)   { this.setAttribute('start', String(typeof v === 'number' ? Math.round(v * 1e4) / 1e4 : v)) }
+  set start(v)   { this.setAttribute('start', typeof v === 'number' ? Number(v.toFixed(6)).toString() : String(v)) }
   get end()      { return this._formatter.parse(this.getAttribute('end'), 0) }
-  set end(v)     { this.setAttribute('end',   String(typeof v === 'number' ? Math.round(v * 1e4) / 1e4 : v)) }
+  set end(v)     { this.setAttribute('end',   typeof v === 'number' ? Number(v.toFixed(6)).toString() : String(v)) }
   get label()    { const v = this.getAttribute('label'); return (v && v !== 'null' && v !== 'undefined') ? v : '' }
   set label(v)   { if (v == null) this.removeAttribute('label'); else this.setAttribute('label', v) }
   get color()    { return this.getAttribute('color') || '#5c9ce6' }
@@ -128,8 +128,8 @@ export class TimeSegment extends HTMLElement {
     return t ? t.editable : true
   }
   set editable(v) {
-    if (v == null || v === true || v === 'true') this.removeAttribute('editable')
-    else this.setAttribute('editable', 'false')
+    if (v == null) this.removeAttribute('editable')
+    else this.setAttribute('editable', v === false || v === 'false' ? 'false' : 'true')
   }
 
   /** 是否允许删除（删除按钮/菜单项），默认继承轨道值或 true */
@@ -139,8 +139,8 @@ export class TimeSegment extends HTMLElement {
     return t ? t.deletable : true
   }
   set deletable(v) {
-    if (v == null || v === true || v === 'true') this.removeAttribute('deletable')
-    else this.setAttribute('deletable', 'false')
+    if (v == null) this.removeAttribute('deletable')
+    else this.setAttribute('deletable', v === false || v === 'false' ? 'false' : 'true')
   }
 
   /** 是否允许复制（右键菜单"复制段"），默认继承轨道值或 true */
@@ -148,6 +148,10 @@ export class TimeSegment extends HTMLElement {
     if (this.hasAttribute('copyable')) return this.getAttribute('copyable') !== 'false'
     const t = this._track
     return t ? t.copyable : true
+  }
+  set copyable(v) {
+    if (v == null) this.removeAttribute('copyable')
+    else this.setAttribute('copyable', v === false || v === 'false' ? 'false' : 'true')
   }
 
   /** 获取所属的 time-line-track 元素 */

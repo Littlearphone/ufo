@@ -112,9 +112,9 @@ export class TimeContainer extends HTMLElement {
   set type(v) { this.setAttribute('type', v) }
 
   /** 归一化/显示单位：'hour' | 'minute' | 'second' | ''（自定义） */
-  get unit() { return this.getAttribute('unit') || 'hour' }
+  get unit() { return this.getAttribute('unit') || 'second' }
   set unit(v) {
-    if (v == null || v === 'hour') this.removeAttribute('unit')
+    if (v == null || v === 'second') this.removeAttribute('unit')
     else this.setAttribute('unit', v)
   }
 
@@ -203,36 +203,36 @@ export class TimeContainer extends HTMLElement {
   /** 是否允许编辑（拖拽创建/移动/调整/修改属性），默认 true */
   get editable() { return this.getAttribute('editable') !== 'false' }
   set editable(v) {
-    if (v == null || v === true || v === 'true') this.removeAttribute('editable')
-    else this.setAttribute('editable', 'false')
+    if (v == null) this.removeAttribute('editable')
+    else this.setAttribute('editable', v === false || v === 'false' ? 'false' : 'true')
   }
 
   /** 是否允许删除（删除按钮/菜单项），默认 true */
   get deletable() { return this.getAttribute('deletable') !== 'false' }
   set deletable(v) {
-    if (v == null || v === true || v === 'true') this.removeAttribute('deletable')
-    else this.setAttribute('deletable', 'false')
+    if (v == null) this.removeAttribute('deletable')
+    else this.setAttribute('deletable', v === false || v === 'false' ? 'false' : 'true')
   }
 
   /** 是否允许清空段（右键菜单"清空时间段"），默认 true */
   get clearable() { return this.getAttribute('clearable') !== 'false' }
   set clearable(v) {
-    if (v == null || v === true || v === 'true') this.removeAttribute('clearable')
-    else this.setAttribute('clearable', 'false')
+    if (v == null) this.removeAttribute('clearable')
+    else this.setAttribute('clearable', v === false || v === 'false' ? 'false' : 'true')
   }
 
   /** 是否允许复制（段/轨道复制菜单项），默认 true */
   get copyable() { return this.getAttribute('copyable') !== 'false' }
   set copyable(v) {
-    if (v == null || v === true || v === 'true') this.removeAttribute('copyable')
-    else this.setAttribute('copyable', 'false')
+    if (v == null) this.removeAttribute('copyable')
+    else this.setAttribute('copyable', v === false || v === 'false' ? 'false' : 'true')
   }
 
   /** 是否允许创建新内容（拖拽创建新段），默认 true */
   get creatable() { return this.getAttribute('creatable') !== 'false' }
   set creatable(v) {
-    if (v == null || v === true || v === 'true') this.removeAttribute('creatable')
-    else this.setAttribute('creatable', 'false')
+    if (v == null) this.removeAttribute('creatable')
+    else this.setAttribute('creatable', v === false || v === 'false' ? 'false' : 'true')
   }
 
   /** 选中模式：点击段切换选中状态而非拖拽，默认关闭 */

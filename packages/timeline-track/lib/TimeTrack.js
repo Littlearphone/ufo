@@ -79,8 +79,8 @@ export class TimeTrack extends HTMLElement {
     return c ? c.editable : true
   }
   set editable(v) {
-    if (v == null || v === true || v === 'true') this.removeAttribute('editable')
-    else this.setAttribute('editable', 'false')
+    if (v == null) this.removeAttribute('editable')
+    else this.setAttribute('editable', v === false || v === 'false' ? 'false' : 'true')
   }
 
   /** 是否允许删除（删除轨道/段删除按钮和菜单），默认继承容器值或 true */
@@ -90,8 +90,8 @@ export class TimeTrack extends HTMLElement {
     return c ? c.deletable : true
   }
   set deletable(v) {
-    if (v == null || v === true || v === 'true') this.removeAttribute('deletable')
-    else this.setAttribute('deletable', 'false')
+    if (v == null) this.removeAttribute('deletable')
+    else this.setAttribute('deletable', v === false || v === 'false' ? 'false' : 'true')
   }
 
   /** 是否允许清空本轨道所有段（右键菜单"清空时间段"），默认继承容器值或 true */
@@ -101,8 +101,8 @@ export class TimeTrack extends HTMLElement {
     return c ? c.clearable : true
   }
   set clearable(v) {
-    if (v == null || v === true || v === 'true') this.removeAttribute('clearable')
-    else this.setAttribute('clearable', 'false')
+    if (v == null) this.removeAttribute('clearable')
+    else this.setAttribute('clearable', v === false || v === 'false' ? 'false' : 'true')
   }
 
   /** 是否允许复制本轨道的段（菜单"复制段/轨道"），默认继承容器值或 true */
@@ -112,8 +112,8 @@ export class TimeTrack extends HTMLElement {
     return c ? c.copyable : true
   }
   set copyable(v) {
-    if (v == null || v === true || v === 'true') this.removeAttribute('copyable')
-    else this.setAttribute('copyable', 'false')
+    if (v == null) this.removeAttribute('copyable')
+    else this.setAttribute('copyable', v === false || v === 'false' ? 'false' : 'true')
   }
 
   /** 是否允许创建新段（拖拽创建），默认继承容器值或 true */
@@ -123,8 +123,8 @@ export class TimeTrack extends HTMLElement {
     return c ? c.creatable : true
   }
   set creatable(v) {
-    if (v == null || v === true || v === 'true') this.removeAttribute('creatable')
-    else this.setAttribute('creatable', 'false')
+    if (v == null) this.removeAttribute('creatable')
+    else this.setAttribute('creatable', v === false || v === 'false' ? 'false' : 'true')
   }
 
   get isVertical() {

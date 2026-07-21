@@ -141,7 +141,7 @@ const props = defineProps({
   direction: { type: String, default: 'horizontal' },
   axisMode: { type: String, default: 'per-track' },
   type: { type: String, default: 'time' },
-  unit: { type: String, default: 'hour' },
+  unit: { type: String, default: 'second' },
   step: { type: [Number, String], default: undefined },
 
   // 共享轴

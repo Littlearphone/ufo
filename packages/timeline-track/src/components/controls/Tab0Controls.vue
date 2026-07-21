@@ -25,11 +25,11 @@
           <label><span class="ctrl-label">步长</span>
             <select v-model="stepVal">
               <option value="0">无</option>
-              <option value="0.25">0.25</option>
-              <option value="0.5">0.5</option>
-              <option value="1">1</option>
-              <option value="2">2</option>
-              <option value="4">4</option>
+              <option value="900">900（15分）</option>
+              <option value="1800">1800（30分）</option>
+              <option value="3600">3600（1时）</option>
+              <option value="7200">7200（2时）</option>
+              <option value="14400">14400（4时）</option>
             </select>
           </label>
           <label v-show="isShared" style="cursor:pointer;gap:4px">
@@ -454,7 +454,7 @@ function reset() {
   c().removeAttribute('label-v')
   c().removeAttribute('tooltip-pos')
   c().removeAttribute('shared-clip-range')
-  c().setAttribute('step', '0.5')
+  c().setAttribute('step', '1800')
   c().style.height = ''
   c().style.width = ''
   radiusVal.value = '0'
@@ -486,23 +486,23 @@ function reset() {
   tipSide.value = 'top'
   tipAlign.value = 'center'
   c().innerHTML = `\
-    <time-line-track label="摄像头-A（前门）" start="0" end="24" step="0.25">\
-      <time-line-segment start="6"  end="9"  label="早班值守" color="#27ae60"></time-line-segment>\
-      <time-line-segment start="14" end="15" label="超短时段" color="#e67e22" tooltip="always"></time-line-segment>\
+    <time-line-track label="摄像头-A（前门）" start="00:00" end="24:00" step="900">\
+      <time-line-segment start="06:00"  end="09:00"  label="早班值守" color="#27ae60"></time-line-segment>\
+      <time-line-segment start="14:00" end="15:00" label="超短时段" color="#e67e22" tooltip="always"></time-line-segment>\
     </time-line-track>\
-    <time-line-track label="摄像头-B（后门）" start="0" end="24" step="0.5">\
-      <time-line-segment start="8"  end="12" label="上午录像" color="#2980b9"></time-line-segment>\
-      <time-line-segment start="13" end="17" label="中班录像一段较长名称" color="#8e44ad" tooltip="auto"></time-line-segment>\
-      <time-line-segment start="20" end="23" label="夜间录像" color="#c0392b" tooltip="none"></time-line-segment>\
+    <time-line-track label="摄像头-B（后门）" start="00:00" end="24:00" step="1800">\
+      <time-line-segment start="08:00"  end="12:00" label="上午录像" color="#2980b9"></time-line-segment>\
+      <time-line-segment start="13:00" end="17:00" label="中班录像一段较长名称" color="#8e44ad" tooltip="auto"></time-line-segment>\
+      <time-line-segment start="20:00" end="23:00" label="夜间录像" color="#c0392b" tooltip="none"></time-line-segment>\
     </time-line-track>\
-    <time-line-track label="摄像头-C（车库）" start="0" end="24">\
-      <time-line-segment start="0"  end="6"  label="凌晨巡检" color="#16a085"></time-line-segment>\
-      <time-line-segment start="18" end="24" label="夜间巡检" color="#2c3e50"></time-line-segment>\
+    <time-line-track label="摄像头-C（车库）" start="00:00" end="24:00">\
+      <time-line-segment start="00:00"  end="06:00"  label="凌晨巡检" color="#16a085"></time-line-segment>\
+      <time-line-segment start="18:00" end="24:00" label="夜间巡检" color="#2c3e50"></time-line-segment>\
     </time-line-track>\
-    <time-line-track label="机房巡检" start="8" end="22" step="0.5">\
-      <time-line-segment start="9"  end="12" label="上午巡检" color="#e67e22"></time-line-segment>\
-      <time-line-segment start="13" end="17" label="下午维护" color="#2980b9"></time-line-segment>\
-      <time-line-segment start="19" end="21" label="晚间值班" color="#8e44ad"></time-line-segment>\
+    <time-line-track label="机房巡检" start="08:00" end="22:00" step="1800">\
+      <time-line-segment start="09:00"  end="12:00" label="上午巡检" color="#e67e22"></time-line-segment>\
+      <time-line-segment start="13:00" end="17:00" label="下午维护" color="#2980b9"></time-line-segment>\
+      <time-line-segment start="19:00" end="21:00" label="晚间值班" color="#8e44ad"></time-line-segment>\
     </time-line-track>`
   addLog('dir', 'horizontal (reset)')
   bumpAttr()

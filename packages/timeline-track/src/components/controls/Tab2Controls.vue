@@ -98,14 +98,14 @@ const radiusVal = ref('0')
 // addTrack
 const apiLabel = ref('新轨道')
 const apiStart = ref('0')
-const apiEnd = ref('24')
-const apiStep = ref('0.5')
+const apiEnd = ref('86400')
+const apiStep = ref('1800')
 const apiMaxSeg = ref('0')
 
 // addSegment
 const addSegTrackIdx = ref(0)
-const segStart = ref('8')
-const segEnd = ref('12')
+const segStart = ref('28800')
+const segEnd = ref('43200')
 const segLabel = ref('新段')
 const segColor = ref('#27ae60')
 

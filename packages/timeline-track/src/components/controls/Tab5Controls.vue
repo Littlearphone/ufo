@@ -43,11 +43,11 @@
           <label><span class="ctrl-label">步长</span>
             <select :value="stepVal" @change="setStep">
               <option value="0">无</option>
-              <option value="0.25">0.25</option>
-              <option value="0.5">0.5</option>
-              <option value="1">1</option>
-              <option value="2">2</option>
-              <option value="4">4</option>
+              <option value="900">900（15分）</option>
+              <option value="1800">1800（30分）</option>
+              <option value="3600">3600（1时）</option>
+              <option value="7200">7200（2时）</option>
+              <option value="14400">14400（4时）</option>
             </select>
           </label>
           <label v-show="isShared" style="cursor:pointer;gap:4px">
@@ -275,7 +275,7 @@ function setStep(e) {
 }
 
 const typeVal = computed(() => props.config?.type ?? 'time')
-const unitVal = computed(() => props.config?.unit ?? 'hour')
+const unitVal = computed(() => props.config?.unit ?? 'second')
 
 function setType(e) {
   if (!props.config) return

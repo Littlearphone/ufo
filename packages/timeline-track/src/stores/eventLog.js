@@ -21,16 +21,16 @@ export function addLog(kind, detail, result) {
   let msg = ''
   switch (kind) {
     case 'create':
-      msg = `创建: ${fmt(detail.start)} – ${fmt(detail.end)}`
+      msg = `创建: ${rangeStr(detail)}`
       break
     case 'change':
-      msg = `拖动中: ${fmt(detail.start)} – ${fmt(detail.end)}`
+      msg = `拖动中: ${rangeStr(detail)}`
       break
     case 'changed':
-      msg = `拖动完成: ${fmt(detail.start)} – ${fmt(detail.end)}`
+      msg = `拖动完成: ${rangeStr(detail)}`
       break
     case 'deleted':
-      msg = `删除: ${fmt(detail.start)} – ${fmt(detail.end)}`
+      msg = `删除: ${rangeStr(detail)}`
       break
     case 'track-add':
       msg = `添加轨道: ${detail}`
@@ -68,6 +68,13 @@ export function useLog() {
   return { logLines, addLog, clearLog }
 }
 
-function fmt(v) {
-  return (typeof v === 'number' ? v.toFixed(2) : v) + 'h'
+/** 格式化段的时间范围显示 —— 优先使用事件 detail 中的 formatter 字段，否则回退到数值 */
+function rangeStr(detail) {
+  if (detail.startFormatted != null && detail.endFormatted != null) {
+    return detail.startFormatted + ' – ' + detail.endFormatted
+  }
+  // detail 可能是 segment DOM 元素（create 事件），使用其 start/end getter
+  const s = detail.start ?? detail.startSeconds
+  const e = detail.end ?? detail.endSeconds
+  return (typeof s === 'number' ? String(Math.round(s)) : s) + ' – ' + (typeof e === 'number' ? String(Math.round(e)) : e)
 }

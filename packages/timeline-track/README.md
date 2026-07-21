@@ -19,16 +19,20 @@
 
 ```html
 <time-line-container>
-  <time-line-track label="摄像头-A" start="0" end="24" step="0.25">
-    <time-line-segment start="6"  end="9"  label="早班值守" color="#27ae60"></time-line-segment>
-    <time-line-segment start="14" end="15" label="超短时段" color="#e67e22"></time-line-segment>
+  <time-line-track label="摄像头-A" start="00:00" end="24:00" step="900">
+    <time-line-segment start="06:00" end="09:00" label="早班值守" color="#27ae60"></time-line-segment>
+    <time-line-segment start="14:00" end="15:00" label="超短时段" color="#e67e22"></time-line-segment>
   </time-line-track>
-  <time-line-track label="摄像头-B" start="0" end="24" step="0.5">
-    <time-line-segment start="8"  end="12" label="上午录像" color="#2980b9"></time-line-segment>
-    <time-line-segment start="13" end="17" label="中班录像" color="#8e44ad"></time-line-segment>
+  <time-line-track label="摄像头-B" start="00:00" end="24:00" step="1800">
+    <time-line-segment start="08:00" end="12:00" label="上午录像" color="#2980b9"></time-line-segment>
+    <time-line-segment start="13:00" end="17:00" label="中班录像" color="#8e44ad"></time-line-segment>
   </time-line-track>
 </time-line-container>
 ```
+
+> `type="time"` 模式默认 `unit="second"`，裸数字视为秒（如 `start="30600"` = 08:30）。
+> 推荐使用 `HH:MM` 格式（如 `start="08:30"`）或自然单位（如 `step="30min"`），
+> 前者自动解析为秒，后者按单位换算，均无需关注精确的秒数值。
 
 ---
 
@@ -46,8 +50,8 @@
 | `borderless` | 布尔 | — | 共享轴模式下移除所有轨道边框 |
 | `axis-label` | string | — | 轴尺标签文字（固定值，覆盖 loc-axis-range） |
 | `type` | `time` / `number` | `time` | 值模式（时间 / 纯数值） |
-| `unit` | `hour` / `minute` / `second` / `""` | `hour` | 显示单位和自然语言解析基准 |
-| `step` | number | `0`（自由） | 全局默认吸附步长，各轨道可单独覆盖 |
+| `unit` | `hour` / `minute` / `second` / `""` | `second` | 归一化单位。`type="time"` 默认秒，裸数字视为秒 |
+| `step` | number | `0`（自由） | 全局默认吸附步长，各轨道可单独覆盖。`type="time"` 默认单位为秒，`step="1800"` = 30分 |
 | `default-color` | string | `#5c9ce6` | 新建段的默认颜色 |
 | `max-segments` | number | `0`（无限制） | 全局默认最大段数 |
 | `zoom-start` | number | — | 缩放视图起始 |
@@ -320,7 +324,7 @@ onMounted(() => {
       :key="td.key"
       :label="td.name"
       start="0"
-      end="24"
+      end="24:00"
     >
       <time-line-segment
         v-for="sd in td.segments"
@@ -362,9 +366,9 @@ track.pasteSegment(segmentData, 300, 400)  // 在 (300,400) 坐标位置粘贴
 通过 `axis-mode="shared"` 启用，所有轨道共用同一轴尺和刻度，适合对比多个轨道的同一时段。
 
 ```html
-<time-line-container axis-mode="shared" shared-start="0" shared-end="24">
-  <time-line-track label="摄像头-A" start="0" end="24"></time-line-track>
-  <time-line-track label="摄像头-B" start="0" end="24"></time-line-track>
+<time-line-container axis-mode="shared" shared-start="00:00" shared-end="24:00">
+  <time-line-track label="摄像头-A" start="00:00" end="24:00"></time-line-track>
+  <time-line-track label="摄像头-B" start="00:00" end="24:00"></time-line-track>
 </time-line-container>
 ```
 
@@ -373,10 +377,10 @@ track.pasteSegment(segmentData, 300, 400)  // 在 (300,400) 坐标位置粘贴
 加 `shared-clip-range` 属性后，每个轨道的段只能在自身 `start~end` 范围内拖拽：
 
 ```html
-<time-line-container axis-mode="shared" shared-start="0" shared-end="24" shared-clip-range>
-  <time-line-track label="全天" start="0" end="24"><!-- 全范围 -->
+<time-line-container axis-mode="shared" shared-start="00:00" shared-end="24:00" shared-clip-range>
+  <time-line-track label="全天" start="00:00" end="24:00"><!-- 全范围 -->
   </time-line-track>
-  <time-line-track label="机房" start="8" end="22"><!-- 仅 8~22 -->
+  <time-line-track label="机房" start="08:00" end="22:00"><!-- 仅 8~22 -->
   </time-line-track>
 </time-line-container>
 ```

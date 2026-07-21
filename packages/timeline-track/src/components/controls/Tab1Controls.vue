@@ -18,14 +18,14 @@
           <label><span class="ctrl-label">步长</span>
             <select v-model="stepVal">
               <option value="0">无</option>
-              <option value="0.01">0.01</option>
-              <option value="0.05">0.05</option>
-              <option value="0.1">0.1</option>
-              <option value="0.25">0.25</option>
-              <option value="0.5">0.5</option>
-              <option value="1">1</option>
-              <option value="2">2</option>
-              <option value="4">4</option>
+              <option value="36">36秒</option>
+              <option value="180">3分</option>
+              <option value="360">6分</option>
+              <option value="900">15分</option>
+              <option value="1800">30分</option>
+              <option value="3600">1时</option>
+              <option value="7200">2时</option>
+              <option value="14400">4时</option>
             </select>
           </label>
           <label><span class="ctrl-label">每轨道上限</span>
@@ -101,7 +101,7 @@ function generate() {
   const trackN = trackCount.value
   const segN = Math.min(segCount.value, maxSeg.value > 0 ? maxSeg.value : segCount.value)
   const step = parseFloat(stepVal.value) || 0
-  const totalRange = 24
+  const totalRange = 86400  // 24h in seconds
   const isPacked = packed.value
   const limit = maxSeg.value > 0 ? maxSeg.value : 0
 
@@ -121,10 +121,10 @@ function generate() {
       const segLen = totalRange / segN
       for (let s = 0; s < segN; s++) {
         const seg = document.createElement('time-line-segment')
-        const start = s * segLen
-        const end = (s + 1) * segLen
-        seg.setAttribute('start', String(Math.round(start * 1e4) / 1e4))
-        seg.setAttribute('end', String(Math.round(end * 1e4) / 1e4))
+        const start = Math.round(s * segLen)
+        const end = Math.round((s + 1) * segLen)
+        seg.setAttribute('start', String(start))
+        seg.setAttribute('end', String(end))
         seg.setAttribute('label', '' + (s + 1))
         seg.setAttribute('color', pick(COLORS))
         track.appendChild(seg)
@@ -133,9 +133,9 @@ function generate() {
       const segLen = totalRange / segN
       for (let s = 0; s < segN; s++) {
         const seg = document.createElement('time-line-segment')
-        const start = s * segLen + rand(0, segLen * 0.15)
-        const end = start + segLen * 0.3 + rand(0, segLen * 0.25)
-        seg.setAttribute('start', String(Math.min(Math.max(start, 0), totalRange - 0.05)))
+        const start = Math.round(s * segLen + rand(0, segLen * 0.15))
+        const end = Math.round(start + segLen * 0.3 + rand(0, segLen * 0.25))
+        seg.setAttribute('start', String(Math.min(Math.max(start, 0), totalRange - 1)))
         seg.setAttribute('end', String(Math.min(end, totalRange)))
         seg.setAttribute('label', 'S' + (s + 1))
         seg.setAttribute('color', pick(COLORS))

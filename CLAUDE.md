@@ -124,9 +124,9 @@ pnpm -r run build:all
 示例：
 
 ```html
-<time-line-segment start="14" end="15" label="超短时段" tooltip="always"></time-line-segment>
-<time-line-segment start="13" end="17" label="长名称段" tooltip="auto"></time-line-segment>
-<time-line-segment start="20" end="23" label="夜间" tooltip="none"></time-line-segment>
+<time-line-segment start="14:00" end="15:00" label="超短时段" tooltip="always"></time-line-segment>
+<time-line-segment start="13:00" end="17:00" label="长名称段" tooltip="auto"></time-line-segment>
+<time-line-segment start="20:00" end="23:00" label="夜间" tooltip="none"></time-line-segment>
 ```
 
 > 页面上可通过 `<time-line-segment>` 元素上的 `tooltip` 属性值来区分当前使用的模式。未设置时默认 `auto`。
@@ -161,7 +161,7 @@ pnpm -r run build:all
   loc-cancel="Cancel"
   loc-confirm="OK"
 >
-  <time-line-track label="" start="0" end="24"></time-line-track>
+  <time-line-track label="" start="00:00" end="24:00"></time-line-track>
 </time-line-container>
 ```
 
@@ -291,13 +291,13 @@ get step() {
 
 ```html
 <!-- 容器设默认步长 0.5，所有无自身 step 的轨道继承 -->
-<time-line-container step="0.5">
+<time-line-container step="1800">
   <!-- 继承容器步长 → 吸附 0.5 -->
-  <time-line-track label="默认轨道" start="0" end="24"></time-line-track>
+  <time-line-track label="默认轨道" start="00:00" end="24:00"></time-line-track>
   <!-- 自身 step=0.25 → 覆盖容器，吸附 0.25 -->
-  <time-line-track label="精细轨道" start="0" end="24" step="0.25"></time-line-track>
+  <time-line-track label="精细轨道" start="00:00" end="24:00" step="900"></time-line-track>
   <!-- 自身 step=0 → 显式禁用吸附 -->
-  <time-line-track label="自由轨道" start="0" end="24" step="0"></time-line-track>
+  <time-line-track label="自由轨道" start="00:00" end="24:00" step="0"></time-line-track>
 </time-line-container>
 ```
 
@@ -322,7 +322,7 @@ c().step = parseFloat(v) || 0
 
 ```js
 // Tab0Controls reset
-c().setAttribute('step', '0.5')
+c().setAttribute('step', '1800')
 ```
 
 ## CRUD 权限控制系统（creatable / editable / deletable / clearable / copyable）
@@ -394,22 +394,22 @@ container.copyable   → track.copyable   → segment.copyable
 ```html
 <!-- 全局只读 -->
 <time-line-container creatable="false" editable="false" deletable="false" clearable="false">
-  <time-line-track label="只读轨道" start="0" end="24">
-    <time-line-segment start="8" end="12" label="不可操作"></time-line-segment>
+  <time-line-track label="只读轨道" start="00:00" end="24:00">
+    <time-line-segment start="08:00" end="12:00" label="不可操作"></time-line-segment>
   </time-line-track>
 </time-line-container>
 
 <!-- 精细化控制：轨道级覆盖 + 片段级覆盖 -->
 <time-line-container editable="true" deletable="true" clearable="true">
   <!-- 此轨道只可添加新段，不可编辑/删除已有段，也不可清空 -->
-  <time-line-track label="投稿区" start="0" end="24"
+  <time-line-track label="投稿区" start="00:00" end="24:00"
     creatable="true" editable="false" deletable="false" clearable="false">
-    <time-line-segment start="8" end="12" label="已有段"></time-line-segment>
+    <time-line-segment start="08:00" end="12:00" label="已有段"></time-line-segment>
   </time-line-track>
   <!-- 此轨道普通，但其中一段设为只读 -->
-  <time-line-track label="回放区" start="0" end="24">
-    <time-line-segment start="14" end="16" label="可操作"></time-line-segment>
-    <time-line-segment start="17" end="19" label="只读" editable="false" deletable="false"></time-line-segment>
+  <time-line-track label="回放区" start="00:00" end="24:00">
+    <time-line-segment start="14:00" end="16:00" label="可操作"></time-line-segment>
+    <time-line-segment start="17:00" end="19:00" label="只读" editable="false" deletable="false"></time-line-segment>
   </time-line-track>
 </time-line-container>
 
@@ -466,8 +466,8 @@ container.copyable   → track.copyable   → segment.copyable
 
 ```html
 <time-line-container axis-mode="shared" borderless>
-  <time-line-track label="轨道A" start="0" end="24"></time-line-track>
-  <time-line-track label="轨道B" start="0" end="24"></time-line-track>
+  <time-line-track label="轨道A" start="00:00" end="24:00"></time-line-track>
+  <time-line-track label="轨道B" start="00:00" end="24:00"></time-line-track>
 </time-line-container>
 ```
 
@@ -492,9 +492,9 @@ time-line-container[axis-mode="shared"] time-line-track:hover .tlt-row {
 <!-- 容器设置默认颜色，所有未显式设置 color 的子轨道继承 -->
 <time-line-container default-color="#e67e22">
   <!-- 继承容器默认色 -->
-  <time-line-track label="轨道A" start="0" end="24"></time-line-track>
+  <time-line-track label="轨道A" start="00:00" end="24:00"></time-line-track>
   <!-- 自身 default-color 覆盖容器 -->
-  <time-line-track label="轨道B" start="0" end="24" default-color="#2ecc71"></time-line-track>
+  <time-line-track label="轨道B" start="00:00" end="24:00" default-color="#2ecc71"></time-line-track>
 </time-line-container>
 ```
 
@@ -636,7 +636,7 @@ const tracks = ref([
   <VTimelineContainer
     v-model="tracks"
     direction="horizontal"
-    :step="0.5"
+    :step="1800"
     type="time"
   />
 </template>

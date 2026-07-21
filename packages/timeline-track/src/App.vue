@@ -36,24 +36,24 @@
 
             <!-- ════ Tab 0: 基础操作 + 共用轴 ════ -->
             <div class="tab-pane" :class="{ active: activeTab === 0 }">
-              <time-line-container ref="c0" id="demo0" direction="horizontal" step="0.5">
-                <time-line-track label="摄像头-A（前门）" start="0" end="24" step="0.25">
-                  <time-line-segment start="6"  end="9"  label="早班值守" color="#27ae60"></time-line-segment>
-                  <time-line-segment start="14" end="15" label="超短时段" color="#e67e22" tooltip="always"></time-line-segment>
+              <time-line-container ref="c0" id="demo0" direction="horizontal" step="1800">
+                <time-line-track label="摄像头-A（前门）" start="00:00" end="24:00" step="900">
+                  <time-line-segment start="06:00" end="09:00" label="早班值守" color="#27ae60"></time-line-segment>
+                  <time-line-segment start="14:00" end="15:00" label="超短时段" color="#e67e22" tooltip="always"></time-line-segment>
                 </time-line-track>
-                <time-line-track label="摄像头-B（后门）" start="0" end="24" step="0.5">
-                  <time-line-segment start="8"  end="12" label="上午录像" color="#2980b9"></time-line-segment>
-                  <time-line-segment start="13" end="17" label="中班录像一段较长名称" color="#8e44ad" tooltip="auto"></time-line-segment>
-                  <time-line-segment start="20" end="23" label="夜间录像" color="#c0392b" tooltip="none"></time-line-segment>
+                <time-line-track label="摄像头-B（后门）" start="00:00" end="24:00" step="1800">
+                  <time-line-segment start="08:00" end="12:00" label="上午录像" color="#2980b9"></time-line-segment>
+                  <time-line-segment start="13:00" end="17:00" label="中班录像一段较长名称" color="#8e44ad" tooltip="auto"></time-line-segment>
+                  <time-line-segment start="20:00" end="23:00" label="夜间录像" color="#c0392b" tooltip="none"></time-line-segment>
                 </time-line-track>
-                <time-line-track label="摄像头-C（车库）" start="0" end="24">
-                  <time-line-segment start="0"  end="6"  label="凌晨巡检" color="#16a085"></time-line-segment>
-                  <time-line-segment start="18" end="24" label="夜间巡检" color="#2c3e50"></time-line-segment>
+                <time-line-track label="摄像头-C（车库）" start="00:00" end="24:00">
+                  <time-line-segment start="00:00" end="06:00" label="凌晨巡检" color="#16a085"></time-line-segment>
+                  <time-line-segment start="18:00" end="24:00" label="夜间巡检" color="#2c3e50"></time-line-segment>
                 </time-line-track>
-                <time-line-track label="机房巡检" start="8" end="22" step="0.5">
-                  <time-line-segment start="9"  end="12" label="上午巡检" color="#e67e22"></time-line-segment>
-                  <time-line-segment start="13" end="17" label="下午维护" color="#2980b9"></time-line-segment>
-                  <time-line-segment start="19" end="21" label="晚间值班" color="#8e44ad"></time-line-segment>
+                <time-line-track label="机房巡检" start="08:00" end="22:00" step="1800">
+                  <time-line-segment start="09:00" end="12:00" label="上午巡检" color="#e67e22"></time-line-segment>
+                  <time-line-segment start="13:00" end="17:00" label="下午维护" color="#2980b9"></time-line-segment>
+                  <time-line-segment start="19:00" end="21:00" label="晚间值班" color="#8e44ad"></time-line-segment>
                 </time-line-track>
               </time-line-container>
             </div>
@@ -66,8 +66,8 @@
             <!-- ════ Tab 2: API 调用 ════ -->
             <div class="tab-pane" :class="{ active: activeTab === 2 }">
               <time-line-container ref="c2" id="demo2" direction="horizontal">
-                <time-line-track label="空轨道-A" start="0" end="24"></time-line-track>
-                <time-line-track label="空轨道-B" start="0" end="24"></time-line-track>
+                <time-line-track label="空轨道-A" start="00:00" end="24:00"></time-line-track>
+                <time-line-track label="空轨道-B" start="00:00" end="24:00"></time-line-track>
               </time-line-container>
             </div>
 
@@ -155,13 +155,13 @@
                   <span class="mode-desc">实时观察拖拽/菜单/按钮的变化</span>
                 </div>
                 <time-line-container ref="c5" class="mode-example-body" id="sandbox" style="height:170px">
-                  <time-line-track label="轨道-A" start="0" end="24">
-                    <time-line-segment start="8" end="12" label="段A" color="#3498db"></time-line-segment>
-                    <time-line-segment start="14" end="17" label="段B" color="#2ecc71"></time-line-segment>
+                  <time-line-track label="轨道-A" start="00:00" end="24:00">
+                    <time-line-segment start="08:00" end="12:00" label="段A" color="#3498db"></time-line-segment>
+                    <time-line-segment start="14:00" end="17:00" label="段B" color="#2ecc71"></time-line-segment>
                   </time-line-track>
-                  <time-line-track label="轨道-B" start="0" end="24">
-                    <time-line-segment start="9" end="13" label="段C" color="#e67e22"></time-line-segment>
-                    <time-line-segment start="15" end="18" label="段D" color="#9b59b6"></time-line-segment>
+                  <time-line-track label="轨道-B" start="00:00" end="24:00">
+                    <time-line-segment start="09:00" end="13:00" label="段C" color="#e67e22"></time-line-segment>
+                    <time-line-segment start="15:00" end="18:00" label="段D" color="#9b59b6"></time-line-segment>
                   </time-line-track>
                 </time-line-container>
               </div>
@@ -174,8 +174,8 @@
                   <span class="mode-desc">拖拽、编辑、删除、清空全部禁止</span>
                 </div>
                 <time-line-container class="mode-example-body" creatable="false" editable="false" deletable="false" clearable="false">
-                  <time-line-track label="只读轨道" start="0" end="24">
-                    <time-line-segment start="8" end="12" label="不可操作" color="#95a5a6"></time-line-segment>
+                  <time-line-track label="只读轨道" start="00:00" end="24:00">
+                    <time-line-segment start="08:00" end="12:00" label="不可操作" color="#95a5a6"></time-line-segment>
                   </time-line-track>
                 </time-line-container>
               </div>
@@ -188,8 +188,8 @@
                   <span class="mode-desc">可拖拽添加新段，但不可编辑、删除或清空已有段</span>
                 </div>
                 <time-line-container class="mode-example-body" creatable="true" editable="false" deletable="false" clearable="false">
-                  <time-line-track label="可添加段" start="0" end="24">
-                    <time-line-segment start="9" end="12" label="已有段" color="#27ae60"></time-line-segment>
+                  <time-line-track label="可添加段" start="00:00" end="24:00">
+                    <time-line-segment start="09:00" end="12:00" label="已有段" color="#27ae60"></time-line-segment>
                   </time-line-track>
                 </time-line-container>
               </div>
@@ -202,9 +202,9 @@
                   <span class="mode-desc">可拖拽移动/调整/修改属性，不可添加、删除或清空</span>
                 </div>
                 <time-line-container class="mode-example-body" creatable="false" editable="true" deletable="false" clearable="false">
-                  <time-line-track label="可编辑段" start="0" end="24">
-                    <time-line-segment start="8" end="11" label="可移动/拉伸" color="#2980b9"></time-line-segment>
-                    <time-line-segment start="13" end="16" label="可修改属性" color="#8e44ad"></time-line-segment>
+                  <time-line-track label="可编辑段" start="00:00" end="24:00">
+                    <time-line-segment start="08:00" end="11:00" label="可移动/拉伸" color="#2980b9"></time-line-segment>
+                    <time-line-segment start="13:00" end="16:00" label="可修改属性" color="#8e44ad"></time-line-segment>
                   </time-line-track>
                 </time-line-container>
               </div>
@@ -217,9 +217,9 @@
                   <span class="mode-desc">仅可删除段/轨道、清空轨道，不可添加或编辑</span>
                 </div>
                 <time-line-container class="mode-example-body" creatable="false" editable="false" deletable="true">
-                  <time-line-track label="可删除段" start="0" end="24">
-                    <time-line-segment start="10" end="14" label="可删除" color="#e74c3c"></time-line-segment>
-                    <time-line-segment start="16" end="19" label="也可删除" color="#e67e22"></time-line-segment>
+                  <time-line-track label="可删除段" start="00:00" end="24:00">
+                    <time-line-segment start="10:00" end="14:00" label="可删除" color="#e74c3c"></time-line-segment>
+                    <time-line-segment start="16:00" end="19:00" label="也可删除" color="#e67e22"></time-line-segment>
                   </time-line-track>
                 </time-line-container>
               </div>
@@ -232,11 +232,11 @@
                   <span class="mode-desc">同一容器内各轨道权限独立</span>
                 </div>
                 <time-line-container class="mode-example-body" style="height:160px">
-                  <time-line-track label="普通轨道" start="0" end="24">
-                    <time-line-segment start="8" end="12" label="全部可操作" color="#3498db"></time-line-segment>
+                  <time-line-track label="普通轨道" start="00:00" end="24:00">
+                    <time-line-segment start="08:00" end="12:00" label="全部可操作" color="#3498db"></time-line-segment>
                   </time-line-track>
-                  <time-line-track label="只读轨道" start="0" end="24" creatable="false" editable="false" deletable="false" clearable="false">
-                    <time-line-segment start="14" end="18" label="完全只读" color="#95a5a6"></time-line-segment>
+                  <time-line-track label="只读轨道" start="00:00" end="24:00" creatable="false" editable="false" deletable="false" clearable="false">
+                    <time-line-segment start="14:00" end="18:00" label="完全只读" color="#95a5a6"></time-line-segment>
                   </time-line-track>
                 </time-line-container>
               </div>
@@ -249,11 +249,11 @@
                   <span class="mode-desc">同一轨道内各段权限独立</span>
                 </div>
                 <time-line-container class="mode-example-body">
-                  <time-line-track label="混合控制" start="0" end="24" deletable="false" clearable="false">
-                    <time-line-segment start="8" end="10" label="可编辑" editable="true" color="#27ae60"></time-line-segment>
-                    <time-line-segment start="11" end="13" label="只读" editable="false" deletable="false" color="#95a5a6"></time-line-segment>
-                    <time-line-segment start="14" end="16" label="仅可删除" editable="false" deletable="true" color="#e74c3c"></time-line-segment>
-                    <time-line-segment start="17" end="19" label="可编辑+删除" editable="true" deletable="true" color="#2980b9"></time-line-segment>
+                  <time-line-track label="混合控制" start="00:00" end="24:00" deletable="false" clearable="false">
+                    <time-line-segment start="08:00" end="10:00" label="可编辑" editable="true" color="#27ae60"></time-line-segment>
+                    <time-line-segment start="11:00" end="13:00" label="只读" editable="false" deletable="false" color="#95a5a6"></time-line-segment>
+                    <time-line-segment start="14:00" end="16:00" label="仅可删除" editable="false" deletable="true" color="#e74c3c"></time-line-segment>
+                    <time-line-segment start="17:00" end="19:00" label="可编辑+删除" editable="true" deletable="true" color="#2980b9"></time-line-segment>
                   </time-line-track>
                 </time-line-container>
               </div>
@@ -342,44 +342,44 @@ const _domObserver = new MutationObserver(() => {
 // ── Tab 4（Vue 原生组件）演示数据 ──
 const vueTracks = shallowRef([
   {
-    id: 'vt1', label: '功能开发', start: '0', end: '24',
+    id: 'vt1', label: '功能开发', start: '00:00', end: '24:00',
     segments: [
-      { id: 'vs1', start: 8, end: 12, label: '前端开发', color: '#3498db' },
-      { id: 'vs2', start: 13, end: 17, label: '后端开发', color: '#2ecc71' },
-      { id: 'vs3', start: 18, end: 21, label: '联调测试', color: '#e67e22' },
+      { id: 'vs1', start: 28800, end: 43200, label: '前端开发', color: '#3498db' },
+      { id: 'vs2', start: 46800, end: 61200, label: '后端开发', color: '#2ecc71' },
+      { id: 'vs3', start: 64800, end: 75600, label: '联调测试', color: '#e67e22' },
     ],
   },
   {
-    id: 'vt2', label: '设计工作', start: '0', end: '24',
+    id: 'vt2', label: '设计工作', start: '00:00', end: '24:00',
     segments: [
-      { id: 'vs4', start: 9, end: 12, label: 'UI 设计', color: '#e67e22' },
-      { id: 'vs5', start: 13, end: 14, label: '评审', color: '#9b59b6' },
-      { id: 'vs6', start: 14, end: 16, label: '切图标注', color: '#1abc9c' },
+      { id: 'vs4', start: 32400, end: 43200, label: 'UI 设计', color: '#e67e22' },
+      { id: 'vs5', start: 46800, end: 50400, label: '评审', color: '#9b59b6' },
+      { id: 'vs6', start: 50400, end: 57600, label: '切图标注', color: '#1abc9c' },
     ],
   },
   {
-    id: 'vt3', label: '服务器部署', start: '0', end: '24', step: '0.5',
+    id: 'vt3', label: '服务器部署', start: '00:00', end: '24:00', step: '1800',
     segments: [
-      { id: 'vs7', start: 2, end: 5, label: '数据库迁移', color: '#c0392b' },
-      { id: 'vs8', start: 10, end: 12, label: '负载测试', color: '#2980b9' },
+      { id: 'vs7', start: 7200, end: 18000, label: '数据库迁移', color: '#c0392b' },
+      { id: 'vs8', start: 36000, end: 43200, label: '负载测试', color: '#2980b9' },
     ],
   },
   {
-    id: 'vt4', label: '安全巡检（短范围）', start: '8', end: '22',
+    id: 'vt4', label: '安全巡检（短范围）', start: '08:00', end: '22:00',
     maxSegments: 5,
     segments: [
-      { id: 'vs9', start: 9, end: 11, label: '日志审计', color: '#16a085' },
-      { id: 'vs10', start: 14, end: 16, label: '漏洞扫描', color: '#e74c3c' },
-      { id: 'vs11', start: 20, end: 21.5, label: '夜巡', color: '#f39c12' },
+      { id: 'vs9', start: 32400, end: 39600, label: '日志审计', color: '#16a085' },
+      { id: 'vs10', start: 50400, end: 57600, label: '漏洞扫描', color: '#e74c3c' },
+      { id: 'vs11', start: 72000, end: 77400, label: '夜巡', color: '#f39c12' },
     ],
   },
   {
-    id: 'vt5', label: '会议室预订', start: '0', end: '24',
+    id: 'vt5', label: '会议室预订', start: '00:00', end: '24:00',
     segments: [
-      { id: 'vs12', start: 8, end: 10, label: '晨会', color: '#3498db' },
-      { id: 'vs13', start: 10, end: 12, label: '项目评审', color: '#9b59b6' },
-      { id: 'vs14', start: 14, end: 16, label: '客户演示', color: '#1abc9c' },
-      { id: 'vs15', start: 16, end: 17.5, label: '复盘', color: '#2c3e50' },
+      { id: 'vs12', start: 28800, end: 36000, label: '晨会', color: '#3498db' },
+      { id: 'vs13', start: 36000, end: 43200, label: '项目评审', color: '#9b59b6' },
+      { id: 'vs14', start: 50400, end: 57600, label: '客户演示', color: '#1abc9c' },
+      { id: 'vs15', start: 57600, end: 63000, label: '复盘', color: '#2c3e50' },
     ],
   },
 ])
@@ -390,7 +390,7 @@ const vueTracks = shallowRef([
  */
 const vueConfig = reactive({
   direction: 'horizontal',
-  step: 0.5,
+  step: 1800,
   axisMode: 'per-track',
   sharedStart: undefined,
   sharedEnd: undefined,
@@ -411,7 +411,7 @@ const vueConfig = reactive({
   clearable: true,
   copyable: true,
   type: 'time',
-  unit: 'hour',
+  unit: 'second',
 })
 
 /** CSS 变量覆盖 — 通过 :style 注入到 VTimelineContainer，自动级联到子轨道/段 */
@@ -471,7 +471,7 @@ function handleControlsReset(idx) {
   } else if (idx === 4) {
     // Vue 模式重置：恢复 config 和 cssVars 到初始值
     vueConfig.direction = 'horizontal'
-    vueConfig.step = 0.5
+    vueConfig.step = 1800
     vueConfig.axisMode = 'per-track'
     vueConfig.sharedStart = undefined
     vueConfig.sharedEnd = undefined
@@ -492,7 +492,7 @@ function handleControlsReset(idx) {
     vueConfig.clearable = true
     vueConfig.copyable = true
     vueConfig.type = 'time'
-    vueConfig.unit = 'hour'
+    vueConfig.unit = 'second'
     Object.assign(vueCssVars, {
       segHeight: '', segWidth: '', trackHeight: '', trackWidth: '', axisBg: '', containerHeight: '', containerWidth: '',
     })
@@ -550,30 +550,30 @@ function handleControlsReset(idx) {
 // ── 各标签页内部 HTML 模板（不含容器外层） ──
 const TAB_INNER_HTML = [
   // Tab 0 — 基础操作 + 共用轴（4 条轨道，含不同范围）
-  `  <time-line-track label="摄像头-A（前门）" start="0" end="24" step="0.25">
-    <time-line-segment start="6"  end="9"  label="早班值守" color="#27ae60"></time-line-segment>
-    <time-line-segment start="14" end="15" label="超短时段" color="#e67e22" tooltip="always"></time-line-segment>
+  `  <time-line-track label="摄像头-A（前门）" start="00:00" end="24:00" step="900">
+    <time-line-segment start="06:00"  end="09:00"  label="早班值守" color="#27ae60"></time-line-segment>
+    <time-line-segment start="14:00" end="15:00" label="超短时段" color="#e67e22" tooltip="always"></time-line-segment>
   </time-line-track>
-  <time-line-track label="摄像头-B（后门）" start="0" end="24" step="0.5">
-    <time-line-segment start="8"  end="12" label="上午录像" color="#2980b9"></time-line-segment>
-    <time-line-segment start="13" end="17" label="中班录像一段较长名称" color="#8e44ad" tooltip="auto"></time-line-segment>
-    <time-line-segment start="20" end="23" label="夜间录像" color="#c0392b" tooltip="none"></time-line-segment>
+  <time-line-track label="摄像头-B（后门）" start="00:00" end="24:00" step="1800">
+    <time-line-segment start="08:00"  end="12:00" label="上午录像" color="#2980b9"></time-line-segment>
+    <time-line-segment start="13:00" end="17:00" label="中班录像一段较长名称" color="#8e44ad" tooltip="auto"></time-line-segment>
+    <time-line-segment start="20:00" end="23:00" label="夜间录像" color="#c0392b" tooltip="none"></time-line-segment>
   </time-line-track>
-  <time-line-track label="摄像头-C（车库）" start="0" end="24">
-    <time-line-segment start="0"  end="6"  label="凌晨巡检" color="#16a085"></time-line-segment>
-    <time-line-segment start="18" end="24" label="夜间巡检" color="#2c3e50"></time-line-segment>
+  <time-line-track label="摄像头-C（车库）" start="00:00" end="24:00">
+    <time-line-segment start="00:00"  end="06:00"  label="凌晨巡检" color="#16a085"></time-line-segment>
+    <time-line-segment start="18:00" end="24:00" label="夜间巡检" color="#2c3e50"></time-line-segment>
   </time-line-track>
-  <time-line-track label="机房巡检" start="8" end="22" step="0.5">
-    <time-line-segment start="9"  end="12" label="上午巡检" color="#e67e22"></time-line-segment>
-    <time-line-segment start="13" end="17" label="下午维护" color="#2980b9"></time-line-segment>
-    <time-line-segment start="19" end="21" label="晚间值班" color="#8e44ad"></time-line-segment>
+  <time-line-track label="机房巡检" start="08:00" end="22:00" step="1800">
+    <time-line-segment start="09:00"  end="12:00" label="上午巡检" color="#e67e22"></time-line-segment>
+    <time-line-segment start="13:00" end="17:00" label="下午维护" color="#2980b9"></time-line-segment>
+    <time-line-segment start="19:00" end="21:00" label="晚间值班" color="#8e44ad"></time-line-segment>
   </time-line-track>`,
   // Tab 1 — 密集数据（无静态内嵌内容）
   ``,
   // Tab 2 — API 调用
-  `  <time-line-track label="空轨道-A" start="0" end="24">
+  `  <time-line-track label="空轨道-A" start="00:00" end="24:00">
   </time-line-track>
-  <time-line-track label="空轨道-B" start="0" end="24">
+  <time-line-track label="空轨道-B" start="00:00" end="24:00">
   </time-line-track>`,
   // Tab 3 — 模式示例（多个独立容器）
   `<!-- 自然时间输入 -->
@@ -650,63 +650,63 @@ const TAB_INNER_HTML = [
   // Tab 5 — CRUD 权限（静态模板）
   `  <!-- 🎮 交互沙盒 -->
   <time-line-container style="height:170px">
-    <time-line-track label="轨道-A" start="0" end="24">
-      <time-line-segment start="8" end="12" label="段A" color="#3498db"></time-line-segment>
-      <time-line-segment start="14" end="17" label="段B" color="#2ecc71"></time-line-segment>
+    <time-line-track label="轨道-A" start="00:00" end="24:00">
+      <time-line-segment start="08:00" end="12:00" label="段A" color="#3498db"></time-line-segment>
+      <time-line-segment start="14:00" end="17:00" label="段B" color="#2ecc71"></time-line-segment>
     </time-line-track>
-    <time-line-track label="轨道-B" start="0" end="24">
-      <time-line-segment start="9" end="13" label="段C" color="#e67e22"></time-line-segment>
-      <time-line-segment start="15" end="18" label="段D" color="#9b59b6"></time-line-segment>
+    <time-line-track label="轨道-B" start="00:00" end="24:00">
+      <time-line-segment start="09:00" end="13:00" label="段C" color="#e67e22"></time-line-segment>
+      <time-line-segment start="15:00" end="18:00" label="段D" color="#9b59b6"></time-line-segment>
     </time-line-track>
   </time-line-container>
 
   <!-- 🔒 完全只读 -->
   <time-line-container creatable="false" editable="false" deletable="false" clearable="false">
-    <time-line-track label="只读轨道" start="0" end="24">
-      <time-line-segment start="8" end="12" label="不可操作" color="#95a5a6"></time-line-segment>
+    <time-line-track label="只读轨道" start="00:00" end="24:00">
+      <time-line-segment start="08:00" end="12:00" label="不可操作" color="#95a5a6"></time-line-segment>
     </time-line-track>
   </time-line-container>
 
   <!-- ➕ 仅创建 -->
   <time-line-container creatable="true" editable="false" deletable="false" clearable="false">
-    <time-line-track label="可添加段" start="0" end="24">
-      <time-line-segment start="9" end="12" label="已有段" color="#27ae60"></time-line-segment>
+    <time-line-track label="可添加段" start="00:00" end="24:00">
+      <time-line-segment start="09:00" end="12:00" label="已有段" color="#27ae60"></time-line-segment>
     </time-line-track>
   </time-line-container>
 
   <!-- ✏️ 仅编辑 -->
   <time-line-container creatable="false" editable="true" deletable="false" clearable="false">
-    <time-line-track label="可编辑段" start="0" end="24">
-      <time-line-segment start="8" end="11" label="可移动/拉伸" color="#2980b9"></time-line-segment>
-      <time-line-segment start="13" end="16" label="可修改属性" color="#8e44ad"></time-line-segment>
+    <time-line-track label="可编辑段" start="00:00" end="24:00">
+      <time-line-segment start="08:00" end="11:00" label="可移动/拉伸" color="#2980b9"></time-line-segment>
+      <time-line-segment start="13:00" end="16:00" label="可修改属性" color="#8e44ad"></time-line-segment>
     </time-line-track>
   </time-line-container>
 
   <!-- 🗑️ 仅删除 -->
   <time-line-container creatable="false" editable="false" deletable="true">
-    <time-line-track label="可删除段" start="0" end="24">
-      <time-line-segment start="10" end="14" label="可删除" color="#e74c3c"></time-line-segment>
-      <time-line-segment start="16" end="19" label="也可删除" color="#e67e22"></time-line-segment>
+    <time-line-track label="可删除段" start="00:00" end="24:00">
+      <time-line-segment start="10:00" end="14:00" label="可删除" color="#e74c3c"></time-line-segment>
+      <time-line-segment start="16:00" end="19:00" label="也可删除" color="#e67e22"></time-line-segment>
     </time-line-track>
   </time-line-container>
 
   <!-- 🛤️ 轨道级覆盖 -->
   <time-line-container style="height:160px">
-    <time-line-track label="普通轨道" start="0" end="24">
-      <time-line-segment start="8" end="12" label="全部可操作" color="#3498db"></time-line-segment>
+    <time-line-track label="普通轨道" start="00:00" end="24:00">
+      <time-line-segment start="08:00" end="12:00" label="全部可操作" color="#3498db"></time-line-segment>
     </time-line-track>
-    <time-line-track label="只读轨道" start="0" end="24" creatable="false" editable="false" deletable="false" clearable="false">
-      <time-line-segment start="14" end="18" label="完全只读" color="#95a5a6"></time-line-segment>
+    <time-line-track label="只读轨道" start="00:00" end="24:00" creatable="false" editable="false" deletable="false" clearable="false">
+      <time-line-segment start="14:00" end="18:00" label="完全只读" color="#95a5a6"></time-line-segment>
     </time-line-track>
   </time-line-container>
 
   <!-- 🧩 片段级覆盖 -->
   <time-line-container>
-    <time-line-track label="混合控制" start="0" end="24" deletable="false" clearable="false">
-      <time-line-segment start="8" end="10" label="可编辑" editable="true" color="#27ae60"></time-line-segment>
-      <time-line-segment start="11" end="13" label="只读" editable="false" deletable="false" color="#95a5a6"></time-line-segment>
-      <time-line-segment start="14" end="16" label="仅可删除" editable="false" deletable="true" color="#e74c3c"></time-line-segment>
-      <time-line-segment start="17" end="19" label="可编辑+删除" editable="true" deletable="true" color="#2980b9"></time-line-segment>
+    <time-line-track label="混合控制" start="00:00" end="24:00" deletable="false" clearable="false">
+      <time-line-segment start="08:00" end="10:00" label="可编辑" editable="true" color="#27ae60"></time-line-segment>
+      <time-line-segment start="11:00" end="13:00" label="只读" editable="false" deletable="false" color="#95a5a6"></time-line-segment>
+      <time-line-segment start="14:00" end="16:00" label="仅可删除" editable="false" deletable="true" color="#e74c3c"></time-line-segment>
+      <time-line-segment start="17:00" end="19:00" label="可编辑+删除" editable="true" deletable="true" color="#2980b9"></time-line-segment>
     </time-line-track>
   </time-line-container>`,
 ]
@@ -718,6 +718,7 @@ const TAB_JS_SOURCE = [
 // 用户可通过滑块控制轨道数和每轨道段数
 // 时间段自动非重叠分布，颜色随机分配
 
+const TOTAL = 86400;
 const container = document.querySelector('time-line-container');
 const trackN = 5;   // 轨道数（滑块调节 1-15）
 const segN  = 20;   // 每轨道段数（滑块调节 1-150）
@@ -729,15 +730,15 @@ for (let t = 0; t < trackN; t++) {
   const track = document.createElement('time-line-track');
   track.setAttribute('label', '密集轨道-' + (t + 1));
   track.setAttribute('start', '0');
-  track.setAttribute('end', '24');
+  track.setAttribute("end", String(TOTAL));
   container.appendChild(track);
 
   for (let s = 0; s < segN; s++) {
     const seg = document.createElement('time-line-segment');
-    const start = s * (24 / segN) + Math.random() * 0.15;
-    const end   = start + (24 / segN) * 0.3 + Math.random() * 0.1;
+    const start = Math.round(s * (TOTAL / segN) + Math.random() * TOTAL * 0.006);
+    const end   = Math.round(start + (TOTAL / segN) * 0.3 + Math.random() * TOTAL * 0.004);
     seg.setAttribute('start', String(Math.max(start, 0)));
-    seg.setAttribute('end', String(Math.min(end, 24)));
+    seg.setAttribute("end", String(Math.min(end, TOTAL)));
     seg.setAttribute('label', 'S' + (s + 1));
     seg.setAttribute('color', pick(colors));
     track.appendChild(seg);
@@ -843,7 +844,7 @@ function generateVueTemplate() {
     ['direction', 'horizontal'],
     ['axisMode', 'per-track'],
     ['type', 'time'],
-    ['unit', 'hour'],
+    ['unit', 'second'],
     ['tooltipPos', 'top-center'],
     ['labelH', 'top'],
     ['labelV', 'left'],

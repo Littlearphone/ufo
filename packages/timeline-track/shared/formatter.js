@@ -219,15 +219,16 @@ export class ValueFormatter {
  */
 export class TimeFormatter extends ValueFormatter {
   /**
-   * @param {'hour'|'minute'|'second'} [unit='hour'] - 归一化单位
+   * @param {'hour'|'minute'|'second'} [unit='second'] - 归一化单位
    */
-  constructor(unit = 'hour') {
+  constructor(unit = 'second') {
     super(unit)
     this._ticks = _ticksForUnit(unit)
     this._showSec = false
   }
 
-  get showSec() { return this._showSec || this._unit === 'second' }
+  /** showSec 不由 unit 自动决定，仅在 _doFormat 中 tooltip/editor 场景下受 unit 影响 */
+  get showSec() { return this._showSec }
   set showSec(v) { this._showSec = !!v }
 
   /** 转换为小时（所有内部计算以小时为基准 */
@@ -325,8 +326,9 @@ export class TimeFormatter extends ValueFormatter {
   }
 
   _doFormat(val, context) {
-    // 秒级精度模式：showSec 或 second 单位下的 tooltip/editor 含秒
-    const showSec = this.showSec || (this._unit === 'second' && (context === 'tooltip' || context === 'editor'))
+    // 秒级单位下 tooltip/editor 自动显示秒；轴标签和段标签由 draw 代码根据需要设置 showSec
+    const autoSec = this._unit === 'second' && (context === 'tooltip' || context === 'editor')
+    const showSec = this.showSec || autoSec
     return _fmtHours(this._toHours(val), showSec)
   }
 
@@ -470,11 +472,11 @@ export class NumberFormatter extends ValueFormatter {
  * @param {string} [unit]
  * @returns {ValueFormatter}
  */
-export function createFormatter(type = 'time', unit = 'hour') {
+export function createFormatter(type = 'time', unit = 'second') {
   if (type === 'number') {
     return new NumberFormatter(unit)
   }
-  // type === 'time'（默认）
+  // type === 'time'（默认），默认 unit='second'，裸数字视为秒，支持 HH:MM/自然单位输入
   const validUnits = ['hour', 'minute', 'second']
-  return new TimeFormatter(validUnits.includes(unit) ? unit : 'hour')
+  return new TimeFormatter(validUnits.includes(unit) ? unit : 'second')
 }
