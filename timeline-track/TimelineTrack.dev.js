@@ -1663,15 +1663,16 @@ time-line-segment.tls-copy-pulse .tls-bar {
   }
   class TimeFormatter extends ValueFormatter {
     /**
-     * @param {'hour'|'minute'|'second'} [unit='hour'] - 归一化单位
+     * @param {'hour'|'minute'|'second'} [unit='second'] - 归一化单位
      */
-    constructor(unit = "hour") {
+    constructor(unit = "second") {
       super(unit);
       this._ticks = _ticksForUnit(unit);
       this._showSec = false;
     }
+    /** showSec 不由 unit 自动决定，仅在 _doFormat 中 tooltip/editor 场景下受 unit 影响 */
     get showSec() {
-      return this._showSec || this._unit === "second";
+      return this._showSec;
     }
     set showSec(v) {
       this._showSec = !!v;
@@ -1768,7 +1769,8 @@ time-line-segment.tls-copy-pulse .tls-bar {
       };
     }
     _doFormat(val, context) {
-      const showSec = this.showSec || this._unit === "second" && (context === "tooltip" || context === "editor");
+      const autoSec = this._unit === "second" && (context === "tooltip" || context === "editor");
+      const showSec = this.showSec || autoSec;
       return _fmtHours(this._toHours(val), showSec);
     }
     _doParse(str, fallback) {
@@ -1864,12 +1866,12 @@ time-line-segment.tls-copy-pulse .tls-bar {
       return "10";
     }
   }
-  function createFormatter$1(type = "time", unit = "hour") {
+  function createFormatter$1(type = "time", unit = "second") {
     if (type === "number") {
       return new NumberFormatter(unit);
     }
     const validUnits = ["hour", "minute", "second"];
-    return new TimeFormatter(validUnits.includes(unit) ? unit : "hour");
+    return new TimeFormatter(validUnits.includes(unit) ? unit : "second");
   }
   class TimeContainer extends HTMLElement {
     constructor() {
@@ -1989,10 +1991,10 @@ time-line-segment.tls-copy-pulse .tls-bar {
     }
     /** 归一化/显示单位：'hour' | 'minute' | 'second' | ''（自定义） */
     get unit() {
-      return this.getAttribute("unit") || "hour";
+      return this.getAttribute("unit") || "second";
     }
     set unit(v) {
-      if (v == null || v === "hour") this.removeAttribute("unit");
+      if (v == null || v === "second") this.removeAttribute("unit");
       else this.setAttribute("unit", v);
     }
     /** 获取当前 Formatter 实例 */
@@ -2094,40 +2096,40 @@ time-line-segment.tls-copy-pulse .tls-bar {
       return this.getAttribute("editable") !== "false";
     }
     set editable(v) {
-      if (v == null || v === true || v === "true") this.removeAttribute("editable");
-      else this.setAttribute("editable", "false");
+      if (v == null) this.removeAttribute("editable");
+      else this.setAttribute("editable", v === false || v === "false" ? "false" : "true");
     }
     /** 是否允许删除（删除按钮/菜单项），默认 true */
     get deletable() {
       return this.getAttribute("deletable") !== "false";
     }
     set deletable(v) {
-      if (v == null || v === true || v === "true") this.removeAttribute("deletable");
-      else this.setAttribute("deletable", "false");
+      if (v == null) this.removeAttribute("deletable");
+      else this.setAttribute("deletable", v === false || v === "false" ? "false" : "true");
     }
     /** 是否允许清空段（右键菜单"清空时间段"），默认 true */
     get clearable() {
       return this.getAttribute("clearable") !== "false";
     }
     set clearable(v) {
-      if (v == null || v === true || v === "true") this.removeAttribute("clearable");
-      else this.setAttribute("clearable", "false");
+      if (v == null) this.removeAttribute("clearable");
+      else this.setAttribute("clearable", v === false || v === "false" ? "false" : "true");
     }
     /** 是否允许复制（段/轨道复制菜单项），默认 true */
     get copyable() {
       return this.getAttribute("copyable") !== "false";
     }
     set copyable(v) {
-      if (v == null || v === true || v === "true") this.removeAttribute("copyable");
-      else this.setAttribute("copyable", "false");
+      if (v == null) this.removeAttribute("copyable");
+      else this.setAttribute("copyable", v === false || v === "false" ? "false" : "true");
     }
     /** 是否允许创建新内容（拖拽创建新段），默认 true */
     get creatable() {
       return this.getAttribute("creatable") !== "false";
     }
     set creatable(v) {
-      if (v == null || v === true || v === "true") this.removeAttribute("creatable");
-      else this.setAttribute("creatable", "false");
+      if (v == null) this.removeAttribute("creatable");
+      else this.setAttribute("creatable", v === false || v === "false" ? "false" : "true");
     }
     /** 选中模式：点击段切换选中状态而非拖拽，默认关闭 */
     get selectionMode() {
@@ -3652,8 +3654,8 @@ time-line-segment.tls-copy-pulse .tls-bar {
       return c ? c.editable : true;
     }
     set editable(v) {
-      if (v == null || v === true || v === "true") this.removeAttribute("editable");
-      else this.setAttribute("editable", "false");
+      if (v == null) this.removeAttribute("editable");
+      else this.setAttribute("editable", v === false || v === "false" ? "false" : "true");
     }
     /** 是否允许删除（删除轨道/段删除按钮和菜单），默认继承容器值或 true */
     get deletable() {
@@ -3662,8 +3664,8 @@ time-line-segment.tls-copy-pulse .tls-bar {
       return c ? c.deletable : true;
     }
     set deletable(v) {
-      if (v == null || v === true || v === "true") this.removeAttribute("deletable");
-      else this.setAttribute("deletable", "false");
+      if (v == null) this.removeAttribute("deletable");
+      else this.setAttribute("deletable", v === false || v === "false" ? "false" : "true");
     }
     /** 是否允许清空本轨道所有段（右键菜单"清空时间段"），默认继承容器值或 true */
     get clearable() {
@@ -3672,8 +3674,8 @@ time-line-segment.tls-copy-pulse .tls-bar {
       return c ? c.clearable : true;
     }
     set clearable(v) {
-      if (v == null || v === true || v === "true") this.removeAttribute("clearable");
-      else this.setAttribute("clearable", "false");
+      if (v == null) this.removeAttribute("clearable");
+      else this.setAttribute("clearable", v === false || v === "false" ? "false" : "true");
     }
     /** 是否允许复制本轨道的段（菜单"复制段/轨道"），默认继承容器值或 true */
     get copyable() {
@@ -3682,8 +3684,8 @@ time-line-segment.tls-copy-pulse .tls-bar {
       return c ? c.copyable : true;
     }
     set copyable(v) {
-      if (v == null || v === true || v === "true") this.removeAttribute("copyable");
-      else this.setAttribute("copyable", "false");
+      if (v == null) this.removeAttribute("copyable");
+      else this.setAttribute("copyable", v === false || v === "false" ? "false" : "true");
     }
     /** 是否允许创建新段（拖拽创建），默认继承容器值或 true */
     get creatable() {
@@ -3692,8 +3694,8 @@ time-line-segment.tls-copy-pulse .tls-bar {
       return c ? c.creatable : true;
     }
     set creatable(v) {
-      if (v == null || v === true || v === "true") this.removeAttribute("creatable");
-      else this.setAttribute("creatable", "false");
+      if (v == null) this.removeAttribute("creatable");
+      else this.setAttribute("creatable", v === false || v === "false" ? "false" : "true");
     }
     get isVertical() {
       const c = this.closest("time-line-container");
@@ -4809,13 +4811,13 @@ time-line-segment.tls-copy-pulse .tls-bar {
       return this._formatter.parse(this.getAttribute("start"), 0);
     }
     set start(v) {
-      this.setAttribute("start", String(typeof v === "number" ? Math.round(v * 1e4) / 1e4 : v));
+      this.setAttribute("start", typeof v === "number" ? Number(v.toFixed(6)).toString() : String(v));
     }
     get end() {
       return this._formatter.parse(this.getAttribute("end"), 0);
     }
     set end(v) {
-      this.setAttribute("end", String(typeof v === "number" ? Math.round(v * 1e4) / 1e4 : v));
+      this.setAttribute("end", typeof v === "number" ? Number(v.toFixed(6)).toString() : String(v));
     }
     get label() {
       const v = this.getAttribute("label");
@@ -4935,8 +4937,8 @@ time-line-segment.tls-copy-pulse .tls-bar {
       return t ? t.editable : true;
     }
     set editable(v) {
-      if (v == null || v === true || v === "true") this.removeAttribute("editable");
-      else this.setAttribute("editable", "false");
+      if (v == null) this.removeAttribute("editable");
+      else this.setAttribute("editable", v === false || v === "false" ? "false" : "true");
     }
     /** 是否允许删除（删除按钮/菜单项），默认继承轨道值或 true */
     get deletable() {
@@ -4945,14 +4947,18 @@ time-line-segment.tls-copy-pulse .tls-bar {
       return t ? t.deletable : true;
     }
     set deletable(v) {
-      if (v == null || v === true || v === "true") this.removeAttribute("deletable");
-      else this.setAttribute("deletable", "false");
+      if (v == null) this.removeAttribute("deletable");
+      else this.setAttribute("deletable", v === false || v === "false" ? "false" : "true");
     }
     /** 是否允许复制（右键菜单"复制段"），默认继承轨道值或 true */
     get copyable() {
       if (this.hasAttribute("copyable")) return this.getAttribute("copyable") !== "false";
       const t = this._track;
       return t ? t.copyable : true;
+    }
+    set copyable(v) {
+      if (v == null) this.removeAttribute("copyable");
+      else this.setAttribute("copyable", v === false || v === "false" ? "false" : "true");
     }
     /** 获取所属的 time-line-track 元素 */
     get _track() {
