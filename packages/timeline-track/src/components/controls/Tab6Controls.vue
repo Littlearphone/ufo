@@ -4,11 +4,11 @@
     <div class="ctrl-group" style="background:#f8f9fb;border-color:#e8eaed;">
       <div class="ctrl-body" style="padding:8px 12px;">
         <div style="font-size:10px;line-height:1.8;color:#5f6b7a;">
-          <div>☑ <strong>creatable</strong> — 可拖拽空白区域<strong>创建新段</strong></div>
-          <div>☑ <strong>editable</strong> — 可<strong>拖拽移动/调整</strong>已有段、右键<strong>修改属性</strong></div>
-          <div>☑ <strong>deletable</strong> — 可删除段（×按钮/右键菜单）<strong>或删除轨道</strong></div>
-          <div>☑ <strong>clearable</strong> — 右键菜单<strong>"清空时间段"</strong>（移除全部段但保留轨道）</div>
-          <div>☑ <strong>copyable</strong> — 右键<strong>复制段/轨道</strong>、<strong>Ctrl+拖拽</strong>复制段</div>
+          <div>☑ <strong>creatable</strong> - 可拖拽空白区域<strong>创建新段</strong></div>
+          <div>☑ <strong>editable</strong> - 可<strong>拖拽移动/调整</strong>已有段、右键<strong>修改属性</strong></div>
+          <div>☑ <strong>deletable</strong> - 可删除段（x按钮/右键菜单）<strong>或删除轨道</strong></div>
+          <div>☑ <strong>clearable</strong> - 右键菜单<strong>"清空时间段"</strong>（移除全部段但保留轨道）</div>
+          <div>☑ <strong>copyable</strong> - 右键<strong>复制段/轨道</strong>、<strong>Ctrl+拖拽</strong>复制段</div>
           <div style="margin-top:4px;color:#90a4ae;font-size:9px;">下层未设属性时<strong>继承</strong>上层值。勾选 = 允许，不勾 = 禁止。</div>
         </div>
       </div>
@@ -121,7 +121,7 @@ function syncFromDOM() {
   segStates.value = Array.from(segs).map(s => {
     const track = s.closest('time-line-track')
     const trackLabel = track ? (track.getAttribute('label') || '未命名') : ''
-    const segLabel = s.getAttribute('label') || s.getAttribute('start') + '–' + s.getAttribute('end')
+    const segLabel = s.getAttribute('label') || s.getAttribute('start') + '-' + s.getAttribute('end')
     return {
       label: trackLabel + ' / ' + segLabel,
       editable: s.hasAttribute('editable') ? s.getAttribute('editable') !== 'false' : null,

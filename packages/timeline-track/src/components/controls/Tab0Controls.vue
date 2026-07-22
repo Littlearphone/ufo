@@ -274,7 +274,7 @@ const zoomRangeText = computed(() => {
   const ze = c().zoomEnd
   if (zs == null || ze == null) return '全部视图'
   const fmt = c().getFormatter()
-  return fmt.format(zs, 'axis') + ' — ' + fmt.format(ze, 'axis')
+  return fmt.format(zs, 'axis') + ' - ' + fmt.format(ze, 'axis')
 })
 
 function toggleClip() {

@@ -227,7 +227,7 @@ const timeRange = computed(() => {
   // 拖拽中显示实时值（与 CE _onMove_ → _buildDOM 实时重建文字对齐）
   if (_dragTimeText.value) return _dragTimeText.value
   const fmt = props.formatter
-  if (!fmt) return `${props.segment.start} – ${props.segment.end}`
+  if (!fmt) return `${props.segment.start} - ${props.segment.end}`
   return fmt.formatRange(
     Math.min(props.segment.start, props.segment.end),
     Math.max(props.segment.start, props.segment.end),
@@ -277,7 +277,7 @@ function _refreshTooltip() {
     const fmt = props.formatter
     tooltipCtrl.show({
       label: props.segment.label || '',
-      timeText: fmt ? fmt.formatRange(props.segment.start, props.segment.end, 'tooltip') : `${props.segment.start} – ${props.segment.end}`,
+      timeText: fmt ? fmt.formatRange(props.segment.start, props.segment.end, 'tooltip') : `${props.segment.start} - ${props.segment.end}`,
       rect,
       pos: effectiveTooltipPos.value,
     })
@@ -560,7 +560,7 @@ function _updateDragDisplay(curStart, curEnd) {
   const fmt = props.formatter
   _dragTimeText.value = fmt
     ? fmt.formatRange(Math.min(curStart, curEnd), Math.max(curStart, curEnd), 'segment')
-    : `${curStart} – ${curEnd}`
+    : `${curStart} - ${curEnd}`
   const el = wrapperRef.value
   if (!el) return
   // 2. 同步截断检测（布局已由 wrapperStyle 更新 + getBoundingClientRect 强制重排）
@@ -596,7 +596,7 @@ function _updateDragDisplay(curStart, curEnd) {
     const rect = el.getBoundingClientRect()
     tooltipCtrl.show({
       label: props.segment.label || '',
-      timeText: fmt ? fmt.formatRange(curStart, curEnd, 'tooltip') : `${curStart} – ${curEnd}`,
+      timeText: fmt ? fmt.formatRange(curStart, curEnd, 'tooltip') : `${curStart} - ${curEnd}`,
       rect,
       pos: effectiveTooltipPos.value,
     })
@@ -838,7 +838,7 @@ function _swapToResizeLeft(e) {
 function onDeleteClick() {
   const loc = _locale.value
   const fmt = props.formatter
-  const segRange = fmt ? fmt.formatRange(props.segment.start, props.segment.end, 'axis') : `${props.segment.start} – ${props.segment.end}`
+  const segRange = fmt ? fmt.formatRange(props.segment.start, props.segment.end, 'axis') : `${props.segment.start} - ${props.segment.end}`
   const name = props.segment.label || segRange
   const msg = formatLocale(loc.confirmDeleteSegment || '确定要删除时间段「{name}」({range}) 吗？', { name, range: segRange })
 
@@ -865,8 +865,8 @@ function onCtxMenu(e) {
 
   const loc = _locale.value
   const fmt = props.formatter
-  const segRange = fmt ? fmt.formatRange(props.segment.start, props.segment.end, 'axis') : `${props.segment.start} – ${props.segment.end}`
-  const headerLabel = formatLocale(loc.segmentMenuHeader || '🔖 {name}  {range}', { name: props.segment.label || '', range: segRange })
+  const segRange = fmt ? fmt.formatRange(props.segment.start, props.segment.end, 'axis') : `${props.segment.start} - ${props.segment.end}`
+  const headerLabel = formatLocale(loc.segmentMenuHeader || '# {name} - {range}', { name: props.segment.label || '', range: segRange })
 
   const items = [
     { type: 'header', label: headerLabel },

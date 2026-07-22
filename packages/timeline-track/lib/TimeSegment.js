@@ -281,7 +281,7 @@ export class TimeSegment extends HTMLElement {
       e.stopPropagation()                       // 阻止冒泡到轨道
       const l = resolveLocale(this)
       const segRange = this._formatter.formatRange(this.start, this.end, 'axis')
-      // 无标签时也使用 locale 模板（保留 🔖 图标），{name} 传入空字符串
+      // 无标签时也使用 locale 模板，{name} 传入空字符串
       const name = this.label || segRange
       const headerLabel = l.segmentMenuHeader
         .replace('{name}', this.label || '')

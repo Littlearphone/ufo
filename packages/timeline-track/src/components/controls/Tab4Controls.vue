@@ -5,7 +5,7 @@
     </div>
     <div class="ctrl-body" v-show="state[0]">
       <p class="ctrl-desc">
-        <strong>Data-Owner Pattern</strong> — Vue 拥有数据层，Custom Elements 负责渲染层。
+        <strong>Data-Owner Pattern</strong> - Vue 拥有数据层，Custom Elements 负责渲染层。
       </p>
       <div class="ctrl-code ctrl-code-wrap"><code>// 1. 引入 composable
 import { useTimelineSync } from '@ufo/timeline-track/composables/useTimelineSync'

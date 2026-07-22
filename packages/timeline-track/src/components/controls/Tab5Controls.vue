@@ -458,7 +458,7 @@ const zoomLevel = computed(() => {
 const zoomRangeText = computed(() => {
   const vr = _viewRange()
   if (props.config?.zoomStart == null) return '全部视图'
-  return vr.start.toFixed(1) + ' — ' + vr.end.toFixed(1)
+  return vr.start.toFixed(1) + ' - ' + vr.end.toFixed(1)
 })
 
 function zoomIn() {

@@ -163,7 +163,7 @@ const _showRangeLabel = computed(() => axisMode.value !== 'shared')
 const rangeLabel = computed(() => {
   if (!_showRangeLabel.value) return ''
   const fmt = props.formatter
-  if (!fmt) return `${props.rangeStart} – ${props.rangeEnd}`
+  if (!fmt) return `${props.rangeStart} - ${props.rangeEnd}`
   return fmt.formatRange(props.rangeStart, props.rangeEnd, 'axis')
 })
 
@@ -539,7 +539,7 @@ function _createMove(e) {
 
   // 更新 tooltip 显示起止范围
   const fmt = props.formatter
-  ghostLabel.value = fmt ? fmt.formatRange(lo, hi, 'tooltip') : `${lo} – ${hi}`
+  ghostLabel.value = fmt ? fmt.formatRange(lo, hi, 'tooltip') : `${lo} - ${hi}`
 }
 
 function _createUp(e) {
@@ -643,7 +643,7 @@ function onTrackCtxMenu(e) {
   const trackLabel = props.track.label || loc.unnamed || ''
   const clip = clipboardCtrl.clipboard.value
   const items = [
-    { type: 'header', label: formatLocale(loc.trackMenuHeader || '📋 {name}', { name: trackLabel }) },
+    { type: 'header', label: formatLocale(loc.trackMenuHeader || '# {name}', { name: trackLabel }) },
   ]
 
   if (props.editable) {
@@ -707,7 +707,7 @@ function onTrackCtxMenu(e) {
       danger: true,
       action: () => {
         const fmt = props.formatter
-        const rangeStr = fmt ? fmt.formatRange(props.rangeStart, props.rangeEnd, 'axis') : `${props.rangeStart} – ${props.rangeEnd}`
+        const rangeStr = fmt ? fmt.formatRange(props.rangeStart, props.rangeEnd, 'axis') : `${props.rangeStart} - ${props.rangeEnd}`
         const msg = formatLocale(loc.confirmDeleteTrack || '确定要删除轨道「{name}」({range}) 吗？', { name: trackLabel, range: rangeStr })
         _showConfirm(msg, () => {
           emit('context-menu', { action: 'delete-track', trackId: props.track.id })

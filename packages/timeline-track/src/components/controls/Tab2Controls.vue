@@ -176,8 +176,8 @@ function doSetLimit() {
   track.setAttribute('max-segments', n > 0 ? String(n) : '')
   const label = track.label
   const cmd = n > 0
-    ? `max-segments="${n}" — 轨道: "${label}"`
-    : `移除 max-segments — 轨道: "${label}"`
+    ? `max-segments="${n}" - 轨道: "${label}"`
+    : `移除 max-segments - 轨道: "${label}"`
   addLog('api', cmd, n > 0 ? '→ 每轨道上限 = ' + n : '→ 已移除限制')
 }
 

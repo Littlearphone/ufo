@@ -22,9 +22,9 @@ export const DEFAULT_LOCALE = {
   /** Context menu item — clear all segments */
   clearSegments: 'Clear Segments',
   /** Track context menu header template, {name}=track name */
-  trackMenuHeader: '📋 {name}',
+  trackMenuHeader: '# {name}',
   /** Segment context menu header template, {name}=segment name, {range}=time range */
-  segmentMenuHeader: '🔖 {name}  {range}',
+  segmentMenuHeader: '# {name} - {range}',
   /** Delete track confirmation template, {name}=track name, {range}=time range */
   confirmDeleteTrack: 'Delete track "{name}" ({range})?',
   /** Delete segment confirmation template */
@@ -100,7 +100,7 @@ export const DEFAULT_LOCALE = {
    * Placeholders: {start}=shared start, {end}=shared end.
    * Set to empty string to hide the label.
    */
-  axisRange: '{start} – {end}',
+  axisRange: '{start} - {end}',
 
   /* ---- Error messages ---- */
   /**
@@ -109,7 +109,7 @@ export const DEFAULT_LOCALE = {
    * {label}=conflicting segment name,
    * {segStart}/{segEnd}=conflicting segment range.
    */
-  segmentOverlapError: 'Segment overlap: new [{start}–{end}] conflicts with "{label}" [{segStart}–{segEnd}]',
+  segmentOverlapError: 'Segment overlap: new [{start}-{end}] conflicts with "{label}" [{segStart}-{segEnd}]',
 }
 
 /**

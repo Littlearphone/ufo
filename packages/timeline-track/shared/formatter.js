@@ -140,7 +140,7 @@ export class ValueFormatter {
    * @returns {string}
    */
   formatRange(start, end, context = 'axis') {
-    return this.format(start, context) + ' – ' + this.format(end, context)
+    return this.format(start, context) + ' - ' + this.format(end, context)
   }
 
   /**
